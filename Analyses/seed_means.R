@@ -74,7 +74,7 @@ nc <- 3
 # Stan model -------------
 ## here is the Stan model ##
 
-sink("endodemog_seed_mean.stan")
+sink("endo_spp_seed_mean.stan")
 cat("
     data { 
     int<lower=0> nSeed;                       // number of observations of seed/spikelet
@@ -82,85 +82,52 @@ cat("
     int<lower=0> nSpecies;                    // number of Species
     int<lower=0> species[nSeed];                     // Species
     
-    int<lower=1,upper=2> endo_index[nSeed];          // Endophyte index
+    //int<lower=1,upper=2> endo_index[nSeed];          // Endophyte index
     int<lower=0,upper=1> endo_01[nSeed];            // plant endophyte status
-    int<lower=0> nEndo;                             // number of endophyte statuses
+    //int<lower=0> nEndo;                             // number of endophyte statuses
 
     real<lower=0> seed[nSeed];               // number of seeds per spikelet
     }
     
     parameters {
-    real b_seed;            // mean intercept
-    real<lower=0> s_seed;   // 
-
-    vector[nSpecies] b_spp[nEndo];
-    real<lower=0> s_spp[nEndo]; // endo-species intercept
-    real b_endo;
+    real<lower=0> sigma0;               // overall variance
+    real betaspp[nSpecies];             // seed mean intercept for each species
+    real<lower=0> sigmaspp[nSpecies];  // seed variance for each species
+    
+    real betaendo[nSpecies];           // species specific endophyte effect on mean
     }
     
     transformed parameters{
     real mu_seed[nSeed];
+
     for(n in 1:nSeed){
-    mu_seed[n] = b_seed + b_endo*endo_01[n] + b_spp[endo_index[n],species[n]];
+    mu_seed[n] = betaspp[species[n]] + betaendo[species[n]]*endo_01[n];
     }
     }
     
     model {
     // Priors
-    b_seed ~ normal(0,10);
-    b_endo ~ normal(0,10);
-    to_vector(b_spp[1]) ~ normal(0,s_spp[1]);
-    to_vector(b_spp[2]) ~ normal(0,s_spp[2]);
+    sigma0 ~ normal(0,1);
+
+    to_vector(betaspp) ~ normal(0,sigmaspp);
+    to_vector(sigmaspp) ~ normal(0,1);
+    
+    to_vector(betaendo) ~ normal(0,10);
     // Likelihood
-      seed ~ normal(mu_seed,s_seed);
+      seed ~ normal(mu_seed,sigma0);
     }
     ", fill = T)
 sink()
 
-stanmodel <- stanc("endodemog_seed_mean.stan")
+stanmodel <- stanc("endo_spp_seed_mean.stan")
 
 ## Run the model by calling stan()
 ## Save the outputs as rds files
 
-sm_seed_mean <- stan(file = "endodemog_seed_mean.stan", data = seed_means_data_list,
+sm_seed_mean <- stan(file = "endo_spp_seed_mean.stan", data = seed_means_data_list,
                      iter = ni, warmup = nb, chains = nc, save_warmup = FALSE)
-# saveRDS(sm_seed_mean, file = "endodemog_seed_mean_all.rds")
+# saveRDS(sm_seed_mean, file = "seed_means.rds")
 
 
 
-
-
-
-
-
-smFESU <- stan(file = "endodemog_seed_mean.stan", data = FESU_seed_data_list,
-               iter = ni, warmup = nb, chains = nc, save_warmup = FALSE)
-# saveRDS(smFESU, file = "endodemog_seed_mean_FESU.rds")
-
-smLOAR <- stan(file = "endodemog_seed_mean.stan", data = LOAR_seed_data_list,
-               iter = ni, warmup = nb, chains = nc, save_warmup = FALSE)
-# saveRDS(smLOAR, file = "endodemog_seed_mean_LOAR.rds")
-
-smPOAL <- stan(file = "endodemog_seed_mean.stan", data = POAL_seed_data_list,
-               iter = ni, warmup = nb, chains = nc, save_warmup = FALSE)
-# saveRDS(smPOAL, file = "endodemog_seed_mean_POAL.rds")
-
-smPOSY <- stan(file = "endodemog_seed_mean.stan", data = POSY_seed_data_list,
-               iter = ni, warmup = nb, chains = nc, save_warmup = FALSE)
-saveRDS(smPOSY, file = "endodemog_seed_mean_POSY.rds")
-
-# AGPE had data recorded as seed/spikelet already, but we are using this model to calculate seed/spikelet on average, so this is using the seed/spikelet info from AGPE
-smAGPE<- stan(file = "endodemog_seed_mean.stan", data = AGPE_seed_data_list,
-              iter = ni, warmup = nb, chains = nc, save_warmup = FALSE)
-saveRDS(smAGPE, file = "endodemog_seed_mean_AGPE.rds")
-
-
-# ELRI and ELVI had data collected in a slightly different way. They recorded seeds/inflorescence, so this is our calculation for the mean seeds/infl
-smELRI <- stan(file = "endodemog_seed_mean.stan", data = ELRI_seed_data_list,
-               iter = ni, warmup = nb, chains = nc, save_warmup = FALSE)
-saveRDS(smELRI, file = "endodemog_seed_mean_ELRI.rds")
-
-smELVI <- stan(file = "endodemog_seed_mean.stan", data = ELVI_seed_data_list,
-               iter = ni, warmup = nb, chains = nc, save_warmup = FALSE)
-saveRDS(smELVI, file = "endodemog_seed_mean_ELVI.rds")
 
