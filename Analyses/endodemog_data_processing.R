@@ -1632,7 +1632,7 @@ LTREB_repro1 <- LTREB_repro %>%
 write_csv(LTREB_repro1,"~/Dropbox/EndodemogData/Fulldataplusmetadata/LTREB_repro1.csv")
 
 ## Tom is reading in the repro data from here
-LTREB_repro1 <- read_csv(paste0(tompath,"Fulldataplusmetadata/LTREB_repro1.csv"))
+# LTREB_repro1 <- read_csv(paste0(tompath,"Fulldataplusmetadata/LTREB_repro1.csv"))
 
 
 
@@ -1862,7 +1862,7 @@ LTREB_endo_check <- read_csv(file = "~/Dropbox/EndodemogData/Fulldataplusmetadat
 #   check:	"x" indicates the incorrect status was detected given original plot level treatment
 
 # There are two plants that are checked but are not present in the endo_demog_long dataset
-setdiff(LTREB_endo_check$id,LTREB_full_to2019_lag$id)
+setdiff(LTREB_endo_check$id,LTREB_full_update_lag$id)
 
 LTREB_full_2 <- LTREB_full_update_lag %>% 
   left_join(LTREB_endo_check, by = c("species" = "species", "plot_fixed" = "plot", "pos" = "pos", "origin_01" = "origin_01", "id" = "id"))
@@ -1911,9 +1911,7 @@ LTREB_full <- LTREB_full_2 %>%
 
 ## Tom is loading this in, bypassing above code
 tompath <- "C:/Users/tm9/Dropbox/EndodemogData/"
-#tompath <- "C:/Users/tm634/Dropbox/EndodemogData/"
-
-LTREB_full <- read_csv(paste0(tompath,"Fulldataplusmetadata/LTREB_full.csv"))
+# LTREB_full <- read_csv(paste0(tompath,"Fulldataplusmetadata/LTREB_full.csv"))
 
 
 
