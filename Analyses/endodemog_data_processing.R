@@ -1826,7 +1826,7 @@ LTREB_full_update_lag <- LTREB_full_update %>%
          SPIKE_AGHE_MEAN_T = case_when(!is.na(SPIKE_AGPE_MEAN_T) ~ SPIKE_AGPE_MEAN_T,
                                        !is.na(SPIKE_AGPE_MEAN_T_NEW) ~ SPIKE_AGPE_MEAN_T_NEW),
          ) %>% 
-  dplyr::select(plot_fixed, pos, id, species, species_index, 
+  dplyr::select(plot_fixed, plot_index, pos, id, species, species_index, 
                 endo_01, endo_index, origin_01, birth,
                 year_t1, year_t1_index,
                 surv_t1, size_t1, logsize_t1,

@@ -20,7 +20,6 @@ logit = function(x) { log(x/(1-x)) }
 #############################################################################################
 
 # seed data lists are generated in the endodemog_data_processing.R file, 
-# within the section titled "Preparing datalists for Seed Means Kernel"
 source("Analyses/endodemog_data_processing.R")
 
 
@@ -48,7 +47,7 @@ seed_means_data_list <- list(seed = LTREB_data_for_seedmeans$SEED_PER_SPIKE,
                              year = LTREB_data_for_seedmeans$year,
                              plot = LTREB_data_for_seedmeans$plot_fixed,
                              species = LTREB_data_for_seedmeans$species_index,
-                             nSeed = length(na.omit(LTREB_data_for_seedmeans$SEED_PER_SPIKE)),
+                             N = length(na.omit(LTREB_data_for_seedmeans$SEED_PER_SPIKE)),
                              K = 2L,
                              nYear = length(unique(LTREB_data_for_seedmeans$year)),
                              nPlot = length(unique(LTREB_data_for_seedmeans$plot_fixed)),
@@ -77,16 +76,16 @@ nc <- 3
 sink("endo_spp_seed_mean.stan")
 cat("
     data { 
-    int<lower=0> nSeed;                       // number of observations of seed/spikelet
+    int<lower=0> N;                       // number of observations of seed/spikelet
     
     int<lower=0> nSpecies;                    // number of Species
-    int<lower=0> species[nSeed];                     // Species
+    int<lower=0> species[N];                     // Species
     
-    //int<lower=1,upper=2> endo_index[nSeed];          // Endophyte index
-    int<lower=0,upper=1> endo_01[nSeed];            // plant endophyte status
+    //int<lower=1,upper=2> endo_index[N];          // Endophyte index
+    int<lower=0,upper=1> endo_01[N];            // plant endophyte status
     //int<lower=0> nEndo;                             // number of endophyte statuses
 
-    real<lower=0> seed[nSeed];               // number of seeds per spikelet
+    real<lower=0> seed[N];               // number of seeds per spikelet
     }
     
     parameters {
@@ -98,9 +97,9 @@ cat("
     }
     
     transformed parameters{
-    real mu_seed[nSeed];
+    real mu_seed[N];
 
-    for(n in 1:nSeed){
+    for(n in 1:N){
     mu_seed[n] = betaspp[species[n]] + betaendo[species[n]]*endo_01[n];
     }
     }
