@@ -175,28 +175,28 @@ sm_surv <- stan(file = "Analyses/endo_spp_surv_flw.stan", data = surv_data_list,
                 warmup = mcmc_pars$warmup,
                 chains = mcmc_pars$chains, 
                 thin = mcmc_pars$thin)
-saveRDS(sm_surv, file = "~Dropbox/EndodemogData/Model_Runs/endo_spp_surv.rds")
+saveRDS(sm_surv, file = "~/Dropbox/EndodemogData/Model_Runs/endo_spp_surv.rds")
 
 sm_flw <- stan(file = "endo_spp_surv_flw.stan", data = flw_data_list,
                iter = mcmc_pars$iter,
                warmup = mcmc_pars$warmup,
                chains = mcmc_pars$chains, 
                thin = mcmc_pars$thin)
-saveRDS(sm_flw, file = "~Dropbox/EndodemogData/Model_Runs/endo_spp_flw.rds")
+saveRDS(sm_flw, file = "~/Dropbox/EndodemogData/Model_Runs/endo_spp_flw.rds")
 
 sm_grow <- stan(file = "Analyses/endo_spp_grow_fert.stan", data = surv_data_list,
                 iter = mcmc_pars$iter,
                 warmup = mcmc_pars$warmup,
                 chains = mcmc_pars$chains, 
                 thin = mcmc_pars$thin)
-saveRDS(sm_surv, file = "~Dropbox/EndodemogData/Model_Runs/endo_spp_grow.rds")
+saveRDS(sm_surv, file = "~/Dropbox/EndodemogData/Model_Runs/endo_spp_grow.rds")
 
 sm_fert <- stan(file = "Analyses/endo_spp_grow_fert.stan", data = flw_data_list,
                iter = mcmc_pars$iter,
                warmup = mcmc_pars$warmup,
                chains = mcmc_pars$chains, 
                thin = mcmc_pars$thin)
-saveRDS(sm_flw, file = "~Dropbox/EndodemogData/Model_Runs/endo_spp_fert.rds")
+saveRDS(sm_flw, file = "~/Dropbox/EndodemogData/Model_Runs/endo_spp_fert.rds")
 
 
 sm_spike <- stan(file = "Analyses/endo_spp_spike.stan", data = spike_data_list,
@@ -209,7 +209,7 @@ sm_spike <- stan(file = "Analyses/endo_spp_spike.stan", data = spike_data_list,
 # Model Diagnostics ------------------------------
 #########################################################################################################
 #survival
-surv_fit <- read_rds("~Dropbox/EndodemogData/Model_Runs/endo_spp_surv.rds")
+surv_fit <- read_rds("~/Dropbox/EndodemogData/Model_Runs/endo_spp_surv.rds")
 predS <- rstan::extract(surv_fit, pars = c("p"))$p
 n_post_draws <- 100
 post_draws <- sample.int(dim(predS)[1], n_post_draws)
@@ -220,7 +220,7 @@ for(i in 1:n_post_draws){
 ppc_dens_overlay(surv_data_list$y, y_s_sim)
 
 #flowering
-flow_fit <- read_rds("~Dropbox/EndodemogData/Model_Runs/endo_spp_flw.rds")
+flow_fit <- read_rds("~/Dropbox/EndodemogData/Model_Runs/endo_spp_flw.rds")
 predF <- rstan::extract(flow_fit, pars = c("p"))$p
 n_post_draws <- 100
 post_draws <- sample.int(dim(predF)[1], n_post_draws)
@@ -231,7 +231,7 @@ for(i in 1:n_post_draws){
 ppc_dens_overlay(flw_data_list$y, y_f_sim)
 
 #growth
-grow_fit <- read_rds("~Dropbox/EndodemogData/Model_Runs/endo_spp_grow.rds")
+grow_fit <- read_rds("~/Dropbox/EndodemogData/Model_Runs/endo_spp_grow.rds")
 predG <- rstan::extract(grow_fit, pars = c("lambda"))$lambda
 phiG <- rstan::extract(grow_fit, pars = c("phi"))$phi
 n_post_draws <- 100
@@ -243,14 +243,14 @@ for(i in 1:n_post_draw){
 ppc_dens_overlay(grow_data_list$y, y_g_sim)
 
 ## fertility
-fert_fit <- read_rds("~Dropbox/EndodemogData/Model_Runs/endo_spp_fert.rds")
+fert_fit <- read_rds("~/Dropbox/EndodemogData/Model_Runs/endo_spp_fert.rds")
 
 mcmc_trace(fert_fit,pars=c("betaendo[1]","betaendo[2]","betaendo[3]"
                            ,"betaendo[4]","betaendo[5]","betaendo[6]"
                            ,"betaendo[7]"))
 
 ## spikelet
-spike_fit <- read_rds("~Dropbox/EndodemogData/Model_Runs/endo_spp_spike.rds")
+spike_fit <- read_rds("~/Dropbox/EndodemogData/Model_Runs/endo_spp_spike.rds")
 predSpike <- rstan::extract(spike_fit, pars = c("p"))$p
 n_post_draws <- 100
 post_draws <- sample.int(dim(predSpike)[1], n_post_draws)

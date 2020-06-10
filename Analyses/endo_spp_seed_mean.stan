@@ -1,15 +1,14 @@
 
     data { 
-    int<lower=0> nSeed;                       // number of observations of seed/spikelet
+    int<lower=0> N;                       // number of observations of seed/spikelet
     
     int<lower=0> nSpecies;                    // number of Species
-    int<lower=0> species[nSeed];                     // Species
+    int<lower=0> species[N];                     // Species
     
-    //int<lower=1,upper=2> endo_index[nSeed];          // Endophyte index
-    int<lower=0,upper=1> endo_01[nSeed];            // plant endophyte status
+    //int<lower=1,upper=2> endo_index[N];          // Endophyte index
+    int<lower=0,upper=1> endo_01[N];            // plant endophyte status
     //int<lower=0> nEndo;                             // number of endophyte statuses
-
-    real<lower=0> seed[nSeed];               // number of seeds per spikelet
+    real<lower=0> seed[N];               // number of seeds per spikelet
     }
     
     parameters {
@@ -21,9 +20,8 @@
     }
     
     transformed parameters{
-    real mu_seed[nSeed];
-
-    for(n in 1:nSeed){
+    real mu_seed[N];
+    for(n in 1:N){
     mu_seed[n] = betaspp[species[n]] + betaendo[species[n]]*endo_01[n];
     }
     }
@@ -31,7 +29,6 @@
     model {
     // Priors
     sigma0 ~ normal(0,1);
-
     to_vector(betaspp) ~ normal(0,sigmaspp);
     to_vector(sigmaspp) ~ normal(0,1);
     
