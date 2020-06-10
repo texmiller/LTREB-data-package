@@ -30,7 +30,7 @@
     // Priors
     sigma0 ~ normal(0,1);
     to_vector(betaspp) ~ normal(0,sigmaspp);
-    to_vector(sigmaspp) ~ normal(0,1);
+    to_vector(sigmaspp) ~ normal(0,10);
     
     to_vector(betaendo) ~ normal(0,10);
     // Likelihood
