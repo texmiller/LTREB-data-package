@@ -68,9 +68,9 @@ LTREB_data_forspike <- LTREB_full %>%
   filter(!is.na(spike_count_t), spike_count_t > 0) %>% 
   mutate(spike_count_t = as.integer(spike_count_t))
 
-ggplot(LTREB_data_forspike)+
-  geom_histogram(aes(x=spike_count_t))+
-  facet_grid(year_t~species)
+# ggplot(LTREB_data_forspike)+
+#   geom_histogram(aes(x=spike_count_t))+
+#   facet_grid(year_t~species)
 ## I don't think there are enough data to fit year variances
 ## so I am just going to fit fixed effects of size and endo
 rm(LTREB_full)
@@ -164,8 +164,8 @@ set.seed(123)
 
 ## MCMC settings
 mcmc_pars <- list(
-  warmup = 1000, 
-  iter = 5000, 
+  warmup = 500, 
+  iter = 1000, 
   thin = 3, 
   chains = 1
 )
@@ -177,7 +177,7 @@ sm_surv <- stan(file = "Analyses/endo_spp_surv_flw.stan", data = surv_data_list,
                 thin = mcmc_pars$thin)
 saveRDS(sm_surv, file = "~/Dropbox/EndodemogData/Model_Runs/endo_spp_surv.rds")
 
-sm_flw <- stan(file = "endo_spp_surv_flw.stan", data = flw_data_list,
+sm_flw <- stan(file = "Analyses/endo_spp_surv_flw.stan", data = flw_data_list,
                iter = mcmc_pars$iter,
                warmup = mcmc_pars$warmup,
                chains = mcmc_pars$chains, 
@@ -226,7 +226,7 @@ n_post_draws <- 100
 post_draws <- sample.int(dim(predF)[1], n_post_draws)
 y_f_sim <- matrix(NA,n_post_draws,length(flw_data_list$y))
 for(i in 1:n_post_draws){
-  y_s_sim[i,] <- rbinom(n=length(flw_data_list$y), size=1, prob = invlogit(predS[post_draws[i],]))
+  y_f_sim[i,] <- rbinom(n=length(flw_data_list$y), size=1, prob = invlogit(predF[post_draws[i],]))
 }
 ppc_dens_overlay(flw_data_list$y, y_f_sim)
 
