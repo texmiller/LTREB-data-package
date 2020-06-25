@@ -65,8 +65,8 @@ set.seed(123)
 
 ## MCMC settings
 mcmc_pars <- list(
-  warmup = 1000, 
-  iter = 5000, 
+  warmup = 5000, 
+  iter = 10000, 
   thin = 3, 
   chains = 1
 )
@@ -80,7 +80,34 @@ sm_seed_mean <- stan(file = "Analyses/endo_spp_seed_mean.stan", data = seed_mean
                      warmup = mcmc_pars$warmup,
                      chains = mcmc_pars$chains, 
                      thin = mcmc_pars$thin)
+
+sm_seed_mean_wo_beta0 <- stan(file = "Analyses/endo_spp_seed_mean.stan", data = seed_mean_data_list,
+                     iter = mcmc_pars$iter,
+                     warmup = mcmc_pars$warmup,
+                     chains = mcmc_pars$chains, 
+                     thin = mcmc_pars$thin)
+
+sm_seed_mean_centered <- stan(file = "Analyses/endo_spp_seed_mean_centered.stan", data = seed_mean_data_list,
+                              iter = mcmc_pars$iter,
+                              warmup = mcmc_pars$warmup,
+                              chains = mcmc_pars$chains, 
+                              thin = mcmc_pars$thin)
+
+sm_seed_mean_centered_w0_beta0 <- stan(file = "Analyses/endo_spp_seed_mean_centered.stan", data = seed_mean_data_list,
+                              iter = mcmc_pars$iter,
+                              warmup = mcmc_pars$warmup,
+                              chains = mcmc_pars$chains, 
+                              thin = mcmc_pars$thin)
 saveRDS(sm_seed_mean, file = "~/Dropbox/EndodemogData/Model_Runs/seed_means.rds")
+
+
+# Model test of non-centered Jun 18,
+
+saveRDS(sm_seed_mean, file = "~/Dropbox/EndodemogData/Model_Runs/seed_mean_noncentered.rds")
+saveRDS(sm_seed_mean_wo_beta0, file = "~/Dropbox/EndodemogData/Model_Runs/seed_mean_noncentered_wo_beta0.rds")
+saveRDS(sm_seed_mean_centered, file = "~/Dropbox/EndodemogData/Model_Runs/seed_mean_centered.rds")
+saveRDS(sm_seed_mean_centered_w0_beta0, file = "~/Dropbox/EndodemogData/Model_Runs/seed_mean_centered_wo_beta0.rds")
+
 
 
 
@@ -88,10 +115,15 @@ saveRDS(sm_seed_mean, file = "~/Dropbox/EndodemogData/Model_Runs/seed_means.rds"
 # Model Diagnostics ------------------------------
 #########################################################################################################
 
-seedmean_fit <- read_rds("~/Dropbox/EndodemogData/Model_Runs/seed_means.rds")
+seedmean_fit <- read_rds("~/Dropbox/EndodemogData/Model_Runs/seed_means.rds") #this was our original shorter run that does not included beta0 and doesn't have spp as random effects
+seedmean_fit <- read_rds("~/Dropbox/EndodemogData/Model_Runs/seed_mean_noncentered.rds")
+seedmean_fit <- read_rds("~/Dropbox/EndodemogData/Model_Runs/seed_mean_noncentered_wo_beta0.rds")
+seedmean_fit <- read_rds("~/Dropbox/EndodemogData/Model_Runs/seed_mean_centered.rds")
+seedmean_fit <- read_rds("~/Dropbox/EndodemogData/Model_Runs/seed_mean_centered_wo_beta0.rds")
+
 predSeedmean <- rstan::extract(seedmean_fit, pars = c("mu_seed"))$mu_seed
 sdSeedmean <- rstan::extract(seedmean_fit, pars = c("sigma0"))$sigma0
-n_post_draws <- 100
+n_post_draws <- 1000
 post_draws <- sample.int(dim(predSeedmean)[1], n_post_draws)
 y_seedmean_sim <- matrix(NA,n_post_draws,length(seed_mean_data_list$seed))
 for(i in 1:n_post_draws){
