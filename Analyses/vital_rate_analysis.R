@@ -62,14 +62,17 @@ dim(LTREB_data_forflw)
 LTREB_data_forgrow <- LTREB_full %>%
   filter(!is.na(logsize_t)) %>% 
   filter(!is.na(size_t1)) %>% 
-  filter(!is.na(endo_01)) 
+  filter(!is.na(endo_01)) %>% 
+  filter(origin_01 == 1 & year_t != birth | origin_01 == 0)  # filtering out first year germinants (including those that are bigger than 1 tiller)
 dim(LTREB_data_forgrow)
 
 LTREB_grow_seedling <- LTREB_full %>%
   filter(!is.na(logsize_t)) %>% 
   filter(!is.na(size_t1)) %>% 
   filter(!is.na(endo_01)) %>% 
-  filter(origin_01 == 1 & year_t == birth)
+  filter(origin_01 == 1 & year_t == birth) %>%  #filtering for recruits that are just germinated
+  filter(logsize_t == 0) # this is filtering out the plants that are "recruits" but are larger than 1 tiller
+
 dim(LTREB_grow_seedling)
 
 
@@ -164,8 +167,24 @@ grow_data_list <- list(y = as.integer(LTREB_data_forgrow$size_t1),
                        nSpp = length(unique(LTREB_data_forgrow$species_index)),
                        nYear = max(unique(LTREB_data_forgrow$year_t_index)),
                        nPlot = max(unique(LTREB_data_forgrow$plot_index)),
-                       nEndo =   length(unique(LTREB_data_forgrow$endo_01)));rm(LTREB_data_forgrow)
+                       nEndo =   length(unique(LTREB_data_forgrow$endo_01)))
 str(grow_data_list)
+seed_grow_data_list <- list(y = as.integer(LTREB_grow_seedling$size_t1),
+                       logsize_t = LTREB_grow_seedling$logsize_t,
+                       origin_01 = as.integer(LTREB_grow_seedling$origin_01),
+                       endo_01 = as.integer(LTREB_grow_seedling$endo_01),
+                       endo_index = as.integer(LTREB_grow_seedling$endo_index),
+                       spp = as.integer(LTREB_grow_seedling$species_index),
+                       year_t = as.integer(LTREB_grow_seedling$year_t_index),
+                       plot = as.integer(LTREB_grow_seedling$plot_index),
+                       N = nrow(LTREB_grow_seedling),
+                       nSpp = length(unique(LTREB_grow_seedling$species_index)),
+                       nYear = max(unique(LTREB_grow_seedling$year_t_index)),
+                       nPlot = max(unique(LTREB_grow_seedling$plot_index)),
+                       nEndo =   length(unique(LTREB_grow_seedling$endo_01)))
+str(seed_grow_data_list)
+
+
 
 fert_data_list <- list(y = as.integer(LTREB_data_forfert$FLW_COUNT_T),
                        logsize_t = LTREB_data_forfert$logsize_t,
@@ -178,7 +197,7 @@ fert_data_list <- list(y = as.integer(LTREB_data_forfert$FLW_COUNT_T),
                        N = nrow(LTREB_data_forfert),
                        nSpp = length(unique(LTREB_data_forfert$species_index)),
                        nYear = max(unique(LTREB_data_forfert$year_t_index)),
-                       nPlot = length(unique(LTREB_data_forfert$plot_index)),
+                       nPlot = max(unique(LTREB_data_forfert$plot_index)),
                        nEndo =   length(unique(LTREB_data_forfert$endo_01)));rm(LTREB_data_forfert)
 str(fert_data_list)
 
@@ -208,8 +227,8 @@ set.seed(123)
 
 ## MCMC settings
 mcmc_pars <- list(
-  warmup = 500, 
-  iter = 1000, 
+  warmup = 2500, 
+  iter = 5000, 
   thin = 1, 
   chains = 3
 )
@@ -218,14 +237,19 @@ sm_surv <- stan(file = "Analyses/endo_spp_surv_flw.stan", data = surv_data_list,
                 iter = mcmc_pars$iter,
                 warmup = mcmc_pars$warmup,
                 chains = mcmc_pars$chains, 
-                thin = mcmc_pars$thin)
+                thin = mcmc_pars$thin,
+                control = list(adapt_delta = .9))
 saveRDS(sm_surv, file = "~/Dropbox/EndodemogData/Model_Runs/endo_spp_surv_woseedling.rds")
+sm_surv <- readRDS(file = "~/Dropbox/EndodemogData/Model_Runs/endo_spp_surv_woseedling.rds")
 sm_seed_surv <- stan(file = "Analyses/seedling_surv.stan", data = seed_surv_data_list,
                      iter = mcmc_pars$iter,
                      warmup = mcmc_pars$warmup,
                      chains = mcmc_pars$chains, 
-                     thin = mcmc_pars$thin)
+                     thin = mcmc_pars$thin,
+                     control = list(adapt_delta = .9))
 saveRDS(sm_seed_surv, file = "~/Dropbox/EndodemogData/Model_Runs/endo_seedling_surv.rds")
+sm_seedling_surv <- readRDS(file = "~/Dropbox/EndodemogData/Model_Runs/endo_seedling_surv.rds")
+
 
 
 sm_surv <- stan(file = "Analyses/endo_spp_surv_flw_spprfx.stan", data = surv_data_list,
@@ -253,7 +277,15 @@ sm_grow <- stan(file = "Analyses/endo_spp_grow_fert.stan", data = grow_data_list
                 chains = mcmc_pars$chains, 
                 thin = mcmc_pars$thin)
 saveRDS(sm_grow, file = "~/Dropbox/EndodemogData/Model_Runs/endo_spp_grow.rds")
-stanc("Analyses/endo_spp_grow_fert.stan")
+sm_seed_grow <- stan(file = "Analyses/seedling_grow.stan", data = seed_grow_data_list,
+                iter = mcmc_pars$iter,
+                warmup = mcmc_pars$warmup,
+                chains = mcmc_pars$chains, 
+                thin = mcmc_pars$thin)
+saveRDS(sm_grow, file = "~/Dropbox/EndodemogData/Model_Runs/endo_spp_grow.rds")
+
+
+
 sm_grow_vector <- stan(file = "Analyses/endo_spp_grow_fert_vector.stan", data = grow_data_list,
                 iter = mcmc_pars$iter,
                 warmup = mcmc_pars$warmup,

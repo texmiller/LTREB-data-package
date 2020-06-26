@@ -10,7 +10,7 @@ data {
   int<lower=0, upper=nYear> year_t[N];         // year of observation for surv model
   int<lower=0> plot[N];                   // plot of observation for surv model
   int<lower=0, upper=nSpp> spp[N];         // year of observation for surv model
-  int<lower=0, upper=1> y[N];      // plant survival at time t+1 or flowering at time t
+  int<lower=0> y[N];                  // plant growth at time t+1 or fert at time t
   vector<lower=0>[N] logsize_t;             // plant size at time t for surv model
   int<lower=0,upper=1> endo_01[N];            // plant endophyte status for surv model
   int<lower=0,upper=1> origin_01[N];          // plant origin status for surv model
@@ -18,7 +18,7 @@ data {
 
 parameters {
   // vr params
-  vector[nSpp] beta0;                  // predictor parameters as grand means and spp rfx
+  vector[nSpp] beta0; //spp-specific      // predictor parameters as grand means and spp rfx
   vector[nSpp] betaendo;                  // spp specific endophyt effect 
 
   real tau_year[nSpp,nEndo,nYear];      // random year effect, unique to species and endo
@@ -28,16 +28,22 @@ parameters {
   
   vector[nPlot] tau_plot;        // random plot effect
   real<lower=0> sigma_plot;          // plot variance effect
+  
+  //neg bin overdispersion
+  vector[nSpp] phi; 
 }
 
 transformed parameters {
-  real p[N];                           
-  real sigma_year[nSpp,nEndo];
+  real lambda[N]; 
+  real od[N];     // overdispersion parameter
+  real sigma_year[nSpp,nEndo]; 
   
   // surv Linear Predictor
   for(n in 1:N){
-    p[n] = beta0[spp[n]] + betaendo[spp[n]]*endo_01[n]
+    lambda[n] = beta0[spp[n]] + betaendo[spp[n]]*endo_01[n]
     + tau_year[spp[n],(endo_01[n]+1),year_t[n]] + tau_plot[plot[n]];
+    
+    od[n] = exp(phi[spp[n]]);
   }
   
   // endo effect on variance
@@ -50,15 +56,19 @@ transformed parameters {
 
 model {
   // priors
+  
   //this is plot variance
   tau_plot ~ normal(0,sigma_plot);
   sigma_plot ~ normal(0, 1);
   
-  //fixed effect priors
-  beta0 ~ normal(0,10);
-  betaendo ~ normal(0,10);
-  sigma0 ~ normal(0,1);
-  sigmaendo ~ normal(0,1);
+  
+  // species specific fixed effects
+  
+  to_vector(beta0) ~ normal(0,10); 
+  to_vector(betaendo) ~ normal(0,10); 
+  to_vector(sigma0) ~ normal(0,1); 
+  to_vector(sigmaendo) ~ normal(0,1); 
+  to_vector(phi) ~ normal(0,1);    
   
   //species endo year priors
   to_vector(tau_year[1,1,]) ~ normal(0,sigma_year[1,1]); // sample year effects
@@ -76,5 +86,9 @@ model {
   to_vector(tau_year[5,2,]) ~ normal(0,sigma_year[5,2]); 
   to_vector(tau_year[6,2,]) ~ normal(0,sigma_year[6,2]); 
   to_vector(tau_year[7,2,]) ~ normal(0,sigma_year[7,2]); 
-  y ~ bernoulli_logit(p);
+  
+  for(n in 1:N){
+    y[n] ~ neg_binomial_2_log(lambda[n],od[n]);
+    target += -log1m(neg_binomial_2_log_lpmf(0 | lambda[n], od[n])); 
+  }
 }
