@@ -10,9 +10,12 @@ library(StanHeaders)
 library(shinystan)
 library(bayesplot)
 library(devtools)
+library(moments)
+library(gridExtra)
 
 invlogit<-function(x){exp(x)/(1+exp(x))}
 logit = function(x) { log(x/(1-x)) }
+Lkurtosis=function(x) log(kurtosis(x)); 
 
 
 #############################################################################################
@@ -103,7 +106,7 @@ saveRDS(sm_seed_mean, file = "~/Dropbox/EndodemogData/Model_Runs/seed_means.rds"
 
 # Model test of non-centered Jun 18,
 
-saveRDS(sm_seed_mean, file = "~/Dropbox/EndodemogData/Model_Runs/seed_mean_noncentered.rds")
+saveRDS(sm_seed_mean, file = "~/Dropbox/EndodemogData/Model_Runs/seed_mean.rds")
 saveRDS(sm_seed_mean_wo_beta0, file = "~/Dropbox/EndodemogData/Model_Runs/seed_mean_noncentered_wo_beta0.rds")
 saveRDS(sm_seed_mean_centered, file = "~/Dropbox/EndodemogData/Model_Runs/seed_mean_centered.rds")
 saveRDS(sm_seed_mean_centered_w0_beta0, file = "~/Dropbox/EndodemogData/Model_Runs/seed_mean_centered_wo_beta0.rds")
@@ -123,14 +126,19 @@ seedmean_fit <- read_rds("~/Dropbox/EndodemogData/Model_Runs/seed_mean_centered_
 
 predSeedmean <- rstan::extract(seedmean_fit, pars = c("mu_seed"))$mu_seed
 sdSeedmean <- rstan::extract(seedmean_fit, pars = c("sigma0"))$sigma0
-n_post_draws <- 1000
+n_post_draws <- 100
 post_draws <- sample.int(dim(predSeedmean)[1], n_post_draws)
 y_seedmean_sim <- matrix(NA,n_post_draws,length(seed_mean_data_list$seed))
 for(i in 1:n_post_draws){
   y_seedmean_sim[i,] <- rnorm(n=length(seed_mean_data_list$seed), mean = invlogit(predSeedmean[post_draws[i],]), sd = sdSeedmean[post_draws[i]])
 }
 ppc_dens_overlay(seed_mean_data_list$seed, y_seedmean_sim)
-
+ 
+mean_sm_plot <-   ppc_stat(seed_mean_data_list$seed, y_seedmean_sim, stat = "mean")
+sd_sm_plot <- ppc_stat(seed_mean_data_list$seed, y_seedmean_sim, stat = "sd")
+skew_sm_plot <- ppc_stat(seed_mean_data_list$seed, y_seedmean_sim, stat = "skewness")
+kurt_sm_plot <- ppc_stat(seed_mean_data_list$seed, y_seedmean_sim, stat = "Lkurtosis")
+grid.arrange(mean_sm_plot,sd_sm_plot,skew_sm_plot,kurt_sm_plot)
 
 
 

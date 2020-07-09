@@ -12,27 +12,27 @@
     }
     
     parameters {
-    real<lower=0> sigma0;               // overall variance
-    real betaspp[nSpecies];             // seed mean intercept for each species
-    real<lower=0> sigmaspp[nSpecies];  // seed variance for each species
-    
-    real betaendo[nSpecies];           // species specific endophyte effect on mean
+    vector[nSpecies] beta0;             // seed mean intercept for each species
+
+    vector[nSpecies] betaendo;           // species specific endophyte effect on mean
+    real<lower=0> sigma0; 
     }
     
     transformed parameters{
     real mu_seed[N];
+
     for(n in 1:N){
-    mu_seed[n] = betaspp[species[n]] + betaendo[species[n]]*endo_01[n];
+    // mu_seed[n] = beta0 + betaspp[species[n]] + betaendo[species[n]]*endo_01[n];
+    mu_seed[n] = beta0[species[n]] + betaendo[species[n]]*endo_01[n];
     }
     }
     
     model {
     // Priors
-    sigma0 ~ normal(0,1);
-    to_vector(betaspp) ~ normal(0,sigmaspp);
-    to_vector(sigmaspp) ~ normal(0,10);
-    
-    to_vector(betaendo) ~ normal(0,10);
+    // beta0 ~ normal(0,1);
+    beta0 ~ normal(0,100);
+    betaendo ~ normal(0,10);
+    sigma0 ~ normal(0,10);
     // Likelihood
       seed ~ normal(mu_seed,sigma0);
     }
