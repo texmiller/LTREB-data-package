@@ -243,32 +243,16 @@ sm_surv <- stan(file = "Analyses/endo_spp_surv_flw.stan", data = surv_data_list,
                 chains = mcmc_pars$chains, 
                 thin = mcmc_pars$thin,
                 control = list(adapt_delta = .9))
-saveRDS(sm_surv, file = "~/Dropbox/EndodemogData/Model_Runs/endo_spp_surv_woseedling.rds")
-sm_surv <- readRDS(file = "~/Dropbox/EndodemogData/Model_Runs/endo_spp_surv_woseedling.rds")
+# saveRDS(sm_surv, file = "~/Dropbox/EndodemogData/Model_Runs/endo_spp_surv_woseedling.rds")
+
 sm_seed_surv <- stan(file = "Analyses/seedling_surv.stan", data = seed_surv_data_list,
                      iter = mcmc_pars$iter,
                      warmup = mcmc_pars$warmup,
                      chains = mcmc_pars$chains, 
                      thin = mcmc_pars$thin,
                      control = list(adapt_delta = .9))
-saveRDS(sm_seed_surv, file = "~/Dropbox/EndodemogData/Model_Runs/endo_seedling_surv.rds")
-saveRDS(sm_seed_surv, file = "~/Dropbox/EndodemogData/Model_Runs/endo_seedling_surv_narrowprior.rds")
+# saveRDS(sm_seed_surv, file = "~/Dropbox/EndodemogData/Model_Runs/endo_seedling_surv.rds")
 
-sm_seedling_surv <- readRDS(file = "~/Dropbox/EndodemogData/Model_Runs/endo_seedling_surv.rds")
-
-
-
-sm_surv <- stan(file = "Analyses/endo_spp_surv_flw_spprfx.stan", data = surv_data_list,
-                iter = mcmc_pars$iter,
-                warmup = mcmc_pars$warmup,
-                chains = mcmc_pars$chains, 
-                thin = mcmc_pars$thin)
-sm_surv <- stan(file = "Analyses/endo_spp_surv_flw_spprfx_nc.stan", data = surv_data_list,
-                iter = mcmc_pars$iter,
-                warmup = mcmc_pars$warmup,
-                chains = mcmc_pars$chains, 
-                thin = mcmc_pars$thin)
-# saveRDS(sm_surv, file = "~/Dropbox/EndodemogData/Model_Runs/endo_spp_surv_spprfx.rds")
 
 sm_flw <- stan(file = "Analyses/endo_spp_surv_flw.stan", data = flw_data_list,
                iter = mcmc_pars$iter,
@@ -282,14 +266,14 @@ sm_grow <- stan(file = "Analyses/endo_spp_grow_fert.stan", data = grow_data_list
                 warmup = mcmc_pars$warmup,
                 chains = mcmc_pars$chains, 
                 thin = mcmc_pars$thin)
-saveRDS(sm_grow, file = "~/Dropbox/EndodemogData/Model_Runs/endo_spp_grow.rds")
+# saveRDS(sm_grow, file = "~/Dropbox/EndodemogData/Model_Runs/endo_spp_grow.rds")
 
 sm_grow_pig <- stan(file = "Analyses/endo_spp_grow_fert_PIG.stan", data = grow_data_list,
                     iter = mcmc_pars$iter,
                     warmup = mcmc_pars$warmup,
                     chains = mcmc_pars$chains, 
                     thin = mcmc_pars$thin)
-saveRDS(sm_grow_pig, file = "~/Dropbox/EndodemogData/Model_Runs/endo_spp_grow_PIG.rds")
+# saveRDS(sm_grow_pig, file = "~/Dropbox/EndodemogData/Model_Runs/endo_spp_grow_PIG.rds")
 
 sm_seed_grow <- stan(file = "Analyses/seedling_grow.stan", data = seed_grow_data_list,
                 iter = mcmc_pars$iter,
@@ -297,17 +281,7 @@ sm_seed_grow <- stan(file = "Analyses/seedling_grow.stan", data = seed_grow_data
                 chains = mcmc_pars$chains, 
                 thin = mcmc_pars$thin,
                 control = list(adapt_delta = .9))
-saveRDS(sm_seed_grow, file = "~/Dropbox/EndodemogData/Model_Runs/endo_seedling_grow.rds")
-
-
-
-
-sm_grow_vector <- stan(file = "Analyses/endo_spp_grow_fert_vector.stan", data = grow_data_list,
-                iter = mcmc_pars$iter,
-                warmup = mcmc_pars$warmup,
-                chains = mcmc_pars$chains, 
-                thin = mcmc_pars$thin)
-# saveRDS(sm_grow, file = "~/Dropbox/EndodemogData/Model_Runs/endo_spp_grow.rds")
+# saveRDS(sm_seed_grow, file = "~/Dropbox/EndodemogData/Model_Runs/endo_seedling_grow.rds")
 
 
 
@@ -317,12 +291,23 @@ sm_fert <- stan(file = "Analyses/endo_spp_grow_fert.stan", data = fert_data_list
                chains = mcmc_pars$chains, 
                thin = mcmc_pars$thin,
                control = list(adapt_delta = .99, max_treedepth = 15))
+# saveRDS(sm_fert, file = "~/Dropbox/EndodemogData/Model_Runs/endo_spp_fert.rds")
+
 sm_fert_nc <- stan(file = "Analyses/endo_spp_grow_fert_nc.stan", data = fert_data_list,
                 iter = mcmc_pars$iter,
                 warmup = mcmc_pars$warmup,
                 chains = mcmc_pars$chains, 
                 thin = mcmc_pars$thin)
-saveRDS(sm_fert, file = "~/Dropbox/EndodemogData/Model_Runs/endo_spp_fert.rds")
+# saveRDS(sm_fert, file = "~/Dropbox/EndodemogData/Model_Runs/endo_spp_fert_nc.rds")
+
+sm_fert <- stan(file = "Analyses/endo_spp_grow_fert_noplot.stan", data = fert_data_list,
+                iter = mcmc_pars$iter,
+                warmup = mcmc_pars$warmup,
+                chains = mcmc_pars$chains, 
+                thin = mcmc_pars$thin,
+                control = list(adapt_delta = .99)) # run without this, there is a small number of divergent transitions
+# saveRDS(sm_fert, file = "~/Dropbox/EndodemogData/Model_Runs/endo_spp_fert_noplot.rds")
+
 
 
 sm_spike <- stan(file = "Analyses/endo_spp_spike.stan", data = spike_data_list,
@@ -330,7 +315,8 @@ sm_spike <- stan(file = "Analyses/endo_spp_spike.stan", data = spike_data_list,
                  warmup = mcmc_pars$warmup,
                  chains = mcmc_pars$chains, 
                  thin = mcmc_pars$thin)
-  
+# saveRDS(sm_fert, file = "~/Dropbox/EndodemogData/Model_Runs/endo_spp_spike.rds")
+
 #########################################################################################################
 # Model Diagnostics ------------------------------
 #########################################################################################################
