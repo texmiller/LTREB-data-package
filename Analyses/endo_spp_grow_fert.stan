@@ -61,17 +61,19 @@ model {
     // priors
 
     //this is plot variance
-    sigma_plot ~ inv_gamma(0.001, 0.001);
+      tau_plot ~ normal(0,sigma_plot);
+      sigma_plot ~ normal(0,1);
     
-    to_vector(tau_plot) ~ normal(0,sigma_plot);
-    
-      to_vector(beta0) ~ normal(0,100); 
-      to_vector(betasize) ~ normal(0,100); 
-      to_vector(betaendo) ~ normal(0,100); 
-      to_vector(betaorigin) ~ normal(0,100); 
-      to_vector(sigma0) ~ normal(0,100); 
-      to_vector(sigmaendo) ~ normal(0,100); 
-      to_vector(phi) ~ normal(0,100);    
+ 
+      // species specific fixed effects
+
+      beta0 ~ normal(0,10); 
+      betasize ~ normal(0,10); 
+      betaendo ~ normal(0,10); 
+      betaorigin ~ normal(0,10); 
+      sigma0 ~ normal(0,1); 
+      sigmaendo ~ normal(0,1); 
+      phi ~ normal(0,1);    
       
  //species endo year priors
           to_vector(tau_year[1,1,]) ~ normal(0,sigma_year[1,1]); // sample year effects
