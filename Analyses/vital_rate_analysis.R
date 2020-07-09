@@ -10,9 +10,13 @@ library(StanHeaders)
 library(shinystan)
 library(bayesplot)
 library(devtools)
+library(moments)
+library(gridExtra)
 
 invlogit<-function(x){exp(x)/(1+exp(x))}
 logit = function(x) { log(x/(1-x)) }
+Lkurtosis=function(x) log(kurtosis(x)); 
+
 
 #############################################################################################
 ####### Data manipulation to prepare data for Stan models------------------
@@ -167,7 +171,7 @@ grow_data_list <- list(y = as.integer(LTREB_data_forgrow$size_t1),
                        nSpp = length(unique(LTREB_data_forgrow$species_index)),
                        nYear = max(unique(LTREB_data_forgrow$year_t_index)),
                        nPlot = max(unique(LTREB_data_forgrow$plot_index)),
-                       nEndo =   length(unique(LTREB_data_forgrow$endo_01)))
+                       nEndo =   length(unique(LTREB_data_forgrow$endo_01)));rm(LTREB_data_forgrow)
 str(grow_data_list)
 seed_grow_data_list <- list(y = as.integer(LTREB_grow_seedling$size_t1),
                        logsize_t = LTREB_grow_seedling$logsize_t,
@@ -181,7 +185,7 @@ seed_grow_data_list <- list(y = as.integer(LTREB_grow_seedling$size_t1),
                        nSpp = length(unique(LTREB_grow_seedling$species_index)),
                        nYear = max(unique(LTREB_grow_seedling$year_t_index)),
                        nPlot = max(unique(LTREB_grow_seedling$plot_index)),
-                       nEndo =   length(unique(LTREB_grow_seedling$endo_01)))
+                       nEndo =   length(unique(LTREB_grow_seedling$endo_01)));rm(LTREB_grow_seedling)
 str(seed_grow_data_list)
 
 
@@ -227,8 +231,8 @@ set.seed(123)
 
 ## MCMC settings
 mcmc_pars <- list(
-  warmup = 2500, 
-  iter = 5000, 
+  warmup = 5000, 
+  iter = 10000, 
   thin = 1, 
   chains = 3
 )
@@ -248,6 +252,8 @@ sm_seed_surv <- stan(file = "Analyses/seedling_surv.stan", data = seed_surv_data
                      thin = mcmc_pars$thin,
                      control = list(adapt_delta = .9))
 saveRDS(sm_seed_surv, file = "~/Dropbox/EndodemogData/Model_Runs/endo_seedling_surv.rds")
+saveRDS(sm_seed_surv, file = "~/Dropbox/EndodemogData/Model_Runs/endo_seedling_surv_narrowprior.rds")
+
 sm_seedling_surv <- readRDS(file = "~/Dropbox/EndodemogData/Model_Runs/endo_seedling_surv.rds")
 
 
@@ -277,12 +283,22 @@ sm_grow <- stan(file = "Analyses/endo_spp_grow_fert.stan", data = grow_data_list
                 chains = mcmc_pars$chains, 
                 thin = mcmc_pars$thin)
 saveRDS(sm_grow, file = "~/Dropbox/EndodemogData/Model_Runs/endo_spp_grow.rds")
+
+sm_grow_pig <- stan(file = "Analyses/endo_spp_grow_fert_PIG.stan", data = grow_data_list,
+                    iter = mcmc_pars$iter,
+                    warmup = mcmc_pars$warmup,
+                    chains = mcmc_pars$chains, 
+                    thin = mcmc_pars$thin)
+saveRDS(sm_grow_pig, file = "~/Dropbox/EndodemogData/Model_Runs/endo_spp_grow_PIG.rds")
+
 sm_seed_grow <- stan(file = "Analyses/seedling_grow.stan", data = seed_grow_data_list,
                 iter = mcmc_pars$iter,
                 warmup = mcmc_pars$warmup,
                 chains = mcmc_pars$chains, 
-                thin = mcmc_pars$thin)
-saveRDS(sm_grow, file = "~/Dropbox/EndodemogData/Model_Runs/endo_spp_grow.rds")
+                thin = mcmc_pars$thin,
+                control = list(adapt_delta = .9))
+saveRDS(sm_seed_grow, file = "~/Dropbox/EndodemogData/Model_Runs/endo_seedling_grow.rds")
+
 
 
 
@@ -299,7 +315,13 @@ sm_fert <- stan(file = "Analyses/endo_spp_grow_fert.stan", data = fert_data_list
                iter = mcmc_pars$iter,
                warmup = mcmc_pars$warmup,
                chains = mcmc_pars$chains, 
-               thin = mcmc_pars$thin)
+               thin = mcmc_pars$thin,
+               control = list(adapt_delta = .99, max_treedepth = 15))
+sm_fert_nc <- stan(file = "Analyses/endo_spp_grow_fert_nc.stan", data = fert_data_list,
+                iter = mcmc_pars$iter,
+                warmup = mcmc_pars$warmup,
+                chains = mcmc_pars$chains, 
+                thin = mcmc_pars$thin)
 saveRDS(sm_fert, file = "~/Dropbox/EndodemogData/Model_Runs/endo_spp_fert.rds")
 
 
@@ -313,7 +335,7 @@ sm_spike <- stan(file = "Analyses/endo_spp_spike.stan", data = spike_data_list,
 # Model Diagnostics ------------------------------
 #########################################################################################################
 #survival
-surv_fit <- read_rds("~/Dropbox/EndodemogData/Model_Runs/endo_spp_surv.rds")
+surv_fit <- read_rds("~/Dropbox/EndodemogData/Model_Runs/endo_spp_surv_woseedling.rds")
 predS <- rstan::extract(surv_fit, pars = c("p"))$p
 n_post_draws <- 100
 post_draws <- sample.int(dim(predS)[1], n_post_draws)
@@ -322,6 +344,18 @@ for(i in 1:n_post_draws){
   y_s_sim[i,] <- rbinom(n=length(surv_data_list$y), size=1, prob = invlogit(predS[post_draws[i],]))
 }
 ppc_dens_overlay(surv_data_list$y, y_s_sim)
+
+# seedling surv
+surv_seed_fit <- read_rds("~/Dropbox/EndodemogData/Model_Runs/endo_seedling_surv.rds")
+predS <- rstan::extract(surv_seed_fit, pars = c("p"))$p
+n_post_draws <- 100
+post_draws <- sample.int(dim(predS)[1], n_post_draws)
+y_s_sim <- matrix(NA,n_post_draws,length(seed_surv_data_list$y))
+for(i in 1:n_post_draws){
+  y_s_sim[i,] <- rbinom(n=length(seed_surv_data_list$y), size=1, prob = invlogit(predS[post_draws[i],]))
+}
+ppc_dens_overlay(seed_surv_data_list$y, y_s_sim)
+
 
 #flowering
 flow_fit <- read_rds("~/Dropbox/EndodemogData/Model_Runs/endo_spp_flw.rds")
@@ -334,25 +368,74 @@ for(i in 1:n_post_draws){
 }
 ppc_dens_overlay(flw_data_list$y, y_f_sim)
 
-#growth
+
+# growth
 grow_fit <- read_rds("~/Dropbox/EndodemogData/Model_Runs/endo_spp_grow.rds")
-pairs(grow_fit, pars = c("beta0"))
-predG <- rstan::extract(grow_fit, pars = c("lambda"))$lambda
-phiG <- rstan::extract(grow_fit, pars = c("phi"))$phi
+# pairs(grow_fit, pars = c("beta0"))
+grow_par <- rstan::extract(grow_fit, pars = c("lambda","beta0","betasize","betaendo","betaorigin","tau_year","tau_plot", "phi", "od"))
+predG <- grow_par$lambda
+phiG <- grow_par$phi
+odG <- grow_par$od
+
 n_post_draws <- 100
 post_draws <- sample.int(dim(predG)[1], n_post_draws)
+spp_draws <- sample.int(dim(predG)[2], grow_data_list$nSpp)
 y_g_sim <- matrix(NA,n_post_draws,length(grow_data_list$y))
+mu <- dnbinom(1:max(grow_data_list$y), mu = exp(predG[post_draws[2],]), size = odG[post_draws[2]])
+plot(grow_data_list$logsize_t, mu)
 for(i in 1:n_post_draws){
-  prob[1] <- dnbinom(1:n_post_draws, mu = exp(predG[post_draws[1],]), size = exp(phiG[post_draws[1]]))
-  prob_trun[i] <- dnbinom(1:n_post_draws, mu = exp(predG[post_draws[i],]), size = phiG[post_draws[i]])/(1-dnbinom(0, mu = exp(predG[post_draws[i],]), size = phiG[post_draws[i]]))
-}
-  y_g_sim[i,] <- sample(1:n_post_draws, replace = T, prob = dnbinom(1:n_post_draws, mu = exp(predG[post_draws[i],]), size = phiG[post_draws[i]])/(1-dnbinom(0, mu = exp(predG[post_draws[i],]), size = phiG[post_draws[i]])))
+  y_g_sim[i,] <- sample(x = 1:max(grow_data_list$y), size = length(grow_data_list$y), replace = T, prob = dnbinom(1:max(grow_data_list$y), mu = exp(predG[post_draws[i]]), size = odG[post_draws[i]])/(1-dnbinom(0, mu = exp(predG[post_draws[i]]), size = odG[post_draws[i]])))
 }
 ppc_dens_overlay(grow_data_list$y, y_g_sim)
+ppc_dens_overlay(grow_data_list$y, y_g_sim) + xlim(0,50)
+ppc_dens_overlay(grow_data_list$y, y_g_sim) + xlim(50,120)
+
+# seedling growth
+
+grow_fit <- read_rds("~/Dropbox/EndodemogData/Model_Runs/endo_seedling_grow.rds")
+# pairs(grow_fit, pars = c("beta0"))
+grow_par <- rstan::extract(grow_fit, pars = c("lambda","beta0","betaendo","tau_year","tau_plot", "phi", "od"))
+predG <- grow_par$lambda
+phiG <- grow_par$phi
+odG <- grow_par$od
+
+n_post_draws <- 100
+post_draws <- sample.int(dim(predG)[1], n_post_draws)
+spp_draws <- sample.int(dim(predG)[2], seed_grow_data_list$nSpp)
+y_g_sim <- matrix(NA,n_post_draws,length(seed_grow_data_list$y))
+mu <- dnbinom(1:max(seed_grow_data_list$y), mu = exp(predG[post_draws[2],]), size = odG[post_draws[2]])
+plot(seed_grow_data_list$logsize_t, mu)
+for(i in 1:n_post_draws){
+  y_g_sim[i,] <- sample(x = 1:max(seed_grow_data_list$y), size = length(seed_grow_data_list$y), replace = T, prob = dnbinom(1:max(seed_grow_data_list$y), mu = exp(predG[post_draws[i]]), size = odG[post_draws[i]])/(1-dnbinom(0, mu = exp(predG[post_draws[i]]), size = odG[post_draws[i]])))
+}
+ppc_dens_overlay(seed_grow_data_list$y, y_g_sim)
+ppc_dens_overlay(seed_grow_data_list$y, y_g_sim) + xlim(0,15)
 
 ## fertility
 fert_fit <- read_rds("~/Dropbox/EndodemogData/Model_Runs/endo_spp_fert.rds")
-pairs(fert_fit, pars = c("beta0", "betaendo", "sigmaendo"))
+fert_par <- rstan::extract(fert_fit, pars = c("lambda","beta0","betasize","betaendo","betaorigin","tau_year","tau_plot", "phi", "od"))
+predFert <- fert_par$lambda
+phiFert <- fert_par$phi
+odFert <- fert_par$od
+
+n_post_draws <- 100
+post_draws <- sample.int(dim(predFert)[1], n_post_draws)
+y_fert_sim <- matrix(NA,n_post_draws,length(fert_data_list$y))
+for(i in 1:n_post_draws){
+  for(j in 1:length(fert_data_list$y)){
+    y_fert_sim[i,j] <- sample(x = 1:max(fert_data_list$y), size = 1, replace = T, prob = dnbinom(1:max(fert_data_list$y), mu = exp(predFert[post_draws[i],j]), size = odFert[post_draws[i],j])/(1-dnbinom(0, mu = exp(predFert[post_draws[i],j]), size = odFert[post_draws[i],j])))
+  }
+}
+ppc_dens_overlay(fert_data_list$y, y_fert_sim)
+ppc_dens_overlay(fert_data_list$y, y_fert_sim) + xlim(0,20)
+ppc_dens_overlay(fert_data_list$y, y_fert_sim) + xlim(20,80)
+
+mean_fert_plot <-   ppc_stat(fert_data_list$y, y_fert_sim, stat = "mean")
+sd_fert_plot <- ppc_stat(fert_data_list$y, y_fert_sim, stat = "sd")
+skew_fert_plot <- ppc_stat(fert_data_list$y, y_fert_sim, stat = "skewness")
+kurt_fert_plot <- ppc_stat(fert_data_list$y, y_fert_sim, stat = "Lkurtosis")
+grid.arrange(mean_fert_plot,sd_fert_plot,skew_fert_plot,kurt_fert_plot)
+
 
 mcmc_trace(fert_fit,pars=c("betaendo[1]","betaendo[2]","betaendo[3]"
                            ,"betaendo[4]","betaendo[5]","betaendo[6]"
