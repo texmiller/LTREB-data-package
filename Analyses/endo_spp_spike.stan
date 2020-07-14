@@ -48,21 +48,19 @@ transformed parameters {
 model {
   // priors
   
-  sigma_plot ~ inv_gamma(0.001, 0.001);
-  for(i in 1:nPlot){
-    tau_plot[i] ~ normal(0,sigma_plot);
-  }
-  sigma_year ~ inv_gamma(0.001, 0.001);
+  sigma_plot ~ normal(0, 0.1);
+  tau_plot ~ normal(0,sigma_plot);
+  
+  sigma_year ~ normal(0, 0.1);
   for(i in 1:nYear){
     tau_year[i] ~ normal(0,sigma_year);
   }
   
-  for(s in 1:nSpp){
-    beta0[s] ~ normal(0,100); 
-    betasize[s] ~ normal(0,100); 
-    betaendo[s] ~ normal(0,100); 
-    betaorigin[s] ~ normal(0,100); 
-  }
-  
+
+    beta0 ~ normal(0,10); 
+    betasize ~ normal(0,10); 
+    betaendo ~ normal(0,10); 
+    betaorigin ~ normal(0,10); 
+
   y ~ poisson_log(lambda);
 }

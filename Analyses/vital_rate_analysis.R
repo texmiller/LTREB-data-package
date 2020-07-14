@@ -87,10 +87,10 @@ LTREB_data_forfert <- LTREB_full %>%
 dim(LTREB_data_forfert)
 
 LTREB_data_forspike <- LTREB_full %>%
-  dplyr::select(-FLW_COUNT_T1, -FLW_STAT_T1, -SPIKE_A_T1, -SPIKE_B_T1, -SPIKE_C_T1, -SPIKE_D_T1, -endo_status_from_check, -plot_endo_for_check, -endo_mismatch, -dist_a, -dist_b) %>% 
+  dplyr::select(-FLW_COUNT_T1, -FLW_STAT_T1, -SPIKE_A_T1, -SPIKE_B_T1, -SPIKE_C_T1, -SPIKE_D_T1, -SPIKE_AGPE_MEAN_T1, -endo_status_from_check, -plot_endo_for_check, -endo_mismatch, -dist_a, -dist_b) %>% 
   filter(!is.na(FLW_STAT_T)) %>% 
   filter(FLW_STAT_T>0) %>% 
-  melt(id.var = c("plot_fixed" ,            "pos"         ,           "id",
+  melt(id.var = c("plot_fixed" ,   "plot_index",         "pos"         ,           "id",
                   "species"       ,         "species_index"  ,        "endo_01",
                   "endo_index"  ,           "origin_01"       ,       "birth" ,
                   "year_t1"         ,       "year_t1_index"       ,   "surv_t1" ,
@@ -108,7 +108,8 @@ LTREB_data_forspike <- LTREB_full %>%
 #   facet_grid(year_t~species)
 ## I don't think there are enough data to fit year variances
 ## so I am just going to fit fixed effects of size and endo
-rm(LTREB_full)
+
+# rm(LTREB_full)
 
 
 # Create data lists to be used for the Stan model
@@ -207,13 +208,13 @@ str(fert_data_list)
 
 
 
-spike_data_list <- list(nYear = length(unique(LTREB_data_forspike$year_t - (min(LTREB_data_forspike$year_t)-1))),
-                        nPlot = max(LTREB_data_forspike$plot_fixed),
+spike_data_list <- list(nYear = max(unique(LTREB_data_forspike$year_t_index)),
+                        nPlot = max(unique(LTREB_data_forspike$plot_index)),
                         nSpp = length(unique(LTREB_data_forspike$species)),
                         nEndo=length(unique(LTREB_data_forspike$endo_01)),
                         N = nrow(LTREB_data_forspike),
-                        year_t = LTREB_data_forspike$year_t - (min(LTREB_data_forspike$year_t)-1),
-                        plot = LTREB_data_forspike$plot_fixed,
+                        year_t = as.integer(LTREB_data_forspike$year_t_index),
+                        plot = as.integer(LTREB_data_forspike$plot_index),
                         spp = as.integer(as.numeric(as.factor(LTREB_data_forspike$species))),
                         y = LTREB_data_forspike$spike_count_t,
                         logsize_t = LTREB_data_forspike$logsize_t,
@@ -315,7 +316,7 @@ sm_spike <- stan(file = "Analyses/endo_spp_spike.stan", data = spike_data_list,
                  warmup = mcmc_pars$warmup,
                  chains = mcmc_pars$chains, 
                  thin = mcmc_pars$thin)
-# saveRDS(sm_fert, file = "~/Dropbox/EndodemogData/Model_Runs/endo_spp_spike.rds")
+saveRDS(sm_spike, file = "~/Dropbox/EndodemogData/Model_Runs/endo_spp_spike.rds")
 
 #########################################################################################################
 # Model Diagnostics ------------------------------
@@ -552,8 +553,9 @@ kurt_seed_g_plot <- ppc_stat(seed_grow_data_list$y, y_g_sim, stat = "Lkurtosis")
 grid.arrange(mean_seed_g_plot,sd_seed_g_plot,skew_seed_g_plot,kurt_seed_g_plot, top = "Seedling Growth")
 
 #### fertility ppc ####
-fert_fit <- read_rds("~/Dropbox/EndodemogData/Model_Runs/endo_spp_fert.rds")
-fert_par <- rstan::extract(fert_fit, pars = c("lambda","beta0","betasize","betaendo","betaorigin","tau_year","tau_plot", "phi", "od"))
+# This fit is maybe not super great, but it's good enough for now probably.
+fert_fit <- read_rds("~/Dropbox/EndodemogData/Model_Runs/endo_spp_fert_noplot.rds")
+fert_par <- rstan::extract(fert_fit, pars = c("lambda","beta0","betasize","betaendo","betaorigin","tau_year", "phi", "od"))
 predFert <- fert_par$lambda
 phiFert <- fert_par$phi
 odFert <- fert_par$od
@@ -577,7 +579,7 @@ kurt_fert_plot <- ppc_stat(fert_data_list$y, y_fert_sim, stat = "Lkurtosis")
 grid.arrange(mean_fert_plot,sd_fert_plot,skew_fert_plot,kurt_fert_plot)
 
 # Now we can look at the binned size fit for fertility
-PIG_growth_size_ppc <- size_moments_ppc(data = LTREB_data_forfert,
+fert_size_ppc <- size_moments_ppc(data = LTREB_data_forfert,
                                         y_name = "FLW_COUNT_T",
                                         sim = y_fert_sim, 
                                         n_bins = 6, 
