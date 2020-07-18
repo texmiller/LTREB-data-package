@@ -92,8 +92,8 @@ set.seed(123)
 mcmc_pars <- list(
   warmup = 5000, 
   iter = 10000, 
-  thin = 3, 
-  chains = 1
+  thin = 1, 
+  chains = 3
 )
 
 # Stan model -------------
@@ -105,6 +105,35 @@ sm_s_to_s <- stan(file = "Analyses/endo_spp_s_to_s.stan", data = s_to_s_data_lis
                      iter = mcmc_pars$iter,
                      warmup = mcmc_pars$warmup,
                      chains = mcmc_pars$chains, 
-                     thin = mcmc_pars$thin)
+                     thin = mcmc_pars$thin,
+                     control = list(max_treedepth = 15))
+saveRDS(sm_s_to_s, file = "~/Dropbox/EndodemogData/Model_Runs/endo_spp_s_to_s.rds")
 
 
+
+
+#########################################################################################################
+# Model Diagnostics ------------------------------
+#########################################################################################################
+
+s_to_s_fit <- read_rds("~/Dropbox/EndodemogData/Model_Runs/endo_spp_s_to_s.rds") 
+s_to_s_par <- rstan::extract(s_to_s_fit, pars = c("p"))$p
+predRecruit<- s_to_s_par
+
+n_post_draws <- 100
+post_draws <- sample.int(dim(predRecruit)[1], n_post_draws)
+y_recruit_sim <- matrix(NA,n_post_draws,length(s_to_s_data_list$tot_recruit_t1))
+
+for(i in 1:n_post_draws){
+  y_recruit_sim[i,] <- rbinom(n = length(s_to_s_data_list$tot_recruit_t1), size = s_to_s_data_list$tot_seed_t, prob = invlogit(predRecruit[post_draws[i],]))
+}
+ppc_dens_overlay(s_to_s_data_list$tot_recruit_t1, y_recruit_sim)
+ppc_dens_overlay(s_to_s_data_list$tot_recruit_t1, y_recruit_sim) +xlim(0,100) # doesn't seem to fit super great for some of the lower values
+# I think I'm simulating the yrep correctly but I might need to check that
+# overall mean and sd look okay.
+
+mean_sm_plot <-   ppc_stat(s_to_s_data_list$tot_recruit_t1, y_recruit_sim, stat = "mean")
+sd_sm_plot <- ppc_stat(s_to_s_data_list$tot_recruit_t1, y_recruit_sim, stat = "sd")
+skew_sm_plot <- ppc_stat(s_to_s_data_list$tot_recruit_t1, y_recruit_sim, stat = "skewness")
+kurt_sm_plot <- ppc_stat(s_to_s_data_list$tot_recruit_t1, y_recruit_sim, stat = "Lkurtosis")
+grid.arrange(mean_sm_plot,sd_sm_plot,skew_sm_plot,kurt_sm_plot)

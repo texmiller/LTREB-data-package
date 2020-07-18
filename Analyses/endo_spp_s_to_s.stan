@@ -53,15 +53,15 @@ model {
 
     //this is plot variance
       tau_plot ~ normal(0,sigma_plot);
-      sigma_plot ~ normal(0,.1);
+      sigma_plot ~ normal(0,1);
     
  
       // species specific fixed effects
 
       beta0 ~ normal(0,10); 
       betaendo ~ normal(0,10); 
-      sigma0 ~ normal(0,.1); 
-      sigmaendo ~ normal(0,.1); 
+      sigma0 ~ normal(0,1); 
+      sigmaendo ~ normal(0,1); 
 
  //species endo year priors
           to_vector(tau_year[1,1,]) ~ normal(0,sigma_year[1,1]); // sample year effects
