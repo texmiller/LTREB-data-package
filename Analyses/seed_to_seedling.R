@@ -72,11 +72,11 @@ s_to_s_data_list <- list(tot_recruit_t1 = LTREB_s_to_s_data$tot_recruit_t1,
                               endo_index = as.integer(LTREB_s_to_s_data$endo_index),
                               year_t = as.integer(LTREB_s_to_s_data$year_t_index),
                               plot = as.integer(LTREB_s_to_s_data$plot_index),
-                              species = LTREB_s_to_s_data$species_index,
+                              spp = LTREB_s_to_s_data$species_index,
                               N = nrow(LTREB_s_to_s_data),
                               nYear = as.integer(max(unique(LTREB_s_to_s_data$year_t_index))),
                               nPlot = max(unique(LTREB_s_to_s_data$plot_index)),
-                              nSpecies = length(unique(LTREB_s_to_s_data$species_index)),
+                              nSpp = length(unique(LTREB_s_to_s_data$species_index)),
                               nEndo = length(unique(LTREB_s_to_s_data$endo_01)))
 str(s_to_s_data_list)
 
@@ -100,7 +100,7 @@ mcmc_pars <- list(
 
 ## Run the model by calling stan()
 ## Save the outputs as rds files
-
+sm_s_to_s <- stanc(file = "Analyses/endo_spp_s_to_s.stan")
 sm_s_to_s <- stan(file = "Analyses/endo_spp_s_to_s.stan", data = s_to_s_data_list,
                      iter = mcmc_pars$iter,
                      warmup = mcmc_pars$warmup,
