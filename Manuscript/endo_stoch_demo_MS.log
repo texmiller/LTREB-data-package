@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.19 (TeX Live 2018) (preloaded format=pdflatex 2018.4.16)  27 MAY 2020 14:10
+This is pdfTeX, Version 3.14159265-2.6-1.40.19 (TeX Live 2018) (preloaded format=pdflatex 2018.4.16)  12 JUN 2020 10:30
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -1758,15 +1758,16 @@ local/texlive/2018/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy8.pfb></usr/lo
 cal/texlive/2018/texmf-dist/fonts/type1/public/amsfonts/cm/cmti8.pfb></usr/loca
 l/texlive/2018/texmf-dist/fonts/type1/public/amsfonts/cm/cmti9.pfb></usr/local/
 texlive/2018/texmf-dist/fonts/type1/public/amsfonts/cm/cmtt9.pfb></usr/local/te
-xlive/2018/texmf-dist/fonts/type1/public/lm/lmmi9.pfb></usr/local/texlive/2018/
-texmf-dist/fonts/type1/public/lm/lmr6.pfb></usr/local/texlive/2018/texmf-dist/f
-onts/type1/public/lm/lmr9.pfb></usr/local/texlive/2018/texmf-dist/fonts/type1/p
-ublic/lm/lmssbx10.pfb></usr/local/texlive/2018/texmf-dist/fonts/type1/public/lm
-/lmsy7.pfb>
-Output written on endo_stoch_demo_MS.pdf (3 pages, 267018 bytes).
+xlive/2018/texmf-dist/fonts/type1/public/lm/lmmi6.pfb></usr/local/texlive/2018/
+texmf-dist/fonts/type1/public/lm/lmmi9.pfb></usr/local/texlive/2018/texmf-dist/
+fonts/type1/public/lm/lmr6.pfb></usr/local/texlive/2018/texmf-dist/fonts/type1/
+public/lm/lmr9.pfb></usr/local/texlive/2018/texmf-dist/fonts/type1/public/lm/lm
+ssbx10.pfb></usr/local/texlive/2018/texmf-dist/fonts/type1/public/lm/lmsy7.pfb>
+
+Output written on endo_stoch_demo_MS.pdf (3 pages, 269494 bytes).
 PDF statistics:
- 159 PDF objects out of 1000 (max. 8388607)
- 131 compressed objects within 2 object streams
+ 163 PDF objects out of 1000 (max. 8388607)
+ 134 compressed objects within 2 object streams
  16 named destinations out of 1000 (max. 500000)
  90137 words of extra memory for PDF output out of 106986 (max. 10000000)
 

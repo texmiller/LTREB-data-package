@@ -316,7 +316,7 @@ sm_spike <- stan(file = "Analyses/endo_spp_spike.stan", data = spike_data_list,
                  warmup = mcmc_pars$warmup,
                  chains = mcmc_pars$chains, 
                  thin = mcmc_pars$thin)
-saveRDS(sm_spike, file = "~/Dropbox/EndodemogData/Model_Runs/endo_spp_spike.rds")
+saveRDS(sm_spike, file = "~/Dropbox/EndodemogData/Model_Runs/endo_spp_spike_year_plot.rds")
 
 #########################################################################################################
 # Model Diagnostics ------------------------------
@@ -591,8 +591,9 @@ mcmc_trace(fert_fit,pars=c("betaendo[1]","betaendo[2]","betaendo[3]"
 
 
 #### spikelet ppc ####
-spike_fit <- read_rds("~/Dropbox/EndodemogData/Model_Runs/endo_spp_spike.rds")
-predSpike <- rstan::extract(spike_fit, pars = c("p"))$p
+spike_fit <- read_rds("~/Dropbox/EndodemogData/Model_Runs/endo_spp_spike_year_plot.rds")
+spike_pars <- rstan::extract(spike_fit, pars = c("lambda"))
+predSpike <- spike_pars$lambda
 n_post_draws <- 100
 post_draws <- sample.int(dim(predSpike)[1], n_post_draws)
 y_spike_sim <- matrix(NA,n_post_draws,length(spike_data_list$y))
@@ -600,6 +601,21 @@ for(i in 1:n_post_draws){
   y_spike_sim[i,] <- rpois(n=length(spike_data_list$y), lambda = exp(predSpike[post_draws[i],]))
 }
 ppc_dens_overlay(spike_data_list$y, y_spike_sim)
+ppc_dens_overlay(spike_data_list$y, y_spike_sim) + xlim(0,100)
+# Fit isn't super great for this yet, but probably close enough for the mean. (Also this is just fit as a poisson, but could look at neg binom and zero truncate)
+
+mean_spike_plot <-   ppc_stat(spike_data_list$y, y_spike_sim, stat = "mean")
+sd_spike_plot <- ppc_stat(spike_data_list$y, y_spike_sim, stat = "sd")
+skew_spike_plot <- ppc_stat(spike_data_list$y, y_spike_sim, stat = "skewness")
+kurt_spike_plot <- ppc_stat(spike_data_list$y, y_spike_sim, stat = "Lkurtosis")
+grid.arrange(mean_spike_plot,sd_spike_plot,skew_spike_plot,kurt_spike_plot)
+
+# Now we can look at the binned size fit for fertility
+spike_size_ppc <- size_moments_ppc(data = LTREB_data_forspike,
+                                  y_name = "spike_count_t",
+                                  sim = y_spike_sim, 
+                                  n_bins = 6, 
+                                  title = "Spikelets/Inflorescence")
 
 mcmc_trace(spike_fit,pars=c("betaendo[1]","betaendo[2]","betaendo[3]"
                            ,"betaendo[4]","betaendo[5]","betaendo[6]"
