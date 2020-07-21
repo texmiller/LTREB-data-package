@@ -70,8 +70,8 @@ set.seed(123)
 mcmc_pars <- list(
   warmup = 5000, 
   iter = 10000, 
-  thin = 3, 
-  chains = 1
+  thin = 1, 
+  chains = 3
 )
 # Stan model -------------
 
@@ -83,6 +83,7 @@ sm_seed_mean <- stan(file = "Analyses/endo_spp_seed_mean.stan", data = seed_mean
                      warmup = mcmc_pars$warmup,
                      chains = mcmc_pars$chains, 
                      thin = mcmc_pars$thin)
+saveRDS(sm_seed_mean, file = "~/Dropbox/EndodemogData/Model_Runs/seed_mean.rds")
 
 sm_seed_mean_wo_beta0 <- stan(file = "Analyses/endo_spp_seed_mean.stan", data = seed_mean_data_list,
                      iter = mcmc_pars$iter,

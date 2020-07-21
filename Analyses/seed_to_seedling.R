@@ -22,7 +22,6 @@ Lkurtosis=function(x) log(kurtosis(x));
 ####### Data manipulation to prepare data as lists for Stan models------------------
 #############################################################################################
 
-# seed data lists are generated in the endodemog_data_processing.R file, 
 source("Analyses/endodemog_data_processing.R")
 
 # Loading in our vital rate model samples to estimate seed production
