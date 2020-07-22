@@ -53,9 +53,14 @@ stos_fit <- read_rds("~/Dropbox/EndodemogData/Model_Runs/endo_spp_s_to_s.rds")
 
 surv_par <- rstan::extract(surv_fit, pars =quote_bare(beta0,betasize,betaendo,betaorigin,
                                                                    tau_year, tau_plot))
+surv_sdlg_par <- rstan::extract(surv_fit, pars =quote_bare(beta0,betaendo,
+                                                           tau_year, tau_plot))
 grow_par <- rstan::extract(grow_fit, pars = quote_bare(beta0,betasize,betaendo,betaorigin,
                                                                     tau_year, tau_plot,
                                                        sigma))
+grow_sdlg_par <- rstan::extract(grow_fit_seedling, pars = quote_bare(beta0,betaendo,
+                                                       tau_year, tau_plot,
+                                                       phi))
 flow_par <- rstan::extract(flw_fit, pars = quote_bare(beta0,betasize,betaendo,betaorigin,
                                                        tau_year, tau_plot))
 fert_par <- rstan::extract(fert_fit, pars = quote_bare(beta0,betasize,betaendo,betaorigin,
@@ -71,21 +76,23 @@ recruit_par <- rstan::extract(stos_fit, pars = quote_bare(beta0,betaendo,
 #############################################################################################
 
 # make the list of parameters and calculate mean lambdas
-n_draws <- 100
+n_draws <- 10
 post_draws <- sample.int(1300,size=n_draws) # this is smaller because of the flowering model that was run for a shorter number of iterations
 lambda_mean <- array(dim = c(8,2,n_draws))
 
 for(i in 1:length(post_draws)){
   for(e in 1:2){
     for(s in 1:7){
-      lambda_mean[s,e,i] <- lambda(bigmatrix(make_params(species=s,
+      lambda_mean[s,e,i] <- lambda2(bigmatrix(make_params(species=s,
                                                          endo_mean=(e-1),
                                                          endo_var=(e-1),
                                                          draw=post_draws[i],
                                                          max_size=max_size,
                                                          rfx=F,
                                                          surv_par=surv_par,
+                                                         surv_sdlg_par = surv_sdlg_par,
                                                          grow_par=grow_par,
+                                                         grow_sdlg_par = grow_sdlg_par,
                                                          flow_par=flow_par,
                                                          fert_par=fert_par,
                                                          spike_par=spike_par,
@@ -96,6 +103,7 @@ for(i in 1:length(post_draws)){
   }
 }
 
+
 # Mean endophyte difference and quantiles
 lambda_mean_diff <- matrix(NA,8,7)
 for(s in 1:8){
@@ -103,16 +111,17 @@ for(s in 1:8){
   lambda_mean_diff[s,2:7] = quantile(lambda_mean[s,2,] - lambda_mean[s,1,],probs=c(0.05,0.125,0.25,0.75,0.875,0.95))
 }
 
+## now do variance in lambda 
 
-## now do variance in lambda
-lambda_hold <- array(dim = c(10,7,2,n_draws))
+##- need to figure out why this is giving NA's
+lambda_hold <- array(dim = c(11,7,2,n_draws))
 lambda_var <- array(dim = c(8,2,n_draws))
 for(i in 1:length(post_draws)){
   for(e in 1:2){
     for(s in 1:7){
-      for(y in 1:10){
+      for(y in 1:11){
         
-        lambda_hold[y,s,e,i] <- lambda(bigmatrix(make_params(species=s,
+        lambda_hold[y,s,e,i] <- lambda2(bigmatrix(make_params(species=s,
                                                              endo_mean=(e-1),
                                                              endo_var=(e-1),
                                                              draw=post_draws[i],
@@ -120,7 +129,9 @@ for(i in 1:length(post_draws)){
                                                              rfx=T,
                                                              year=y,
                                                              surv_par=surv_par,
+                                                             surv_sdlg_par = surv_sdlg_par,
                                                              grow_par=grow_par,
+                                                             grow_sdlg_par = grow_sdlg_par,
                                                              flow_par=flow_par,
                                                              fert_par=fert_par,
                                                              spike_par=spike_par,
@@ -138,38 +149,6 @@ for(s in 1:8){
   lambda_var_diff[s,1] = mean(lambda_var[s,2,] - lambda_var[s,1,])
   lambda_var_diff[s,2:7] = quantile(lambda_var[s,2,] - lambda_var[s,1,],probs=c(0.05,0.125,0.25,0.75,0.875,0.95))
 }
-########################
-
-
-
-params <- make_params(species=4,
-                           endo_mean=(2-1),
-                           endo_var=(2-1),
-                           draw=post_draws[1],
-                           max_size=max_size,
-                           rfx=T,
-                           year=1,
-                           surv_par=surv_par,
-                           grow_par=grow_par,
-                           flow_par=flow_par,
-                           fert_par=fert_par,
-                           spike_par=spike_par,
-                           seed_par=seed_par,
-                           recruit_par=recruit_par)
-
-sx(x = 1, params = test_params)
-gxy(x = 3, y = 4, params = test_params)
-pxy(x = 1, y = 2, params = test_params)
-fx(x = 2, params = test_params)
-lambda(bigmatrix(test_params)$MPMmat)
-
-
-heatmap(bigmatrix(test_params)$Tmat)
-
-
-
-
-
 
 
 
