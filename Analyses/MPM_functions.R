@@ -82,12 +82,14 @@ sx_sdlg <- function(params){
 gxy <- function(x,y,params){
   grow_mean <- params$grow_int + params$grow_slope*log(x)
   
-  grow<-dpoisinvgauss(x=y,mean=exp(grow_mean),shape=(grow_mean*params$grow_sigma))
+  grow<-dpoisinvgauss(x=y,mean=exp(grow_mean),shape=(exp(grow_mean)*params$grow_sigma))
   grow<-ifelse(is.nan(grow) | is.infinite(grow),0,grow)
   
-  truncLower<-dpoisinvgauss(x=0,mean=exp(grow_mean), shape=(grow_mean*params$grow_sigma))
-  truncUpper<-sum(dpoisinvgauss(x=params$max_size:10000,mean=exp(grow_mean),shape=(grow_mean*params$grow_sigma)))
-  truncUpper<-sum(ifelse(is.nan(truncUpper) | is.infinite(truncUpper),0,truncUpper))
+  truncLower<-dpoisinvgauss(x=0,mean=exp(grow_mean), shape=(exp(grow_mean)*params$grow_sigma))
+  # truncLower<-sum(ifelse(is.nan(truncLower) | is.infinite(truncLower),0,truncLower))
+  
+  truncUpper<-sum(dpoisinvgauss(x=params$max_size:10000,mean=exp(grow_mean),shape=(exp(grow_mean)*params$grow_sigma)))
+  # truncUpper<-sum(ifelse(is.nan(truncUpper) | is.infinite(truncUpper),0,truncUpper))
   return(grow/(1-(truncLower+truncUpper)))
 }
 

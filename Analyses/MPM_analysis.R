@@ -30,6 +30,7 @@ max_size <- LTREB_full %>%
   group_by(species) %>% 
   summarise(max_size = quantile(size_t,probs=0.975))
 
+
 #############################################################################################
 ####### Read in matrix population functions ------------------
 #############################################################################################
@@ -53,7 +54,7 @@ stos_fit <- read_rds("~/Dropbox/EndodemogData/Model_Runs/endo_spp_s_to_s.rds")
 
 surv_par <- rstan::extract(surv_fit, pars =quote_bare(beta0,betasize,betaendo,betaorigin,
                                                                    tau_year, tau_plot))
-surv_sdlg_par <- rstan::extract(surv_fit, pars =quote_bare(beta0,betaendo,
+surv_sdlg_par <- rstan::extract(surv_fit_seedling, pars =quote_bare(beta0,betaendo,
                                                            tau_year, tau_plot))
 grow_par <- rstan::extract(grow_fit, pars = quote_bare(beta0,betasize,betaendo,betaorigin,
                                                                     tau_year, tau_plot,
@@ -76,7 +77,7 @@ recruit_par <- rstan::extract(stos_fit, pars = quote_bare(beta0,betaendo,
 #############################################################################################
 
 # make the list of parameters and calculate mean lambdas
-n_draws <- 10
+n_draws <- 100
 post_draws <- sample.int(1300,size=n_draws) # this is smaller because of the flowering model that was run for a shorter number of iterations
 lambda_mean <- array(dim = c(8,2,n_draws))
 
@@ -103,6 +104,32 @@ for(i in 1:length(post_draws)){
   }
 }
 
+# Need to double check PIG shape parameter (sigma) which should be positive. If shape is negative, it gives NA's. Right now, we adjusted this from grow_mean*params$sigma to be exp(grow_mean)*params$sigma
+# Double check this with Tom's POAR code
+test_params <- make_params(species=3,
+            endo_mean=(2-1),
+            endo_var=(2-1),
+            draw=post_draws[61],
+            max_size=max_size,
+            rfx=F,
+            surv_par=surv_par,
+            surv_sdlg_par = surv_sdlg_par,
+            grow_par=grow_par,
+            grow_sdlg_par = grow_sdlg_par,
+            flow_par=flow_par,
+            fert_par=fert_par,
+            spike_par=spike_par,
+            seed_par=seed_par,
+            recruit_par=recruit_par)
+sx(1, test_params)
+sx_sdlg(test_params)
+gxy(1,2, test_params)
+gxy_sdlg(1,2, test_params)
+pxy(1,2, test_params)
+
+fx(1,test_params)
+bigmatrix(test_params)
+lambda(bigmatrix(test_params)$MPMmat)
 
 # Mean endophyte difference and quantiles
 lambda_mean_diff <- matrix(NA,8,7)
@@ -189,6 +216,8 @@ mean_s_to_s_coef <- lapply(rstan::extract(stos_fit, pars = quote_bare(beta0,beta
 
 mean_seedmean_coef <- lapply(rstan::extract(seedmean_fit, pars = quote_bare(beta0,betaendo)) #no plot or year effect
                               , colMeans)
+
+
 
 
 
