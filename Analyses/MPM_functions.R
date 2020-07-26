@@ -6,7 +6,7 @@
 invlogit<-function(x){exp(x)/(1+exp(x))}
 
 # Parameter assembly function ---------------------------------------------
-make_params <- function(species,endo_mean,endo_var,draw,original=0,rfx=F,year=NULL,max_size,
+make_params <- function(species,endo_mean,endo_var,original=0,draw,rfx=F,year=NULL,max_size,
                         surv_par,surv_sdlg_par,grow_par,grow_sdlg_par,flow_par,fert_par,spike_par,seed_par,recruit_par){
   
   if(rfx==F){rfx_surv <- rfx_surv_sdlg <- rfx_grow <- rfx_grow_sdlg <- rfx_flow <- rfx_fert <- rfx_spike <- rfx_rct <-  0}
@@ -18,7 +18,7 @@ make_params <- function(species,endo_mean,endo_var,draw,original=0,rfx=F,year=NU
     rfx_grow_sdlg <- grow_sdlg_par$tau_year[draw,species,(endo_var+1),(year+1)];
     rfx_flow <- flow_par$tau_year[draw,species,(endo_var+1),year];
     rfx_fert <- fert_par$tau_year[draw,species,(endo_var+1),year]; 
-    rfx_spike <- spike_par$tau_year[draw,year]; #no endo effects or species differences
+    rfx_spike <- spike_par$tau_year[draw,year]; #no endo effects on variance
     rfx_rct <- recruit_par$tau_year[draw,species, (endo_var+1),year];
   }
   
@@ -133,10 +133,34 @@ bigmatrix<-function(params){
   return(list(MPMmat = MPMmat, Tmat = Tmat, Fmat = Fmat))
 }
 
-# lambda2 function ------------------------------------------------------
-# skips matrices with missing data. I'm not sure what the deal I've gotten an error when trying to run lambda for our posterior draws.
-lambda2 <- function(mat) {
-  # check mat for missing values: if TRUE return NA, else return lambda(mat)
-  ifelse(any(is.na(mat)), NA, lambda(mat))     
+# lambdaS function##########################################################
+lambdaSim<-function(mat_list, ## a list of transition matrices, each corresponding to a study year
+                    max_yrs=500 ## how many years the simulation runs (arbitrarily large)
+){
+  ## grab the dimension of the projection matrix
+  matdim<-dim(mat_list[[1]])[1]
+  ## grab the number of study years / matrices we have available
+  n_years <- length(mat_list)
+  ## vector that will hold year-by-year growth rates
+  rtracker <- rep(0,max_yrs)
+  ## initial vector of population structure -- note that this sums to one, which will be convenient
+  n0 <- rep(1/matdim,matdim)
+  for(t in 1:max_yrs){ #Start loop
+    ## for each year, randomly sample one of the matrices
+    A_t <- mat_list[[sample.int(n=n_years,size=1)]]
+    ## project the population one step forward
+    n0 <- A_t %*% n0
+    ## total population size after one year of growth
+    N  <- sum(n0)
+    ## calculate r as log(N_t+1 / N_t), note that here N_t=1
+    rtracker[t]<-log(N)
+    ## rescale population vector to sum to one, so the same trick works again next time step
+    n0 <-n0/N
+  }
+  #discard initial values (to get rid of transient)
+  burnin    <- round(max_yrs*0.1)
+  #Finish and return
+  log_lambdaS <- mean(rtracker[-c(1:burnin)])
+  lambdaS<-exp(log_lambdaS)
+  return(list(log_lambdaS=log_lambdaS,lambdaS=lambdaS))
 }
-
