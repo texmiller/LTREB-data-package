@@ -379,13 +379,16 @@ size_moments_ppc <- function(data,y_name,sim, n_bins, title = NA){
 #### survival ppc ####
 surv_fit <- read_rds("~/Dropbox/EndodemogData/Model_Runs/endo_spp_surv_woseedling.rds")
 predS <- rstan::extract(surv_fit, pars = c("p"))$p
-n_post_draws <- 100
+n_post_draws <- 500
 post_draws <- sample.int(dim(predS)[1], n_post_draws)
 y_s_sim <- matrix(NA,n_post_draws,length(surv_data_list$y))
 for(i in 1:n_post_draws){
   y_s_sim[i,] <- rbinom(n=length(surv_data_list$y), size=1, prob = invlogit(predS[post_draws[i],]))
 }
 ppc_dens_overlay(surv_data_list$y, y_s_sim)
+surv_densplot <- ppc_dens_overlay(surv_data_list$y, y_s_sim) + theme_classic() + labs(title = "Adult Survival", x = "Survival status", y = "Density")
+surv_densplot
+ggsave(surv_densplot, filename = "surv_densplot.png", width = 4, height = 4)
 
 mean_s_plot <-   ppc_stat(surv_data_list$y, y_s_sim, stat = "mean")
 sd_s_plot <- ppc_stat(surv_data_list$y, y_s_sim, stat = "sd")
@@ -399,19 +402,24 @@ grid.arrange(mean_s_plot,sd_s_plot,skew_s_plot,kurt_s_plot,  top = "Survival")
 surv_size_ppc <- size_moments_ppc(data = LTREB_data_forsurv,
                                          y_name = "surv_t1",
                                          sim = y_s_sim, 
-                                         n_bins = 4, 
+                                         n_bins = 5, 
                                          title = "Survival")
 
 #### seedling survival ppc ####
 surv_seed_fit <- read_rds("~/Dropbox/EndodemogData/Model_Runs/endo_seedling_surv.rds")
 predS <- rstan::extract(surv_seed_fit, pars = c("p"))$p
-n_post_draws <- 100
+n_post_draws <- 500
 post_draws <- sample.int(dim(predS)[1], n_post_draws)
 y_s_sim <- matrix(NA,n_post_draws,length(seed_surv_data_list$y))
 for(i in 1:n_post_draws){
   y_s_sim[i,] <- rbinom(n=length(seed_surv_data_list$y), size=1, prob = invlogit(predS[post_draws[i],]))
 }
 ppc_dens_overlay(seed_surv_data_list$y, y_s_sim)
+seedsurv_densplot <- ppc_dens_overlay(seed_surv_data_list$y, y_s_sim) + theme_classic() + labs(title = "Seedling Survival", x = "Survival status", y = "Density")
+seedsurv_densplot
+ggsave(seedsurv_densplot, filename = "seedsurv_densplot.png", width = 4, height = 4)
+
+
 
 mean_s_plot <-   ppc_stat(grow_data_list$y, y_s_sim, stat = "mean")
 sd_s_plot <- ppc_stat(grow_data_list$y, y_s_sim, stat = "sd")
@@ -423,13 +431,18 @@ grid.arrange(mean_s_plot,sd_s_plot,skew_s_plot,kurt_s_plot,  top = "Seedling Sur
 #### flowering ppc ####
 flow_fit <- read_rds("~/Dropbox/EndodemogData/Model_Runs/endo_spp_flw.rds")
 predF <- rstan::extract(flow_fit, pars = c("p"))$p
-n_post_draws <- 100
+n_post_draws <- 500
 post_draws <- sample.int(dim(predF)[1], n_post_draws)
 y_f_sim <- matrix(NA,n_post_draws,length(flw_data_list$y))
 for(i in 1:n_post_draws){
   y_f_sim[i,] <- rbinom(n=length(flw_data_list$y), size=1, prob = invlogit(predF[post_draws[i],]))
 }
 ppc_dens_overlay(flw_data_list$y, y_f_sim)
+flw_densplot <- ppc_dens_overlay(flw_data_list$y, y_f_sim) + theme_classic() + labs(title = "Flowering", x = "Flowering status", y = "Density")
+flw_densplot
+ggsave(flw_densplot, filename = "flw_densplot.png", width = 4, height = 4)
+
+
 
 mean_f_plot <-   ppc_stat(flw_data_list$y, y_f_sim, stat = "mean")
 sd_f_plot <- ppc_stat(flw_data_list$y, y_f_sim, stat = "sd")
@@ -487,7 +500,7 @@ grow_fit <- read_rds("~/Dropbox/EndodemogData/Model_Runs/endo_spp_grow_PIG.rds")
 grow_par <- rstan::extract(grow_fit, pars = c("predG","beta0","betasize","betaendo","betaorigin","tau_year","tau_plot","theta", "sigma"))
 predG <- grow_par$predG
 theta <- grow_par$theta
-n_post_draws <- 100
+n_post_draws <- 500
 post_draws <- sample.int(dim(predG)[1], n_post_draws)
 y_g_sim   <-  matrix(NA,n_post_draws,length(grow_data_list$y))
 
@@ -511,6 +524,12 @@ for(i in 1:n_post_draws){
 ppc_dens_overlay(grow_data_list$y, y_g_sim)
 ppc_dens_overlay(grow_data_list$y, y_g_sim) + xlim(0,60) + ggtitle("growth w/o seedling PIG")
 ppc_dens_overlay(grow_data_list$y, y_g_sim) + xlim(50,120)
+
+grow_densplot <- ppc_dens_overlay(grow_data_list$y, y_g_sim) + xlim(0,60) + theme_classic() + labs(title = "Growth", x = "No. of Tillers", y = "Density")
+grow_densplot
+ggsave(grow_densplot, filename = "grow_densplot.png", width = 4, height = 4)
+
+
 
 mean_g_plot <-   ppc_stat(grow_data_list$y, y_g_sim, stat = "mean")
 sd_g_plot <- ppc_stat(grow_data_list$y, y_g_sim, stat = "sd")
@@ -560,7 +579,7 @@ predFert <- fert_par$lambda
 phiFert <- fert_par$phi
 odFert <- fert_par$od
 
-n_post_draws <- 100
+n_post_draws <- 500
 post_draws <- sample.int(dim(predFert)[1], n_post_draws)
 y_fert_sim <- matrix(NA,n_post_draws,length(fert_data_list$y))
 for(i in 1:n_post_draws){
@@ -571,6 +590,13 @@ for(i in 1:n_post_draws){
 ppc_dens_overlay(fert_data_list$y, y_fert_sim)
 ppc_dens_overlay(fert_data_list$y, y_fert_sim) + xlim(0,20)
 ppc_dens_overlay(fert_data_list$y, y_fert_sim) + xlim(20,80)
+
+fert_densplot <- ppc_dens_overlay(fert_data_list$y, y_fert_sim) + xlim(0,30) + theme_classic() + labs(title = "Panicles", x = "No. of Panicles", y = "Density")
+fert_densplot
+ggsave(fert_densplot, filename = "fert_densplot.png", width = 4, height = 4)
+
+
+
 
 mean_fert_plot <-   ppc_stat(fert_data_list$y, y_fert_sim, stat = "mean")
 sd_fert_plot <- ppc_stat(fert_data_list$y, y_fert_sim, stat = "sd")
@@ -594,7 +620,7 @@ mcmc_trace(fert_fit,pars=c("betaendo[1]","betaendo[2]","betaendo[3]"
 spike_fit <- read_rds("~/Dropbox/EndodemogData/Model_Runs/endo_spp_spike_year_plot.rds")
 spike_pars <- rstan::extract(spike_fit, pars = c("lambda"))
 predSpike <- spike_pars$lambda
-n_post_draws <- 100
+n_post_draws <- 500
 post_draws <- sample.int(dim(predSpike)[1], n_post_draws)
 y_spike_sim <- matrix(NA,n_post_draws,length(spike_data_list$y))
 for(i in 1:n_post_draws){
@@ -602,6 +628,12 @@ for(i in 1:n_post_draws){
 }
 ppc_dens_overlay(spike_data_list$y, y_spike_sim)
 ppc_dens_overlay(spike_data_list$y, y_spike_sim) + xlim(0,100)
+
+fert_densplot <- ppc_dens_overlay(fert_data_list$y, y_fert_sim) + xlim(0,30) + theme_classic() + labs(title = "Panicles", x = "No. of Panicles", y = "Density")
+fert_densplot
+ggsave(fert_densplot, filename = "fert_densplot.png", width = 4, height = 4)
+
+
 # Fit isn't super great for this yet, but probably close enough for the mean. (Also this is just fit as a poisson, but could look at neg binom and zero truncate)
 
 mean_spike_plot <-   ppc_stat(spike_data_list$y, y_spike_sim, stat = "mean")

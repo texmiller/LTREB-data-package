@@ -11,6 +11,9 @@ library(popbio)
 library(countreg)
 library(actuar)
 library(rstan)
+library(gridExtra)
+library(grid)
+library(cowplot) # for pulling legend from ggplots
 
 quote_bare <- function( ... ){
   substitute( alist(...) ) %>% 
@@ -28,7 +31,8 @@ max_size <- LTREB_full %>%
   dplyr::select(species,size_t) %>% 
   filter(!is.na(size_t)) %>% 
   group_by(species) %>% 
-  summarise(max_size = quantile(size_t,probs=0.975))
+  summarise(actual_max_size = max(size_t),
+            max_size = quantile(size_t,probs=0.975))
 
 
 #############################################################################################
@@ -41,6 +45,7 @@ source("Analyses/MPM_functions.R")
 #############################################################################################
 ####### Read in Stan vital rate model outputs ------------------
 #############################################################################################
+
 
 surv_fit_seedling <- read_rds("~/Dropbox/EndodemogData/Model_Runs/endo_seedling_surv.rds")
 surv_fit <- read_rds("~/Dropbox/EndodemogData/Model_Runs/endo_spp_surv_woseedling.rds")
@@ -79,8 +84,8 @@ recruit_par <- rstan::extract(stos_fit, pars = quote_bare(beta0,betaendo,
 # make the list of parameters and calculate mean lambdas
 n_draws <- 100
 post_draws <- sample.int(1300,size=n_draws) # this is smaller because of the flowering model that was run for a shorter number of iterations
-lambda_mean <- array(dim = c(8,2,n_draws))
 
+lambda_mean <- array(dim = c(8,2,n_draws))
 for(i in 1:length(post_draws)){
   for(e in 1:2){
     for(s in 1:7){
@@ -361,8 +366,8 @@ lambdaS_diff_var_only_df <- as_tibble(lambdaS_diff_var_only) %>%
 
 lambdaS_diff_all_df <- bind_rows(lambdaS_diff_df, lambdaS_diff_mean_only_df, lambdaS_diff_var_only_df)
 lambdaS_diff_all_df$contribution <- factor(lambdaS_diff_all_df$contribution, levels = c("Var", "Mean", "Total"))
-x_labels <- c(expression(paste("Var(", lambda, ")")), expression(bar(lambda)), "Total")
-ggplot(data = lambdaS_diff_all_df) +
+x_labels <- c(expression(paste("Var(", bar(lambda), ")")), expression(bar(lambda)), "Total")
+byspp_stochplot <- ggplot(data = lambdaS_diff_all_df) +
   geom_hline(yintercept = 0, col = "black") + 
   geom_linerange(aes(y = mean, x = contribution, ymin = twentyfifth, ymax = seventyfifth, color = species), lwd = 2) +
   geom_linerange(aes(y = mean, x = contribution, ymin = twelfthpointfive, ymax = eightyseventhpointfive, color = species), lwd = 1) +
@@ -370,8 +375,8 @@ ggplot(data = lambdaS_diff_all_df) +
   geom_point(aes(y = mean, x = contribution, fill = species, pch = contribution), lwd = 4) + 
   facet_wrap(~species, nrow = 2, scales = "free") + coord_flip() + 
   scale_shape_manual(values = c(21, 22, 23)) +
-  scale_fill_manual(values = c("#59A1BC", "#4E816D", "#EFAD3A", "#E3AF7B", "#9E78A1", "#E04D55", "#9D5251", "#5C5C5D")) +
-  scale_color_manual(values = c("#59A1BC", "#4E816D", "#EFAD3A", "#E3AF7B", "#9E78A1", "#E04D55", "#9D5251", "#5C5C5D")) +
+  scale_fill_manual(values = c("#59A1BC", "#4E816D", "#EFAD3A", "#397BB7", "#9E78A1", "#E04D55", "#9D5251", "#5C5C5D")) +
+  scale_color_manual(values = c("#59A1BC", "#4E816D", "#EFAD3A", "#397BB7", "#9E78A1", "#E04D55", "#9D5251", "#5C5C5D")) +
   xlab("") + scale_x_discrete(labels = x_labels) +
   ylab(expression(paste("Endophyte effect on", " ", lambda["s"]))) +
   theme(panel.background = element_rect(fill = "transparent", color = NA),
@@ -386,6 +391,8 @@ ggplot(data = lambdaS_diff_all_df) +
         axis.title = element_text(size = rel(1.5)),
         strip.background = element_blank(),
         legend.position="none")
+byspp_stochplot
+ggsave(byspp_stochplot, filename = "~/Documents/byspp_stochplot.tiff", width = 10, height = 5)
 
 # Just the mean effect
 sppmean_stochplot <- ggplot(data = subset(lambdaS_diff_all_df, species == "Species Mean")) +
@@ -398,7 +405,7 @@ sppmean_stochplot <- ggplot(data = subset(lambdaS_diff_all_df, species == "Speci
   scale_shape_manual(values = c(21, 22, 23)) +
   scale_fill_manual(values = c( "#5C5C5D")) +
   scale_color_manual(values = c("#5C5C5D")) +
-  xlab("") + scale_x_discrete(labels = x_labels) +
+  xlab("Species Mean Contributions") + scale_x_discrete(labels = x_labels) +
   ylab(expression(paste("Endophyte effect on", " ", lambda["s"]))) +
   theme(panel.background = element_rect(fill = "transparent", color = NA),
         plot.background = element_rect(fill = "transparent", color = NA),
@@ -409,24 +416,32 @@ sppmean_stochplot <- ggplot(data = subset(lambdaS_diff_all_df, species == "Speci
         axis.ticks.y = element_blank(),
         axis.text.y = element_text(size = rel(2), face = "bold"),
         axis.text.x = element_text(size = rel(2), face = "bold"),
-        axis.title = element_text(size = rel(3)),
+        axis.title = element_text(size = rel(2)),
         strip.text = element_blank(),
         strip.background = element_blank(),
         legend.position="none")
 sppmean_stochplot
-ggsave(sppmean_stochplot, filename = "sppmean_stochplot.tiff",  width = 6, height = 4, bg = "transparent")
+ggsave(sppmean_stochplot, filename = "sppmean_stochplot.tiff",  width = 6, height = 4.5, bg = "transparent")
+
+
+lambdaS_percent <- lambdaS_diff_all_df %>% 
+  group_by(species) %>% 
+  summarize(percent_var = mean[contribution == "Var"]/mean[contribution == "Total"])
+
 
 
 ################################################################
-# Testing out the parameter vectors for mean and variance
-for(s in 1:7){
-  eminus_listtest <- eplus_listtest <- eplus__meanonly_listtest <- eplus__varonly_listtest <- list()
+########### getting yearly lambda values #####
+eminus_yearly <- eplus_yearly <- array(dim = c(1,11,n_draws)) # just doing this for one one species for now
+
+
   for(y in 1:11){
-    eminus_listtest[[y]] <- make_params(species=s,
+    for(i in 1:length(post_draws)){
+    eminus_yearly[1,y,i] <- lambda(bigmatrix(make_params(species=4,
                                        endo_mean=0,
                                        endo_var=0,
                                        original = 1, # should be =1 to represent recruit
-                                       draw=post_draws[100],
+                                       draw=post_draws[i],
                                        max_size=max_size,
                                        rfx=T,
                                        year=y,surv_par=surv_par,
@@ -437,12 +452,12 @@ for(s in 1:7){
                                        fert_par=fert_par,
                                        spike_par=spike_par,
                                        seed_par=seed_par,
-                                       recruit_par=recruit_par)
-    eplus_listtest[[y]] <- make_params(species=s,
+                                       recruit_par=recruit_par))$MPMmat)
+    eplus_yearly[1,y,i] <- lambda(bigmatrix(make_params(species=4,
             endo_mean=1,
             endo_var=1,
             original = 1, # should be =1 to represent recruit
-            draw=post_draws[100],
+            draw=post_draws[i],
             max_size=max_size,
             rfx=T,
             year=y,surv_par=surv_par,
@@ -453,79 +468,458 @@ for(s in 1:7){
             fert_par=fert_par,
             spike_par=spike_par,
             seed_par=seed_par,
-            recruit_par=recruit_par)
-    eplus__meanonly_listtest[[y]] <- make_params(species=s,
-                                       endo_mean=1,
-                                       endo_var=0,
-                                       original = 1, # should be =1 to represent recruit
-                                       draw=post_draws[100],
-                                       max_size=max_size,
-                                       rfx=T,
-                                       year=y,surv_par=surv_par,
-                                       surv_sdlg_par = surv_sdlg_par,
-                                       grow_par=grow_par,
-                                       grow_sdlg_par = grow_sdlg_par,
-                                       flow_par=flow_par,
-                                       fert_par=fert_par,
-                                       spike_par=spike_par,
-                                       seed_par=seed_par,
-                                       recruit_par=recruit_par)
-    eplus__varonly_listtest[[y]] <- make_params(species=s,
-                                                 endo_mean=0,
-                                                 endo_var=1,
-                                                 original = 1, # should be =1 to represent recruit
-                                                 draw=post_draws[100],
-                                                 max_size=max_size,
-                                                 rfx=T,
-                                                 year=y,surv_par=surv_par,
-                                                 surv_sdlg_par = surv_sdlg_par,
-                                                 grow_par=grow_par,
-                                                 grow_sdlg_par = grow_sdlg_par,
-                                                 flow_par=flow_par,
-                                                 fert_par=fert_par,
-                                                 spike_par=spike_par,
-                                                 seed_par=seed_par,
-                                                 recruit_par=recruit_par)
+            recruit_par=recruit_par))$MPMmat)
 
 }}
 
-mean_surv_coef <- lapply(rstan::extract(surv_fit, pars =quote_bare(beta0,betasize,betaendo,betaorigin,
-                                                                    tau_year, tau_plot))
-                         , colMeans)
-
-mean_surv_seedling_coef <- lapply(rstan::extract(surv_fit_seedling, pars = quote_bare(beta0,betaendo,
-                                                                             tau_year, tau_plot))
-                                  , colMeans)
-
-mean_grow_coef <- lapply(rstan::extract(grow_fit, pars = quote_bare(beta0,betasize,betaendo,betaorigin,
-                                                                    tau_year, tau_plot))
-                         , colMeans)
-
-mean_grow_seedling_coef <- lapply(rstan::extract(grow_fit_seedling, pars = quote_bare(beta0,betaendo,
-                                                                             tau_year, tau_plot))
-                                  , colMeans)
+saveRDS(eplus_yearly, file = "~/Documents/eplus_yearly.rds")
+saveRDS(eminus_yearly, file = "~/Documents/eminus_yearly.rds")
 
 
-mean_flw_coef <- lapply(rstan::extract(flw_fit, pars = quote_bare(beta0,betasize,betaendo,betaorigin,
-                                                                    tau_year, tau_plot))
-                         , colMeans)
+mean_eplus_yearly <- matrix(NA, 11,7)
+mean_eminus_yearly <- matrix(NA, 11,7)
 
-mean_fert_coef <- lapply(rstan::extract(fert_fit, pars = quote_bare(beta0,betasize,betaendo,betaorigin,
-                                                                    tau_year)) # No plot effect
-                         , colMeans)
+for(y in 1:11){
+mean_eplus_yearly[y,1] <- mean(eplus_yearly[1,y,])
+mean_eplus_yearly[y,2:7] <- quantile(eplus_yearly[1,y,],probs=c(0.05,0.125,0.25,0.75,0.875,0.95), na.rm = T)
 
-mean_spikelet_coef <- lapply(rstan::extract(spike_fit, pars = quote_bare(beta0,betasize,betaendo,betaorigin,
-                                                                        tau_year, tau_plot))
-                             , colMeans)
+mean_eminus_yearly[y,1] <- mean(eminus_yearly[1,y,])
+mean_eplus_yearly[y,2:7] <- quantile(eminus_yearly[1,y,],probs=c(0.05,0.125,0.25,0.75,0.875,0.95), na.rm = T)
 
-mean_s_to_s_coef <- lapply(rstan::extract(stos_fit, pars = quote_bare(beta0,betaendo,
-                                                                      tau_year, tau_plot))
-                           , colMeans)
+}
+spp_names <- as_tibble(names(species_factor_key))
 
-mean_seedmean_coef <- lapply(rstan::extract(seedmean_fit, pars = quote_bare(beta0,betaendo)) #no plot or year effect
-                              , colMeans)
+focal_spp <- "FESU"
+focal_index <- which(spp_names==focal_spp)
+focal_month <- c(9,7,7,5,7,5,5,NA)[focal_index]
 
 
+# read in PPT and Temp
+climate_data <- read_csv(file = "~/Dropbox/EndodemogData/PRISMClimateData_BrownCo.csv") %>% 
+  mutate(year = year(Date), month = month(Date), day = day(Date)) %>% 
+  rename(ppt = `ppt (mm)`, tmean = `tmean (degrees C)`) %>% 
+  mutate(site_lat = 39.235900000000, site_long = -86.218100000000) %>% 
+  mutate(census_month = focal_month, climate_year = as.numeric(ifelse(month >=census_month, year+1, year))) %>% 
+  filter(climate_year != 2006) %>% 
+  group_by(climate_year) %>% 
+  summarize(`Cumulative PPT (mm)` = sum(ppt),
+            `Mean Temp. (C˚)` = mean(tmean)) %>% 
+  filter(climate_year <= max(LTREB_full$year_t))
+climate_lambdas <- bind_cols(Eminus = mean_eminus_yearly[,1], Eplus = mean_eplus_yearly[,1]) %>% 
+  bind_cols(climate_data[2:12,])
 
+climate_lambdaplot <- ggplot(data = climate_lambdas) +
+  geom_point(aes(x = `Cumulative PPT (mm)`, y = Eplus), size = rel(4), color = "#397BB7") +
+  geom_point(aes(x = `Cumulative PPT (mm)`, y = Eminus), size = rel(4), color = "#397BB7", pch = 21) +
+  geom_smooth(aes(x = `Cumulative PPT (mm)`, y = Eplus), linetype = "solid", color = "#397BB7", method = "glm", se = FALSE) +
+  geom_smooth(aes(x = `Cumulative PPT (mm)`, y = Eminus), linetype = "dashed", color = "#397BB7", method = "glm", se = FALSE) +
+  ylab(expression(paste("Annual", " ", lambda))) + scale_linetype_manual("",breaks = c("E+","E-"), values = c("solid", "dashed")) + 
+  theme(panel.background = element_rect(fill = "transparent", color = NA),
+        plot.background = element_rect(fill = "transparent", color = NA),
+        panel.grid.major.y = element_blank(),
+        panel.grid.major.x = element_blank(),
+        panel.grid.minor.x = element_blank(),
+        axis.line.x = element_line(size = .5, colour = "black"),
+        axis.line.y = element_line(size = .5, colour = "black"),
+        axis.ticks.y = element_blank(),
+        axis.text.y = element_text(size = rel(2), face = "bold"),
+        axis.text.x = element_text(size = rel(2), face = "bold"),
+        axis.title = element_text(size = rel(2)))
+
+
+climate_lambdaplot
+ggsave(climate_lambdaplot, filename = "~/Documents/climate_lambdaplot.tiff",width = 4, height = 4, bg = "transparent")
+
+
+# Get surv intercepts
+eminus_surv_int <- eplus_surv_int <- matrix(NA, 11,length(post_draws))
+for(y in 1:11){
+  for(i in 1:length(post_draws)){
+eminus_surv_int[y,i] <- invlogit(make_params(species=4,
+                        endo_mean=0,
+                        endo_var=0,
+                        original = 1, # should be =1 to represent recruit
+                        draw=post_draws[i],
+                        max_size=max_size,
+                        rfx=T,
+                        year=y,surv_par=surv_par,
+                        surv_sdlg_par = surv_sdlg_par,
+                        grow_par=grow_par,
+                        grow_sdlg_par = grow_sdlg_par,
+                        flow_par=flow_par,
+                        fert_par=fert_par,
+                        spike_par=spike_par,
+                        seed_par=seed_par,
+                        recruit_par=recruit_par)$surv_int)
+eplus_surv_int[y,i] <- invlogit(make_params(species=4,
+                               endo_mean=1,
+                               endo_var=1,
+                               original = 1, # should be =1 to represent recruit
+                               draw=post_draws[i],
+                               max_size=max_size,
+                               rfx=T,
+                               year=y,surv_par=surv_par,
+                               surv_sdlg_par = surv_sdlg_par,
+                               grow_par=grow_par,
+                               grow_sdlg_par = grow_sdlg_par,
+                               flow_par=flow_par,
+                               fert_par=fert_par,
+                               spike_par=spike_par,
+                               seed_par=seed_par,
+                               recruit_par=recruit_par)$surv_int)
+}}
+
+mean_surv_eplus_yearly <- matrix(NA, 11,7)
+mean_surv_eminus_yearly <- matrix(NA, 11,7)
+
+for(y in 1:11){
+  mean_surv_eplus_yearly[y,1] <- mean(eplus_surv_int[y,])
+  mean_surv_eplus_yearly[y,2:7] <- quantile(eplus_surv_int[y,],probs=c(0.05,0.125,0.25,0.75,0.875,0.95), na.rm = T)
+  
+  mean_surv_eminus_yearly[y,1] <- mean(eminus_surv_int[y,])
+  mean_surv_eplus_yearly[y,2:7] <- quantile(eminus_surv_int[y,],probs=c(0.05,0.125,0.25,0.75,0.875,0.95), na.rm = T)
+  
+}
+
+climate_surv <- bind_cols(Eminus = mean_surv_eminus_yearly[,1], Eplus = mean_surv_eplus_yearly[,1]) %>%
+  bind_cols(climate_data[2:12,])
+
+  
+  
+  
+climate_survplot <- ggplot(data = climate_surv) +
+  geom_point(aes(x = `Cumulative PPT (mm)`, y = Eplus), color = "red") +
+  geom_point(aes(x = `Cumulative PPT (mm)`, y = Eminus), color = "darkred") +
+  geom_smooth(aes(x = `Cumulative PPT (mm)`, y = Eplus), color = "red", method = "glm", se = FALSE) +
+  geom_smooth(aes(x = `Cumulative PPT (mm)`, y = Eminus), color = "darkred", method = "glm", se = FALSE)
+  # geom_point(aes(x = `Mean Temp. (C˚)`, y = Eplus), color = "red") +
+  # geom_point(aes(x = `Mean Temp. (C˚)`, y = Eminus), color = "darkred") +
+  # geom_smooth(aes(x = `Mean Temp. (C˚)`, y = Eplus), color = "red", method = "glm", se = FALSE) +
+  # geom_smooth(aes(x = `Mean Temp. (C˚)`, y = Eminus), color = "darkred", method = "glm", se = FALSE)
+
+climate_survplot
+ggsave(climate_survplot, filename = "~/Documents/climate_survplot.tiff",width = 6, height = 4.5, bg = "transparent")
+
+
+  
+  
+  
+######## Making vital rate  yearly figures #####
+params_yearly <- array(dim = c(17,7,2,11,length(post_draws)))
+for(i in 1:length(post_draws)){
+  for(y in 1:11){
+    for(e in 1:2){
+      for(s in 1:7){
+        params_yearly[,s,e,y,i] <- unlist(make_params(species=s,
+                                              endo_mean=(e-1),
+                                              endo_var=(e-1),
+                                              original = 1, # should be =1 to represent recruit
+                                              draw=post_draws[i],
+                                              max_size=max_size,
+                                              rfx=T,
+                                              year=y,
+                                              surv_par=surv_par,
+                                              surv_sdlg_par = surv_sdlg_par,
+                                              grow_par=grow_par,
+                                              grow_sdlg_par = grow_sdlg_par,
+                                              flow_par=flow_par,
+                                              fert_par=fert_par,
+                                              spike_par=spike_par,
+                                              seed_par=seed_par,
+                                              recruit_par=recruit_par))
+      }
+    }
+  }
+}
+  
+mean_params_yearly <- array(dim = c(17,7,2,11))
+for(p in 1:17){
+  for(s in 1:7){
+    for(e in 1:2){
+      for(y in 1:11){
+      mean_params_yearly[p,s,e,y] <- mean(params_yearly[p,s,e,y,])
+      }
+    }
+  }
+}
+x_seq <- array(dim = c(100,7), dimnames = list(size_t = paste0("size", 1:100), Species = c("AGPE", "ELRI", "ELVI", "FESU", "LOAR", "POAL", "POSY")))
+for(s in 1:7){
+x_seq[,s] <- seq(length = 100, from = 1, to = max_size$actual_max_size[s])
+}
+x_seq_df <- as_tibble(x_seq, rownames = "row_seq") %>% 
+  pivot_longer(-row_seq, names_to = c("Species"), values_to = c("x_seq"))
+
+surv_mod <- grow_mod <- flw_mod <- fert_mod <- array(dim = c(100,11,2,7), dimnames = list(size_t = paste0("size", 1:100), Year = paste0("y", 1:11), Endo = paste0("e",1:2), Species = c("AGPE", "ELRI", "ELVI", "FESU", "LOAR", "POAL", "POSY")))
+for(s in 1:7){
+  for(e in 1:2){
+    for(y in 1:11){
+surv_mod[,y,e,s] <- invlogit(mean_params_yearly[1,s,e,y] + mean_params_yearly[2,s,e,y]*log(x_seq[,s]))
+grow_mod[,y,e,s] <- exp(mean_params_yearly[4,s,e,y] + mean_params_yearly[5,s,e,y]*log(x_seq[,s]))
+flw_mod[,y,e,s] <- invlogit(mean_params_yearly[9,s,e,y] + mean_params_yearly[10,s,e,y]*log(x_seq[,s]))
+fert_mod[,y,e,s] <- exp(mean_params_yearly[11,s,e,y] + mean_params_yearly[12,s,e,y]*log(x_seq[,s]))
+    }
+  }
+}
+surv_fit_df <- as_tibble(surv_mod, rownames = "row_seq") %>% 
+  pivot_longer( -row_seq, names_to = c("Year", "Endo", "Species"), names_pattern = ("([^.]+).([^.]+).([^.]+)"), values_to = "prob_surv_t1") %>% 
+  left_join(x_seq_df, by = c("Species", "row_seq")) %>% 
+  mutate(Endo = case_when(Endo == "e1" ~ 0,
+                          Endo == "e2" ~ 1))
+grow_fit_df <- as_tibble(grow_mod, rownames = "row_seq") %>% 
+  pivot_longer( -row_seq, names_to = c("Year", "Endo", "Species"), names_pattern = ("([^.]+).([^.]+).([^.]+)"), values_to = "size_t1") %>% 
+  left_join(x_seq_df, by = c("Species", "row_seq")) %>% 
+  mutate(Endo = case_when(Endo == "e1" ~ 0,
+                          Endo == "e2" ~ 1))
+
+flw_fit_df <- as_tibble(flw_mod, rownames = "row_seq") %>% 
+  pivot_longer( -row_seq, names_to = c("Year", "Endo", "Species"), names_pattern = ("([^.]+).([^.]+).([^.]+)"), values_to = "prob_flw_t") %>% 
+  left_join(x_seq_df, by = c("Species", "row_seq")) %>% 
+  mutate(Endo = case_when(Endo == "e1" ~ 0,
+                          Endo == "e2" ~ 1))
+fert_fit_df <- as_tibble(fert_mod, rownames = "row_seq") %>% 
+  pivot_longer( -row_seq, names_to = c("Year", "Endo", "Species"), names_pattern = ("([^.]+).([^.]+).([^.]+)"), values_to = "no_flw_t") %>% 
+  left_join(x_seq_df, by = c("Species", "row_seq")) %>% 
+  mutate(Endo = case_when(Endo == "e1" ~ 0,
+                          Endo == "e2" ~ 1))
+# Bin Data by year
+
+bin_by_size <- function(df_raw, nbins){
+  require(tidyverse)
+  df_raw <- ungroup(df_raw)
+  surv_bin_byyear <- df_raw %>% 
+    filter(!is.na(surv_t1)) %>% 
+    filter(!is.na(logsize_t)) %>% 
+    filter(!is.na(endo_01)) %>%   # There are a few LOAR that don't have a plot level endo assigned
+    filter(origin_01 == 1 & year_t != birth | origin_01 == 0) %>% 
+    dplyr::select(surv_t1, logsize_t, year_t, endo_01, species) %>% 
+    rename(Endo = endo_01, Year = year_t, Species = species) %>%
+    mutate(size_bin = cut(logsize_t, breaks = nbins)) %>%
+    group_by(size_bin, Year, Endo, Species) %>%
+    summarise(mean_size = mean((logsize_t),na.rm=T),
+              mean_surv = mean(surv_t1,na.rm=T),
+              samplesize = n())
+    
+  surv_sdlg_bin_byyear <-  df_raw %>% 
+    filter(!is.na(surv_t1)) %>%
+    filter(!is.na(logsize_t)) %>% 
+    filter(!is.na(endo_01)) %>%  # There are a few LOAR that don't have a plot level endo assigned
+    filter(origin_01 == 1 & year_t == birth) %>%  #filtering for recruits that are just germinated
+    filter(logsize_t == 0) %>% 
+    dplyr::select(surv_t1, logsize_t, year_t, endo_01, species) %>%
+    rename(Endo = endo_01, Year = year_t, Species = species) %>%
+    group_by(logsize_t, Year, Endo, Species) %>%
+    summarise(mean_size = mean((logsize_t),na.rm=T),
+              mean_sdlg_surv = mean(surv_t1,na.rm=T),
+              samplesize = n())
+    
+  grow_bin_byyear <-   df_raw %>% 
+    filter(!is.na(logsize_t)) %>% 
+    filter(!is.na(size_t1)) %>% 
+    filter(!is.na(endo_01)) %>% 
+    filter(origin_01 == 1 & year_t != birth | origin_01 == 0) %>% 
+    dplyr::select(size_t1, logsize_t, year_t, endo_01, species) %>%
+    rename(Endo = endo_01, Year = year_t, Species = species) %>% 
+    mutate(size_bin = cut(logsize_t, breaks = nbins)) %>%
+    group_by(size_bin, Year, Endo, Species) %>%
+    summarise(mean_size = mean((logsize_t),na.rm=T),
+              mean_size_t1 = mean(size_t1,na.rm=T),
+              samplesize = n())
+  
+  grow_sdlg_bin_byyear <-df_raw %>% 
+    filter(!is.na(logsize_t)) %>% 
+    filter(!is.na(size_t1)) %>% 
+    filter(!is.na(endo_01)) %>% 
+    filter(origin_01 == 1 & year_t == birth) %>%  #filtering for recruits that are just germinated
+    filter(logsize_t == 0) %>% 
+    dplyr::select(size_t1, logsize_t, year_t, endo_01, species) %>%
+    rename(Endo = endo_01,Year = year_t, Species = species) %>%
+    group_by(logsize_t, Year, Endo, Species) %>%
+    summarise(mean_size = mean((logsize_t),na.rm=T),
+              mean_size_t1 = mean(size_t1,na.rm=T),
+              samplesize = n())
+  
+  
+  flw_bin_byyear <- df_raw %>% 
+    filter(!is.na(FLW_STAT_T)) %>% 
+    filter(!is.na(logsize_t)) %>% 
+    filter(!is.na(endo_01)) %>% 
+    dplyr::select(FLW_STAT_T, logsize_t, year_t, endo_01, species) %>%
+    rename(Endo = endo_01, Year = year_t, Species = species) %>%
+    mutate(size_bin = cut(logsize_t, breaks = nbins)) %>%
+    group_by(size_bin, Year, Endo, Species) %>%
+    summarise(mean_size = mean((logsize_t),na.rm=T),
+              mean_flw = mean(FLW_STAT_T,na.rm=T),
+              samplesize = n())
+  
+  fert_bin_byyear <- df_raw %>% 
+    filter(!is.na(FLW_COUNT_T)) %>% 
+    filter(FLW_COUNT_T > 0) %>% 
+    filter(!is.na(logsize_t)) %>% 
+    dplyr::select(FLW_COUNT_T, logsize_t, year_t, endo_01, species) %>%
+    rename(Endo = endo_01,Year = year_t, Species = species) %>%
+    mutate(size_bin = cut(logsize_t, breaks = nbins)) %>%
+    group_by(size_bin, Year, Endo, Species) %>%
+    summarise(mean_size = mean((logsize_t),na.rm=T),
+              mean_fert = mean(FLW_COUNT_T,na.rm=T),
+              samplesize = n())
+
+    size_bins <- list(surv_bin_byyear = surv_bin_byyear, 
+                      surv_sdlg_bin_byyear = surv_sdlg_bin_byyear,
+                      grow_bin_byyear = grow_bin_byyear, 
+                      grow_sldg_bin_byyear = grow_sdlg_bin_byyear, 
+                      flw_bin_byyear = flw_bin_byyear, 
+                      fert_bin_byyear = fert_bin_byyear)
+  return(size_bins)
+}
+size_bin_data <- bin_by_size(LTREB_full, nbins = 10)
+
+# surv plot
+surv_dataplot <- ggplot(data = surv_fit_df) +
+  geom_line( aes(x = log(x_seq), y = prob_surv_t1, group = Year, color = Species, linetype = as.factor(Endo))) +
+  geom_point(data = size_bin_data$surv_bin_byyear, aes(x = mean_size, y = mean_surv, color = as.factor(Species), size = samplesize, shape = as.factor(Endo))) + 
+  facet_wrap(~Species + Endo, ncol = 2, scales = "free")  +
+  scale_fill_manual(values = c("#59A1BC", "#4E816D", "#EFAD3A", "#397BB7", "#9E78A1", "#E04D55", "#9D5251")) +
+  scale_color_manual(values = c("#59A1BC", "#4E816D", "#EFAD3A", "#397BB7", "#9E78A1", "#E04D55", "#9D5251")) +
+  scale_shape_manual(values = c(19, 1),limits = factor(c(1,0)), name = "Endo Status", labels = c("E-", "E+"))+ 
+  scale_linetype_discrete(name = "Endo Status",limits = factor(c(1,0)), labels = c("E-", "E+"))+ 
+  ggtitle("Yearly Prob. of Survival")+ xlab("log(size_t)") + ylab("Prob. Surv.") +
+  guides(color = FALSE, size = FALSE, shape = FALSE, linetype = FALSE)+
+  theme(panel.background = element_rect(fill = "white", color = NA),
+        plot.background = element_rect(fill = "transparent", color = NA),
+        # panel.grid.major.y = element_line(size = .5, colour = "gray"),
+        # panel.grid.major.x = element_line(size = .5, colour = "gray"),
+        # panel.grid.minor.x = element_blank(),
+        axis.line.x = element_line(size = .5, colour = "black"),
+        axis.line.y = element_line(size = .5, colour = "black"),
+        # axis.ticks.y = element_blank(),
+        # axis.text.y = element_text(size = rel(2), face = "bold"),
+        # axis.text.x = element_text(size = rel(2), face = "bold"),
+        axis.title = element_text(size = rel(2)),
+        strip.background = element_rect(fill = "white", color = "lightgray"))
+
+surv_dataplot
+ggsave(surv_dataplot, filename = "~/Documents/surv_dataplot.tiff",width = 6, height = 20, bg = "white")
+
+FESUsurv_dataplot <- ggplot(data = subset(surv_fit_df, Species == "FESU")) +
+  geom_line( aes(x = log(x_seq), y = prob_surv_t1, group = Year, color = Species, linetype = as.factor(Endo))) +
+  geom_point(data = subset(size_bin_data$surv_bin_byyear, Species == "FESU"), aes(x = mean_size, y = mean_surv, color = as.factor(Species), size = samplesize, shape = as.factor(Endo))) + 
+  facet_wrap(~Species + Endo, ncol = 2, scales = "free")  +
+  scale_fill_manual(values = c( "#397BB7")) +
+  scale_color_manual(values = c( "#397BB7")) +
+  scale_shape_manual(values = c(19, 1),limits = factor(c(1,0)), name = "Endo Status", labels = c("E-", "E+"))+ 
+  scale_linetype_discrete(name = "Endo Status",limits = factor(c(1,0)), labels = c("E-", "E+"))+ 
+  ggtitle("Yearly Prob. of Survival")+ xlab("log(size_t)") + ylab("Prob. Surv.") +
+  guides(color = FALSE, size = FALSE, shape = FALSE, linetype = FALSE)+
+  theme(panel.background = element_rect(fill = "white", color = NA),
+        plot.background = element_rect(fill = "transparent", color = NA),
+        # panel.grid.major.y = element_line(size = .5, colour = "gray"),
+        # panel.grid.major.x = element_line(size = .5, colour = "gray"),
+        # panel.grid.minor.x = element_blank(),
+        axis.line.x = element_line(size = .5, colour = "black"),
+        axis.line.y = element_line(size = .5, colour = "black"),
+        # axis.ticks.y = element_blank(),
+        # axis.text.y = element_text(size = rel(2), face = "bold"),
+        # axis.text.x = element_text(size = rel(2), face = "bold"),
+        axis.title = element_text(size = rel(2)),
+        strip.background = element_rect(fill = "white", color = "lightgray"))
+
+FESUsurv_dataplot
+ggsave(FESUsurv_dataplot, filename = "~/Documents/FESUsurv_dataplot.png",width = 5, height = 4, bg = "white")
+
+# growth plot
+grow_dataplot <- ggplot(data = grow_fit_df) +
+  geom_line( aes(x = log(x_seq), y = size_t1, group = Year, color = Species, linetype = as.factor(Endo))) +
+  geom_point(data = size_bin_data$grow_bin_byyear, aes(x = mean_size, y = mean_size_t1, color = as.factor(Species), size = samplesize, shape = as.factor(Endo))) +
+  facet_wrap(~Species + Endo, ncol = 2, scales = "free")  +
+  scale_fill_manual(values = c("#59A1BC", "#4E816D", "#EFAD3A", "#397BB7", "#9E78A1", "#E04D55", "#9D5251")) +
+  scale_color_manual(values = c("#59A1BC", "#4E816D", "#EFAD3A", "#397BB7", "#9E78A1", "#E04D55", "#9D5251")) +
+  scale_shape_manual(values = c(19, 1), name = "Endo Status", labels = c("E-", "E+"))+ 
+  scale_linetype_discrete(name = "Endo Status", labels = c("E-", "E+"))+ 
+  ggtitle("Yearly Growth")+ xlab("log(size_t)") + ylab("Size_t1") +
+  guides(color = FALSE, size = FALSE, shape = FALSE, linetype = FALSE)+
+  theme(panel.background = element_rect(fill = "white", color = NA),
+        plot.background = element_rect(fill = "transparent", color = NA),
+        # panel.grid.major.y = element_line(size = .5, colour = "gray"),
+        # panel.grid.major.x = element_line(size = .5, colour = "gray"),
+        # panel.grid.minor.x = element_blank(),
+        axis.line.x = element_line(size = .5, colour = "black"),
+        axis.line.y = element_line(size = .5, colour = "black"),
+        # axis.ticks.y = element_blank(),
+        # axis.text.y = element_text(size = rel(2), face = "bold"),
+        # axis.text.x = element_text(size = rel(2), face = "bold"),
+        axis.title = element_text(size = rel(2)),
+        strip.background = element_rect(fill = "white", color = "lightgray"))
+
+grow_dataplot
+ggsave(grow_dataplot, filename = "~/Documents/grow_dataplot.tiff",width = 6, height = 20, bg = "white")
+
+
+# flw plot
+flw_dataplot <- ggplot(data = flw_fit_df) +
+  geom_line( aes(x = log(x_seq), y = prob_flw_t, group = Year, color = Species, linetype = as.factor(Endo))) +
+  geom_point(data = size_bin_data$flw_bin_byyear, aes(x = mean_size, y = mean_flw, color = as.factor(Species), size = samplesize, shape = as.factor(Endo))) + 
+  facet_wrap(~Species + Endo, ncol = 2, scales = "free")  +
+  scale_fill_manual(values = c("#59A1BC", "#4E816D", "#EFAD3A", "#397BB7", "#9E78A1", "#E04D55", "#9D5251")) +
+  scale_color_manual(values = c("#59A1BC", "#4E816D", "#EFAD3A", "#397BB7", "#9E78A1", "#E04D55", "#9D5251")) +
+  scale_shape_manual(values = c(19, 1),limits = factor(c(1,0)), name = "Endo Status", labels = c("E-", "E+"))+ 
+  scale_linetype_discrete(name = "Endo Status",limits = factor(c(1,0)), labels = c("E-", "E+"))+ 
+  ggtitle("Yearly Prob. of Flowering")+ xlab("log(size_t)") + ylab("Prob. Flw.") +
+  guides(color = FALSE, size = FALSE, shape = FALSE, linetype = FALSE)+
+  theme(panel.background = element_rect(fill = "white", color = NA),
+        plot.background = element_rect(fill = "transparent", color = NA),
+        # panel.grid.major.y = element_line(size = .5, colour = "gray"),
+        # panel.grid.major.x = element_line(size = .5, colour = "gray"),
+        # panel.grid.minor.x = element_blank(),
+        axis.line.x = element_line(size = .5, colour = "black"),
+        axis.line.y = element_line(size = .5, colour = "black"),
+        # axis.ticks.y = element_blank(),
+        # axis.text.y = element_text(size = rel(2), face = "bold"),
+        # axis.text.x = element_text(size = rel(2), face = "bold"),
+        axis.title = element_text(size = rel(2)),
+        strip.background = element_rect(fill = "white", color = "lightgray"))
+
+flw_dataplot
+ggsave(flw_dataplot, filename = "~/Documents/flw_dataplot.tiff",width = 6, height = 20, bg = "white")
+
+# Fert plot
+fert_dataplot <- ggplot(data = fert_fit_df) +
+  geom_line( aes(x = log(x_seq), y = no_flw_t, group = Year, color = Species, linetype = as.factor(Endo))) +
+  geom_point(data = size_bin_data$fert_bin_byyear, aes(x = mean_size, y = mean_fert, color = as.factor(Species), size = samplesize, shape = as.factor(Endo))) + 
+  facet_wrap(~Species + Endo, ncol = 2, scales = "free")  +
+  scale_fill_manual(values = c("#59A1BC", "#4E816D", "#EFAD3A", "#397BB7", "#9E78A1", "#E04D55", "#9D5251")) +
+  scale_color_manual(values = c("#59A1BC", "#4E816D", "#EFAD3A", "#397BB7", "#9E78A1", "#E04D55", "#9D5251")) +
+  scale_shape_manual(values = c(19, 1),limits = factor(c(1,0)), name = "Endo Status", labels = c("E-", "E+"))+ 
+  scale_linetype_discrete(name = "Endo Status",limits = factor(c(1,0)), labels = c("E-", "E+"))+ 
+  ggtitle("Yearly Flowering No.")+ xlab("log(size_t)") + ylab("No. Flw Tillers") +
+  guides()+
+  theme(panel.background = element_rect(fill = "white", color = NA),
+        plot.background = element_rect(fill = "transparent", color = NA),
+        # panel.grid.major.y = element_line(size = .5, colour = "gray"),
+        # panel.grid.major.x = element_line(size = .5, colour = "gray"),
+        # panel.grid.minor.x = element_blank(),
+        axis.line.x = element_line(size = .5, colour = "black"),
+        axis.line.y = element_line(size = .5, colour = "black"),
+        # axis.ticks.y = element_blank(),
+        # axis.text.y = element_text(size = rel(2), face = "bold"),
+        # axis.text.x = element_text(size = rel(2), face = "bold"),
+        axis.title = element_text(size = rel(2)),
+        strip.background = element_rect(fill = "white", color = "lightgray"))
+
+legend <- cowplot::get_legend(fert_dataplot + theme(legend.title = element_text(size = rel(2)),
+                                                    legend.text = element_text(size = rel(1.5))))
+grid.newpage()
+grid.draw(legend)  
+
+fert_dataplot <- fert_dataplot + guides(size = FALSE, color = FALSE, linetype = FALSE, shape = FALSE)
+ggsave(fert_dataplot, filename = "~/Documents/fert_dataplot.tiff",width = 6, height = 20, bg = "white")
+
+
+
+vr_plot <- grid.arrange(surv_dataplot, grow_dataplot, flw_dataplot, fert_dataplot, legend, nrow = 1)       
+ggsave(vr_plot, filename = "~/Documents/vr_plot.tiff",width = 20, height = 20, bg = "white")
+
+
+
+##### Making a mean endophyte effect vital rate plot ####
 
 
