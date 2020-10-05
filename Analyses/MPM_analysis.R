@@ -922,4 +922,208 @@ ggsave(vr_plot, filename = "~/Documents/vr_plot.tiff",width = 20, height = 20, b
 
 ##### Making a mean endophyte effect vital rate plot ####
 
+params_mean <- array(dim = c(17,7,2,length(post_draws)))
+for(i in 1:length(post_draws)){
+    for(e in 1:2){
+      for(s in 1:7){
+        params_mean[,s,e,i] <- unlist(make_params(species=s,
+                                                      endo_mean=(e-1),
+                                                      endo_var=(e-1),
+                                                      original = 1, # should be =1 to represent recruit
+                                                      draw=post_draws[i],
+                                                      max_size=max_size,
+                                                      rfx=F,
+                                                      surv_par=surv_par,
+                                                      surv_sdlg_par = surv_sdlg_par,
+                                                      grow_par=grow_par,
+                                                      grow_sdlg_par = grow_sdlg_par,
+                                                      flow_par=flow_par,
+                                                      fert_par=fert_par,
+                                                      spike_par=spike_par,
+                                                      seed_par=seed_par,
+                                                      recruit_par=recruit_par))
+      }
+    }
+  }
+
+
+mean_params_mean <- array(dim = c(17,7,2, 7))
+for(p in 1:17){
+  for(s in 1:7){
+    for(e in 1:2){
+        mean_params_mean[p,s,e,1] <- mean(params_mean[p,s,e,])
+        mean_params_mean[p,s,e,2:7] <- quantile(params_mean[p,s,e,], c(0.05,0.125,0.25,0.75,0.875,0.95))
+      }
+    }
+  }
+
+x_seq <- array(dim = c(100,7), dimnames = list(size_t = paste0("size", 1:100), Species = c("AGPE", "ELRI", "ELVI", "FESU", "LOAR", "POAL", "POSY")))
+for(s in 1:7){
+  x_seq[,s] <- seq(length = 100, from = 1, to = max_size$actual_max_size[s])
+}
+x_seq_df <- as_tibble(x_seq, rownames = "row_seq") %>% 
+  pivot_longer(-row_seq, names_to = c("Species"), values_to = c("x_seq"))
+
+surv_mod <- grow_mod <- flw_mod <- fert_mod <- array(dim = c(100,2,7,7), dimnames = list(size_t = paste0("size", 1:100), Endo = paste0("e",1:2), Species = c("AGPE", "ELRI", "ELVI", "FESU", "LOAR", "POAL", "POSY"), iteration = c("mean", "five","twelvepointfive", "twentyfive", "seventyfive", "eightysevenpointfive", "ninetyfive")))
+for(s in 1:7){
+  for(e in 1:2){
+    for(i in 1:7)
+      surv_mod[,e,s,i] <- invlogit(mean_params_mean[1,s,e,i] + mean_params_mean[2,s,e,i]*log(x_seq[,s]))
+      grow_mod[,e,s,i] <- exp(mean_params_mean[4,s,e,i] + mean_params_mean[5,s,e,i]*log(x_seq[,s]))
+      flw_mod[,e,s,i] <- invlogit(mean_params_mean[9,s,e,i] + mean_params_mean[10,s,e,i]*log(x_seq[,s]))
+      fert_mod[,e,s,i] <- exp(mean_params_mean[11,s,e,i] + mean_params_mean[12,s,e,i]*log(x_seq[,s]))
+    }
+  }
+
+surv_fit_df <- as_tibble(surv_mod, rownames = "row_seq") %>% 
+  pivot_longer( -row_seq, names_to = c( "Endo", "Species", "Iterations"), names_pattern = ("([^.]+).([^.]+).([^.]+)"), values_to = "prob_surv_t1") %>% 
+  left_join(x_seq_df, by = c("Species", "row_seq")) %>% 
+  mutate(Endo = case_when(Endo == "e1" ~ 0,
+                          Endo == "e2" ~ 1)) %>% 
+  pivot_wider(names_from = "Iterations", values_from = prob_surv_t1)
+
+grow_fit_df <- as_tibble(grow_mod, rownames = "row_seq") %>% 
+  pivot_longer( -row_seq, names_to = c( "Endo", "Species", "Iterations"), names_pattern = ("([^.]+).([^.]+).([^.]+)"), values_to = "prob_surv_t1") %>% 
+  left_join(x_seq_df, by = c("Species", "row_seq")) %>% 
+  mutate(Endo = case_when(Endo == "e1" ~ 0,
+                          Endo == "e2" ~ 1)) %>% 
+  pivot_wider(names_from = "Iterations", values_from = prob_surv_t1)
+
+
+flw_fit_df <- as_tibble(flw_mod, rownames = "row_seq") %>% 
+  pivot_longer( -row_seq, names_to = c( "Endo", "Species", "Iterations"), names_pattern = ("([^.]+).([^.]+).([^.]+)"), values_to = "prob_surv_t1") %>% 
+  left_join(x_seq_df, by = c("Species", "row_seq")) %>% 
+  mutate(Endo = case_when(Endo == "e1" ~ 0,
+                          Endo == "e2" ~ 1)) %>% 
+  pivot_wider(names_from = "Iterations", values_from = prob_surv_t1)
+
+fert_fit_df <- as_tibble(fert_mod, rownames = "row_seq") %>% 
+  pivot_longer( -row_seq, names_to = c( "Endo", "Species", "Iterations"), names_pattern = ("([^.]+).([^.]+).([^.]+)"), values_to = "prob_surv_t1") %>% 
+  left_join(x_seq_df, by = c("Species", "row_seq")) %>% 
+  mutate(Endo = case_when(Endo == "e1" ~ 0,
+                          Endo == "e2" ~ 1)) %>% 
+  pivot_wider(names_from = "Iterations", values_from = prob_surv_t1)
+
+  
+  
+# Bin Data by Endo
+
+bin_by_size_mean <- function(df_raw, nbins){
+  require(tidyverse)
+  df_raw <- ungroup(df_raw)
+  surv_bin_mean <- df_raw %>% 
+    filter(!is.na(surv_t1)) %>% 
+    filter(!is.na(logsize_t)) %>% 
+    filter(!is.na(endo_01)) %>%   # There are a few LOAR that don't have a plot level endo assigned
+    filter(origin_01 == 1 & year_t != birth | origin_01 == 0) %>% 
+    dplyr::select(surv_t1, logsize_t, year_t, endo_01, species) %>% 
+    rename(Endo = endo_01, Year = year_t, Species = species) %>%
+    mutate(size_bin = cut(logsize_t, breaks = nbins)) %>%
+    group_by(size_bin, Endo, Species) %>%
+    summarise(mean_size = mean((logsize_t),na.rm=T),
+              mean_surv = mean(surv_t1,na.rm=T),
+              samplesize = n())
+  
+  surv_sdlg_bin_mean <-  df_raw %>% 
+    filter(!is.na(surv_t1)) %>%
+    filter(!is.na(logsize_t)) %>% 
+    filter(!is.na(endo_01)) %>%  # There are a few LOAR that don't have a plot level endo assigned
+    filter(origin_01 == 1 & year_t == birth) %>%  #filtering for recruits that are just germinated
+    filter(logsize_t == 0) %>% 
+    dplyr::select(surv_t1, logsize_t, year_t, endo_01, species) %>%
+    rename(Endo = endo_01, Year = year_t, Species = species) %>%
+    group_by(logsize_t, Endo, Species) %>%
+    summarise(mean_size = mean((logsize_t),na.rm=T),
+              mean_sdlg_surv = mean(surv_t1,na.rm=T),
+              samplesize = n())
+  
+  grow_bin_mean <-   df_raw %>% 
+    filter(!is.na(logsize_t)) %>% 
+    filter(!is.na(size_t1)) %>% 
+    filter(!is.na(endo_01)) %>% 
+    filter(origin_01 == 1 & year_t != birth | origin_01 == 0) %>% 
+    dplyr::select(size_t1, logsize_t, year_t, endo_01, species) %>%
+    rename(Endo = endo_01, Year = year_t, Species = species) %>% 
+    mutate(size_bin = cut(logsize_t, breaks = nbins)) %>%
+    group_by(size_bin, Endo, Species) %>%
+    summarise(mean_size = mean((logsize_t),na.rm=T),
+              mean_size_t1 = mean(size_t1,na.rm=T),
+              samplesize = n())
+  
+  grow_sdlg_bin_mean <-df_raw %>% 
+    filter(!is.na(logsize_t)) %>% 
+    filter(!is.na(size_t1)) %>% 
+    filter(!is.na(endo_01)) %>% 
+    filter(origin_01 == 1 & year_t == birth) %>%  #filtering for recruits that are just germinated
+    filter(logsize_t == 0) %>% 
+    dplyr::select(size_t1, logsize_t, year_t, endo_01, species) %>%
+    rename(Endo = endo_01,Year = year_t, Species = species) %>%
+    group_by(logsize_t, Endo, Species) %>%
+    summarise(mean_size = mean((logsize_t),na.rm=T),
+              mean_size_t1 = mean(size_t1,na.rm=T),
+              samplesize = n())
+  
+  
+  flw_bin_mean <- df_raw %>% 
+    filter(!is.na(FLW_STAT_T)) %>% 
+    filter(!is.na(logsize_t)) %>% 
+    filter(!is.na(endo_01)) %>% 
+    dplyr::select(FLW_STAT_T, logsize_t, year_t, endo_01, species) %>%
+    rename(Endo = endo_01, Year = year_t, Species = species) %>%
+    mutate(size_bin = cut(logsize_t, breaks = nbins)) %>%
+    group_by(size_bin, Endo, Species) %>%
+    summarise(mean_size = mean((logsize_t),na.rm=T),
+              mean_flw = mean(FLW_STAT_T,na.rm=T),
+              samplesize = n())
+  
+  fert_bin_mean <- df_raw %>% 
+    filter(!is.na(FLW_COUNT_T)) %>% 
+    filter(FLW_COUNT_T > 0) %>% 
+    filter(!is.na(logsize_t)) %>% 
+    dplyr::select(FLW_COUNT_T, logsize_t, year_t, endo_01, species) %>%
+    rename(Endo = endo_01,Year = year_t, Species = species) %>%
+    mutate(size_bin = cut(logsize_t, breaks = nbins)) %>%
+    group_by(size_bin, Endo, Species) %>%
+    summarise(mean_size = mean((logsize_t),na.rm=T),
+              mean_fert = mean(FLW_COUNT_T,na.rm=T),
+              samplesize = n())
+  
+  size_bins <- list(surv_bin_mean = surv_bin_mean, 
+                    surv_sdlg_bin_mean = surv_sdlg_bin_mean,
+                    grow_bin_mean = grow_bin_mean, 
+                    grow_sldg_bin_mean = grow_sdlg_bin_mean, 
+                    flw_bin_mean = flw_bin_mean, 
+                    fert_bin_mean = fert_bin_mean)
+  return(size_bins)
+}
+size_bin_data_mean <- bin_by_size_mean(LTREB_full, nbins = 10)
+
+
+FESUsurv_dataplot_mean <- ggplot(data = subset(surv_fit_df, Species == "FESU")) +
+  geom_ribbon(aes(x = log(x_seq), ymin = five , ymax = ninetyfive, fill = as.factor(Endo), linetype = as.factor(Endo)), color = c("gray70"), alpha = .5) +
+  geom_line( aes(x = log(x_seq), y = mean, color = Species, linetype = as.factor(Endo), lwd = 2)) +
+  geom_point(data = subset(size_bin_data_mean$surv_bin_mean, Species == "FESU"), aes(x = mean_size, y = mean_surv, color = as.factor(Species), size = samplesize, shape = as.factor(Endo))) + 
+  facet_wrap(~Species, ncol = 1, scales = "free")  +
+  scale_fill_manual(values = c( "gray80", "gray70")) +
+  scale_color_manual(values = c( "#397BB7")) +
+  scale_shape_manual(values = c(19, 1),limits = factor(c(1,0)), name = "Endo Status", labels = c("E-", "E+"))+ 
+  scale_linetype_discrete(name = "Endo Status",limits = factor(c(1,0)), labels = c("E-", "E+"))+ 
+  ggtitle("Mean Survival")+ xlab("log(size_t)") + ylab("Prob. Surv.") +
+  guides(color = FALSE, size = FALSE, shape = FALSE, linetype = FALSE, fill = FALSE)+
+  theme(panel.background = element_rect(fill = "white", color = NA),
+        plot.background = element_rect(fill = "transparent", color = NA),
+        # panel.grid.major.y = element_line(size = .5, colour = "gray"),
+        # panel.grid.major.x = element_line(size = .5, colour = "gray"),
+        # panel.grid.minor.x = element_blank(),
+        axis.line.x = element_line(size = .5, colour = "black"),
+        axis.line.y = element_line(size = .5, colour = "black"),
+        # axis.ticks.y = element_blank(),
+        # axis.text.y = element_text(size = rel(2), face = "bold"),
+        # axis.text.x = element_text(size = rel(2), face = "bold"),
+        axis.title = element_text(size = rel(2)),
+        strip.background = element_rect(fill = "white", color = "lightgray"))
+
+FESUsurv_dataplot_mean
+ggsave(FESUsurv_dataplot_mean, filename = "~/Documents/FESUsurv_dataplot_mean.png",width = 5, height = 4, bg = "white")
+
 
