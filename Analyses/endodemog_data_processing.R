@@ -1720,8 +1720,9 @@ group_by(id) %>%
 
 
 ##############################################################################
-####### Here we will merge in 2019 data ------------------------------
+####### Here we will merge in 2019 and 2020 data ------------------------------
 ##############################################################################
+# 2019 census data
 AGPE_2019_data <- read_xlsx("~/Dropbox/EndodemogData/Field Data/2019/LTREB_data_2019.xlsx", sheet = "AGPE")
 ELRI_2019_data <- read_xlsx("~/Dropbox/EndodemogData/Field Data/2019/LTREB_data_2019.xlsx", sheet = "ELRI")
 ELVI_2019_data <- read_xlsx("~/Dropbox/EndodemogData/Field Data/2019/LTREB_data_2019.xlsx", sheet = "ELVI")
@@ -1738,6 +1739,24 @@ LTREB_update_data <- AGPE_2019_data %>%
   merge(POAL_2019_data, by = c("species", "origin", "plot", "pos","id",  "birth_year", "observation_year", "species", "distance_A", "distance_B", "survival", "size_tillers", "flowering_tillers", "spikelets_A", "spikelets_B", "spikelets_C", "notes"), all = TRUE) %>%
   merge(POSY_2019_data, by = c("species", "origin", "plot", "pos","id",  "birth_year", "observation_year", "species", "distance_A", "distance_B", "survival", "size_tillers", "flowering_tillers", "spikelets_A", "spikelets_B", "spikelets_C", "notes"), all = TRUE)
 
+# 2020 census data
+AGPE_2020_data <- read_xlsx("~/Dropbox/EndodemogData/Field Data/2020/LTREB_data_2020.xlsx", sheet = "AGPE")
+ELRI_2020_data <- read_xlsx("~/Dropbox/EndodemogData/Field Data/2020/LTREB_data_2020.xlsx", sheet = "ELRI")
+ELVI_2020_data <- read_xlsx("~/Dropbox/EndodemogData/Field Data/2020/LTREB_data_2020.xlsx", sheet = "ELVI")
+FESU_2020_data <- read_xlsx("~/Dropbox/EndodemogData/Field Data/2020/LTREB_data_2020.xlsx", sheet = "FESU")
+POAL_2020_data <- read_xlsx("~/Dropbox/EndodemogData/Field Data/2020/LTREB_data_2020.xlsx", sheet = "POAL")
+POSY_2020_data <- read_xlsx("~/Dropbox/EndodemogData/Field Data/2020/LTREB_data_2020.xlsx", sheet = "POSY")
+# # Now we can merge all the different species together.
+LTREB_update_data <- LTREB_update_data %>%
+  merge(AGPE_2020_data, by = c("species", "origin", "plot", "pos","id",  "birth_year", "observation_year", "species", "distance_A", "distance_B", "survival", "size_tillers", "flowering_tillers", "spikelets_A", "spikelets_B", "spikelets_C", "notes"), all = TRUE) %>%
+  merge(ELRI_2020_data, by = c("species", "origin", "plot", "pos","id",  "birth_year", "observation_year", "species", "distance_A", "distance_B", "survival", "size_tillers", "flowering_tillers", "spikelets_A", "spikelets_B", "spikelets_C", "notes"), all = TRUE) %>%
+  merge(ELVI_2020_data, by = c("species", "origin", "plot", "pos","id",  "birth_year", "observation_year", "species", "distance_A", "distance_B", "survival", "size_tillers", "flowering_tillers", "spikelets_A", "spikelets_B", "spikelets_C", "notes"), all = TRUE) %>%
+  merge(FESU_2020_data, by = c("species", "origin", "plot", "pos","id",  "birth_year", "observation_year", "species", "distance_A", "distance_B", "survival", "size_tillers", "flowering_tillers", "spikelets_A", "spikelets_B", "spikelets_C", "notes"), all = TRUE) %>%
+  merge(POAL_2020_data, by = c("species", "origin", "plot", "pos","id",  "birth_year", "observation_year", "species", "distance_A", "distance_B", "survival", "size_tillers", "flowering_tillers", "spikelets_A", "spikelets_B", "spikelets_C", "notes"), all = TRUE) %>%
+  merge(POSY_2020_data, by = c("species", "origin", "plot", "pos","id",  "birth_year", "observation_year", "species", "distance_A", "distance_B", "survival", "size_tillers", "flowering_tillers", "spikelets_A", "spikelets_B", "spikelets_C", "notes"), all = TRUE)
+
+
+
 # # We need to do a little bit of cleaning up for some of the missing tags and changing variable names.
 # 
 LTREB_update_cleaned <- LTREB_update_data %>%
@@ -1745,7 +1764,7 @@ LTREB_update_cleaned <- LTREB_update_data %>%
          size_t1 = size_tillers, FLW_COUNT_T1 = flowering_tillers,
          SPIKE_A_T1 = spikelets_A, SPIKE_B_T1 = spikelets_B, SPIKE_C_T1 = spikelets_C,
          dist_a = distance_A, dist_b = distance_B, birth = birth_year) %>% 
-    mutate(birth = as.integer(birth)) %>% 
+    mutate(birth = as.integer(birth)) %>% #There are NA's for a few birth years where we have found new but older plants
     mutate(plot_fixed = as.integer(plot)) %>% 
     mutate(plot_index = as.integer(recode(plot_fixed, !!!plot_factor_key))) %>% 
     mutate(size_t1 = na_if(size_t1, 0)) %>%
@@ -1762,10 +1781,19 @@ LTREB_update_cleaned <- LTREB_update_data %>%
                                           surv_t1 == 0 ~ 0,
                                           is.na(surv_t1) & birth == year_t1 ~ 1))) %>% 
     filter(!is.na(size_t1) & surv_t1 == 1 | surv_t1 == 0) # filtering out mismatches where there is no size data entry but the survival was recorded; this is sometimes TNF or new recruits where I think it was an oversight in data entry where they are likely a small size like 1 tiller. For now, I am just removing them
-# dim(LTREB_update_cleaned)
+
+# There are a few plants that were not found in 2019, but found in 2020. Here I am updating the survival of those plants to be 1, although we do not have size data for them.
+LTREB_update_tnfs <- LTREB_update_cleaned %>% 
+  group_by(id) %>% 
+  filter(year_t1[1] <= year_t1[2] & surv_t1[1] == 0) %>% 
+  mutate(surv_t1 = 1)
+dim(LTREB_update_tnfs)
+# now rebind the these updated rows to the rest of the data
+LTREB_update_cleaned_tnf<- filter(LTREB_update_cleaned, !(id %in% LTREB_update_tnfs$id)) %>% 
+  bind_rows(LTREB_update_tnfs)
 
 
-LTREB_update <- LTREB_update_cleaned %>% 
+LTREB_update <- LTREB_update_cleaned_tnf %>% 
   mutate(year_t = year_t1 - 1,
          year_t_index = year_t1_index -1) %>% 
   dplyr::select(plot_fixed, plot_index, pos, id, species, species_index, 
@@ -1876,6 +1904,14 @@ LTREB_status_changes <- LTREB_full_2 %>%
   mutate(percent_gain = (gain_endo/same)*100, percent_lose = (lose_endo/same)*100)
   
 
+# Here is a list of all the original plot endophyte statuses
+
+LTREB_endophyte_plot_numbers <- LTREB_full_2 %>% 
+  group_by(species, plot_fixed) %>% 
+  summarize(endophyte_status = mean(plot_endo_for_check, na.rm = T)) %>% 
+  filter(!is.nan(endophyte_status))
+write_csv(LTREB_endophyte_plot_numbers, path = "LTREB_endophyte_plot_numbers.csv")
+
 ##############################################################################
 ####### Merging in the location data ------------------------------
 ##############################################################################
@@ -1902,12 +1938,14 @@ LTREB_distances <- read_csv(file = "~/Dropbox/EndodemogData/Fulldataplusmetadata
 # Here are the plant id's that are in the distance file but not the long file
 setdiff(LTREB_distances$id, LTREB_full_2$id)
 
-########
-# This is the main dataframe this is used to create vital rate model lists
+##############################################################################
+####### This is the main dataframe that is used to fit vital rate models  ------------------------------
+##############################################################################
+
 LTREB_full <- LTREB_full_2 %>% 
   left_join(LTREB_distances, by = c("species" = "species","pos" = "pos", "plot_fixed" = "plot", "origin_01" = "origin_01", "id" = "id")) %>% 
   dplyr::select(-duplicate, -origin_from_check, -origin_from_distance, -date_status, -date_dist ) # I'm removing some of the extraneous variable. We also have distance data in the new field data that needs to be merged in.
-# write_csv(LTREB_full,"~/Dropbox/EndodemogData/Fulldataplusmetadata/LTREB_full.csv")
+write_csv(LTREB_full,"~/Dropbox/EndodemogData/Fulldataplusmetadata/LTREB_full.csv")
 
 ## Tom is loading this in, bypassing above code
 tompath <- "C:/Users/tm9/Dropbox/EndodemogData/"
