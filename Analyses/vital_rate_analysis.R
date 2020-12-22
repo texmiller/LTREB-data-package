@@ -29,6 +29,27 @@ source("Analyses/endodemog_data_processing.R")
 #############################################################################################
 ####### Preparing data lists for vital rate kernels ------------------
 #############################################################################################
+# Curious about lifespan
+
+max_ages <- LTREB_full %>% 
+  mutate(age = year_t1 - birth,
+         age_at_death = case_when(surv_t1 == 0 ~ year_t1 - birth)) 
+
+max_survival <- LTREB_full %>% 
+  mutate(age = year_t1 - birth,
+         age_at_death = case_when(surv_t1 == 0 ~ year_t1 - birth)) %>% 
+  group_by(species) %>% 
+  summarize(max_age = max(age, na.rm = T),
+            mean_age = mean(age, na.rm = T),
+            max_survival = max(age_at_death, na.rm = T),
+            mean_survival = mean(age_at_death, na.rm = T),
+            median_survival = median(age_at_death, na.rm = T))
+# max_survival
+mean_ageplot <- ggplot(data = max_ages)+
+  geom_histogram(aes(x = age)) +
+  facet_wrap(~species) + theme_classic()
+# mean_ageplot
+# ggsave(mean_ageplot, filename = "~/Documents/mean_ageplot.png", width = 4, height = 4)
 
 ## Clean up the main data frame for NA's, other small data entry errors
 LTREB_data_forsurv <- LTREB_full %>% 
@@ -232,8 +253,8 @@ set.seed(123)
 
 ## MCMC settings
 mcmc_pars <- list(
-  warmup = 5000, 
-  iter = 10000, 
+  warmup = 2500, 
+  iter = 5000, 
   thin = 1, 
   chains = 3
 )
@@ -402,7 +423,7 @@ grid.arrange(mean_s_plot,sd_s_plot,skew_s_plot,kurt_s_plot,  top = "Survival")
 surv_size_ppc <- size_moments_ppc(data = LTREB_data_forsurv,
                                          y_name = "surv_t1",
                                          sim = y_s_sim, 
-                                         n_bins = 5, 
+                                         n_bins = 4, 
                                          title = "Survival")
 
 #### seedling survival ppc ####
@@ -421,10 +442,10 @@ ggsave(seedsurv_densplot, filename = "seedsurv_densplot.png", width = 4, height 
 
 
 
-mean_s_plot <-   ppc_stat(grow_data_list$y, y_s_sim, stat = "mean")
-sd_s_plot <- ppc_stat(grow_data_list$y, y_s_sim, stat = "sd")
-skew_s_plot <- ppc_stat(grow_data_list$y, y_s_sim, stat = "skewness")
-kurt_s_plot <- ppc_stat(grow_data_list$y, y_s_sim, stat = "Lkurtosis")
+mean_s_plot <-   ppc_stat(seed_surv_data_list$y, y_s_sim, stat = "mean")
+sd_s_plot <- ppc_stat(seed_surv_data_list$y, y_s_sim, stat = "sd")
+skew_s_plot <- ppc_stat(seed_surv_data_list$y, y_s_sim, stat = "skewness")
+kurt_s_plot <- ppc_stat(seed_surv_data_list$y, y_s_sim, stat = "Lkurtosis")
 grid.arrange(mean_s_plot,sd_s_plot,skew_s_plot,kurt_s_plot,  top = "Seedling Survival")
 
 
