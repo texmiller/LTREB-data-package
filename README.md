@@ -42,15 +42,22 @@ vital_rate_analysis.R | Script to run survival, growth, and fertility vital rate
 ### Manuscript 
 holds drafts and figures of manuscript
 
-* Testing a list
-*
-*
+File Name  | Description
+------------- | -------------
+endo_stoch_demo_MS.Rnw | Sweave document for writing the manuscript
+endo_stoch_demo_MS.pdf | PDF output of the manuscript sweave document
+endo_stoch_demo_MS.bbl | bibtex file for citations
+Other misc. files | Various style and log files for latex, based around formatting for PNAS
+
 
 ### Meeting Notes 
-holds weekly-ish Josh and Tom's meeting notes, including discussions beyond this project
+holds weekly-ish Josh and Tom's meeting notes, including weekly goals and discussions beyond this project
 
-*
-*
+File Name  | Description
+------------- | -------------
+MeetingUpdates.tex | Latex document for recording weekly notes and goals
+MeetingUpdates.pdf | PDF document output of MeetingUpdates.tex
+Other misc. files | Various style and log files for latex
 
 
 
