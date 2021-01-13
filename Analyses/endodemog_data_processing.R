@@ -7,6 +7,7 @@ library(tidyverse)
 library(reshape2)
 library(lubridate)
 library(readxl)
+library(SPEI)
 
 
 ##############################################################################
@@ -1939,13 +1940,108 @@ LTREB_distances <- read_csv(file = "~/Dropbox/EndodemogData/Fulldataplusmetadata
 setdiff(LTREB_distances$id, LTREB_full_2$id)
 
 ##############################################################################
+####### Getting climate data and calculating SPEI  ------------------------------
+##############################################################################
+# reading in downloaded daily climate data from NOAA-NCEI from the bloomington weather station
+climate <- read_csv("~/Dropbox/EndodemogData/Bloomington_Climate_2020-12-20_USC00120784.csv",
+                    col_types = cols(STATION = col_character(),
+                    NAME = col_character(),
+                    LATITUDE = col_double(),
+                    LONGITUDE = col_double(),
+                    ELEVATION = col_double(),
+                    DATE = col_date(format = ""),
+                    DAPR = col_double(),
+                    DAPR_ATTRIBUTES = col_character(),
+                    DASF = col_double(),
+                    DASF_ATTRIBUTES = col_character(),
+                    MDPR = col_double(),
+                    MDPR_ATTRIBUTES = col_character(),
+                    MDSF = col_double(),
+                    MDSF_ATTRIBUTES = col_character(),
+                    PRCP = col_double(),
+                    PRCP_ATTRIBUTES = col_character(),
+                    SNOW = col_double(),
+                    SNOW_ATTRIBUTES = col_character(),
+                    SNWD = col_double(),
+                    SNWD_ATTRIBUTES = col_character(),
+                    TMAX = col_double(),
+                    TMAX_ATTRIBUTES = col_character(),
+                    TMIN = col_double(),
+                    TMIN_ATTRIBUTES = col_character(),
+                    TOBS = col_double(),
+                    TOBS_ATTRIBUTES = col_character(),
+                    WT01 = col_double(),
+                    WT01_ATTRIBUTES = col_character(),
+                    WT03 = col_double(),
+                    WT03_ATTRIBUTES = col_character(),
+                    WT04 = col_double(),
+                    WT04_ATTRIBUTES = col_character(),
+                    WT05 = col_double(),
+                    WT05_ATTRIBUTES = col_character(),
+                    WT06 = col_double(),
+                    WT06_ATTRIBUTES = col_character(),
+                    WT07 = col_double(),
+                    WT07_ATTRIBUTES = col_character(),
+                    WT08 = col_double(),
+                    WT08_ATTRIBUTES = col_character(),
+                    WT09 = col_double(),
+                    WT09_ATTRIBUTES = col_character(),
+                    WT11 = col_double(),
+                    WT11_ATTRIBUTES = col_character(),
+                    WT14 = col_double(),
+                    WT14_ATTRIBUTES = col_character(),
+                    WT16 = col_double(),
+                    WT16_ATTRIBUTES = col_character(),
+                    WT18 = col_double(),
+                    WT18_ATTRIBUTES = col_character()))
+# View(climate)
+
+# census months for each species to define climate year
+census_months <- data.frame(species = c("AGPE", "ELRI", "ELVI", "FESU", "LOAR", "POAL", "POSY"),
+                            census_month = c(9,7,7,5,7,5,5))
+
+LTREB_full_3 <- LTREB_full_2 %>% 
+  left_join(census_months)
+
+# Getting climate data for species with census month
+
+climate_census_month <- climate %>% 
+  filter(STATION == "USC00120784") %>% 
+  mutate(year = year(DATE), month = month(DATE), day = day(DATE)) %>% 
+  filter(year >1895) %>% 
+  mutate(TMEAN = (TMAX +TMIN)/2) %>%    # there are some NA's in the Max or Min temp at various times, and so that gives us NA's in the mean temp too, but I filter those out
+  filter(!is.na(TMEAN), !is.na(PRCP), !is.na(LATITUDE)) %>% 
+  mutate(PET = thornthwaite(TMEAN, unique(LATITUDE)), #PET is Potential Evapotranspiration
+         BAL = PRCP - PET) %>%  # BAL is Climatic Water Balance
+  group_by(LATITUDE, LONGITUDE, ELEVATION, STATION, NAME, year,month) %>% 
+  dplyr::summarize(monthly_ppt = sum(PRCP),
+                   monthly_tmean = mean(TMEAN),
+                   monthly_PET = thornthwaite(mean(TMEAN), mean(LATITUDE), na.rm = FALSE),
+                   monthly_BAL = monthly_ppt - monthly_PET) 
+# calulate SPEI, we'll use the 12 month spei which is calculated as a 12 month lag from each month
+climate_census_month$spei12 <- spei(climate_census_month$monthly_BAL, 12)$fitted
+climate_census_month$spei24 <- spei(climate_census_month$monthly_BAL, 24)$fitted
+climate_census_month$spei1 <- spei(climate_census_month$monthly_BAL, 1)$fitted
+
+# Making a dataframe with columns for each species and their census month
+climate_census_month_spp <- climate_census_month %>% 
+  crossing(census_months) %>% 
+  mutate(climate_year = as.numeric(ifelse(month > census_month, year+1, year))) %>% 
+  filter(month == census_month) %>% # Here we are taking just the spei from the census month, which should cover the climate  year  preceding the census
+  dplyr::select(species, climate_year, census_month, spei12)
+
+# Now merging the climate data to the year for each species
+LTREB_full_climate <- LTREB_full_3 %>% 
+  left_join(climate_census_month_spp, by = c("species" = "species",  "year_t1" = "climate_year", "census_month" = "census_month"))
+
+##############################################################################
 ####### This is the main dataframe that is used to fit vital rate models  ------------------------------
 ##############################################################################
 
-LTREB_full <- LTREB_full_2 %>% 
+LTREB_full <- LTREB_full_climate %>% 
   left_join(LTREB_distances, by = c("species" = "species","pos" = "pos", "plot_fixed" = "plot", "origin_01" = "origin_01", "id" = "id")) %>% 
   dplyr::select(-duplicate, -origin_from_check, -origin_from_distance, -date_status, -date_dist ) # I'm removing some of the extraneous variable. We also have distance data in the new field data that needs to be merged in.
-write_csv(LTREB_full,"~/Dropbox/EndodemogData/Fulldataplusmetadata/LTREB_full.csv")
+# write_csv(LTREB_full,"~/Dropbox/EndodemogData/Fulldataplusmetadata/LTREB_full.csv")
 
 ## Tom is loading this in, bypassing above code
 tompath <- "C:/Users/tm9/Dropbox/EndodemogData/"
