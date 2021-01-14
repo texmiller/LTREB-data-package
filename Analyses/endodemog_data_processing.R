@@ -45,7 +45,8 @@ LTREB_data <- LTREB_endodemog %>%
   mutate(size_t, logsize_t = log(size_t)) %>% 
   mutate(size_t1, logsize_t1 = log(size_t1)) %>%  
   mutate(surv_t1 = as.integer(recode(surv_t1, "0" = 0, "1" =1, "2" = 1, "4" = 1))) %>%
-  mutate(endo_01 = as.integer(case_when(endo == "0" | endo == "minus" ~ 0,
+  mutate(endo_01 = as.integer(case_when(species == "ELRI" & grepl("2178R", id) ~ 0, #This is for a typo where two 2017 ELRI recruits (labeled 2178R and 209_2178R) were  were labeled as eplus but should be eminus. (this still leaves the original endo column as labelled but corrects the endo_01 column
+                                        endo == "0" | endo == "minus" ~ 0,
                                         endo == "1"| endo =="plus" ~ 1))) %>% 
   mutate(endo_index = as.integer(as.factor(endo_01+1)))  %>% 
   mutate(species = case_when(species == "ELVI" & plot == 101 ~ "ELRI", species == "ELVI" & plot != 101 ~ "ELVI",  # This is for the compiled data where a ELRI data point in plot 101, tag 2004 is labelled as ELVI
@@ -2046,6 +2047,9 @@ LTREB_full <- LTREB_full_climate %>%
 ## Tom is loading this in, bypassing above code
 tompath <- "C:/Users/tm9/Dropbox/EndodemogData/"
 # LTREB_full <- read_csv(paste0(tompath,"Fulldataplusmetadata/LTREB_full.csv"))
+
+LTREB_findtypo <- LTREB_full %>% 
+  filter(species == "ELRI", plot_fixed == 109)
 
 
 
