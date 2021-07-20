@@ -2025,15 +2025,24 @@ climate_census_month$spei24 <- spei(climate_census_month$monthly_BAL, 24)$fitted
 climate_census_month$spei1 <- spei(climate_census_month$monthly_BAL, 1)$fitted
 
 # Making a dataframe with columns for each species and their census month
-climate_census_month_spp <- climate_census_month %>% 
+spei_census_month_spp <- climate_census_month %>% 
   crossing(census_months) %>% 
   mutate(climate_year = as.numeric(ifelse(month > census_month, year+1, year))) %>% 
   filter(month == census_month) %>% # Here we are taking just the spei from the census month, which should cover the climate  year  preceding the census
   dplyr::select(species, climate_year, census_month, spei12)
 
+# Making a dataframe with annual precipitation and temperature for the census year
+ppt_temp_census_annual_spp <- climate_census_month %>% 
+  crossing(census_months) %>% 
+  mutate(climate_year = as.numeric(ifelse(month >= census_month, year+1, year))) %>% 
+  group_by(species,census_month, climate_year) %>% 
+  dplyr::summarize(annual_temp = mean(monthly_tmean, na.rm = T),
+                   annual_precip = sum(monthly_ppt, na.rm = T))
+
 # Now merging the climate data to the year for each species
 LTREB_full_climate <- LTREB_full_3 %>% 
-  left_join(climate_census_month_spp, by = c("species" = "species",  "year_t1" = "climate_year", "census_month" = "census_month"))
+  left_join(spei_census_month_spp, by = c("species" = "species",  "year_t1" = "climate_year", "census_month" = "census_month")) %>% 
+  left_join(ppt_temp_census_annual_spp, by = c("species" = "species",  "year_t1" = "climate_year", "census_month" = "census_month"))
 
 ##############################################################################
 ####### This is the main dataframe that is used to fit vital rate models  ------------------------------
@@ -2050,6 +2059,7 @@ tompath <- "C:/Users/tm9/Dropbox/EndodemogData/"
 
 LTREB_findtypo <- LTREB_full %>% 
   filter(species == "ELRI", plot_fixed == 109)
+
 
 
 

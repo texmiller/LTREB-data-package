@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.19 (TeX Live 2018) (preloaded format=pdflatex 2018.4.16)  12 JUN 2020 10:30
+This is pdfTeX, Version 3.14159265-2.6-1.40.19 (TeX Live 2018) (preloaded format=pdflatex 2018.4.16)  9 FEB 2021 14:45
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -1715,11 +1715,11 @@ LaTeX Font Info:    Font shape `T1/aess/m/it' in size <6> not available
 ) 
 AED: lastpage setting LastPage
 [3]
-Package atveryend Info: Empty hook `BeforeClearDocument' on input line 191.
-Package atveryend Info: Empty hook `AfterLastShipout' on input line 191.
+Package atveryend Info: Empty hook `BeforeClearDocument' on input line 205.
+Package atveryend Info: Empty hook `AfterLastShipout' on input line 205.
  (./endo_stoch_demo_MS.aux)
-Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 191.
-Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 191.
+Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 205.
+Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 205.
 Package rerunfilecheck Info: File `endo_stoch_demo_MS.out' has not changed.
 (rerunfilecheck)             Checksum: E2E616883C6C841678D5073D21283D3D;67.
 
@@ -1729,14 +1729,14 @@ LaTeX Font Warning: Some font shapes were not available, defaults substituted.
 
 LaTeX Warning: There were undefined references.
 
-Package atveryend Info: Empty hook `AtVeryVeryEnd' on input line 191.
+Package atveryend Info: Empty hook `AtVeryVeryEnd' on input line 205.
  ) 
 Here is how much of TeX's memory you used:
- 33625 strings out of 492649
- 626154 string characters out of 6129622
- 736704 words of memory out of 5000000
+ 33620 strings out of 492649
+ 626107 string characters out of 6129622
+ 735704 words of memory out of 5000000
  36373 multiletter control sequences out of 15000+600000
- 663137 words of font info for 491 fonts, out of 8000000 for 9000
+ 662572 words of font info for 486 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
  62i,14n,73p,10408b,1040s stack positions out of 5000i,500n,10000p,200000b,80000s
 {/usr/local/texlive/2018/texmf-dist/fonts/enc/dvips/lm/lm-rm.enc}{/usr/local/
@@ -1764,7 +1764,7 @@ fonts/type1/public/lm/lmr6.pfb></usr/local/texlive/2018/texmf-dist/fonts/type1/
 public/lm/lmr9.pfb></usr/local/texlive/2018/texmf-dist/fonts/type1/public/lm/lm
 ssbx10.pfb></usr/local/texlive/2018/texmf-dist/fonts/type1/public/lm/lmsy7.pfb>
 
-Output written on endo_stoch_demo_MS.pdf (3 pages, 269494 bytes).
+Output written on endo_stoch_demo_MS.pdf (3 pages, 270137 bytes).
 PDF statistics:
  163 PDF objects out of 1000 (max. 8388607)
  134 compressed objects within 2 object streams

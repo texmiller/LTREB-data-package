@@ -39,17 +39,17 @@ LTREB_rec <- LTREB_full
 seedmean_prob <- c(NA)
 spikeperinf_prob <- c(NA)
 
-for(n in 1:nrow(LTREB_rec)){
-      seedmean_prob[n] <- sample(seed_mean_pars$beta0[,LTREB_rec$species_index[n]], size = 1) +
-                            sample(seed_mean_pars$betaendo[,LTREB_rec$species_index[n]], size = 1)*LTREB_rec$endo_01[n]
+for(i in 1:nrow(LTREB_rec)){
+      seedmean_prob[i] <- sample(seed_mean_pars$beta0[,LTREB_rec$species_index[i]], size = 1) +
+                            sample(seed_mean_pars$betaendo[,LTREB_rec$species_index[i]], size = 1)*LTREB_rec$endo_01[i]
       
-      spikeperinf_prob[n] <- exp(sample(spikelet_pars$beta0[,LTREB_rec$species_index[n]], size = 1) +
-                               sample(spikelet_pars$betasize[,LTREB_rec$species_index[n]], size = 1)*LTREB_rec$logsize_t[n] +
-                                 sample(spikelet_pars$betaendo[,LTREB_rec$species_index[n]], size = 1)*LTREB_rec$endo_01[n] +
-                                   sample(spikelet_pars$betaorigin[,LTREB_rec$species_index[n]], size = 1)*LTREB_rec$origin_01[n] +
-                                     sample(spikelet_pars$betasize[,LTREB_rec$species_index[n]], size = 1)*LTREB_rec$logsize_t[n] +
-                                       sample(spikelet_pars$tau_plot[,LTREB_rec$plot_index[n]], size = 1) +
-                                         sample(spikelet_pars$tau_year[,LTREB_rec$year_t_index[n]], size = 1))
+      spikeperinf_prob[i] <- exp(sample(spikelet_pars$beta0[,LTREB_rec$species_index[i]], size = 1) +
+                               sample(spikelet_pars$betasize[,LTREB_rec$species_index[i]], size = 1)*LTREB_rec$logsize_t[i] +
+                                 sample(spikelet_pars$betaendo[,LTREB_rec$species_index[i]], size = 1)*LTREB_rec$endo_01[i] +
+                                   sample(spikelet_pars$betaorigin[,LTREB_rec$species_index[i]], size = 1)*LTREB_rec$origin_01[i] +
+                                     sample(spikelet_pars$betasize[,LTREB_rec$species_index[i]], size = 1)*LTREB_rec$logsize_t[i] +
+                                       sample(spikelet_pars$tau_plot[,LTREB_rec$plot_index[i]], size = 1) +
+                                         sample(spikelet_pars$tau_year[,LTREB_rec$year_t_index[i]], size = 1))
         
 }
 LTREB_rec$spikeperinf_pred <- rpois(n = nrow(LTREB_rec), lambda = spikeperinf_prob)

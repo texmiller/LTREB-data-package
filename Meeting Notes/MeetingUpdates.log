@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.19 (TeX Live 2018) (preloaded format=pdflatex 2018.4.16)  15 JAN 2021 18:19
+This is pdfTeX, Version 3.14159265-2.6-1.40.19 (TeX Live 2018) (preloaded format=pdflatex 2018.4.16)  3 FEB 2021 19:50
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -168,43 +168,44 @@ LaTeX Font Info:    Font shape `OMS/cmr/m/n' in size <10> not available
 (Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 21.
  [1
 
-{/usr/local/texlive/2018/texmf-var/fonts/map/pdftex/updmap/pdftex.map}] [2] [3]
- [4] [5]
-[6]
-<rangelimitsexpdesign.pdf, id=28, 469.755pt x 263.98625pt>
+{/usr/local/texlive/2018/texmf-var/fonts/map/pdftex/updmap/pdftex.map}] [2]
+Overfull \hbox (3.61722pt too wide) in paragraph at lines 110--111
+[]\OT1/cmr/m/n/10 Continue run-ning cli-mate ex-plicit vi-tal rate mod-els with
+ quadratic
+ []
+
+[3] [4] [5] [6] [7] [8]
+<rangelimitsexpdesign.pdf, id=35, 469.755pt x 263.98625pt>
 File: rangelimitsexpdesign.pdf Graphic file (type pdf)
 <use rangelimitsexpdesign.pdf>
-Package pdftex.def Info: rangelimitsexpdesign.pdf  used on input line 239.
+Package pdftex.def Info: rangelimitsexpdesign.pdf  used on input line 378.
 (pdftex.def)             Requested size: 345.0pt x 193.8765pt.
-
-
-LaTeX Warning: `!h' float specifier changed to `!ht'.
-
-[7] [8 <./rangelimitsexpdesign.pdf>] [9] [10] [11] [12]
-Overfull \hbox (5.47295pt too wide) in paragraph at lines 415--416
+ [9 <./rangelimitsexpdesign.pdf>] [10] [11] [12]
+[13] [14]
+Overfull \hbox (5.47295pt too wide) in paragraph at lines 554--555
 \OT1/cmr/m/n/10 Agrostis peren-nans, and Sphenopho-lis ni-tida, and pos-si-bly 
 Ely-mus canaden-
  []
 
-[13] [14] [15] [16] [17] [18] [19]
-Overfull \hbox (4.7928pt too wide) in paragraph at lines 559--561
+[15] [16] [17] [18] [19] [20] [21]
+Overfull \hbox (4.7928pt too wide) in paragraph at lines 698--700
 []\OT1/cmr/bx/n/10 Lab Green-house project: \OT1/cmr/m/n/10 The green house por
 -tion of Michelle Afkhami's
  []
 
-[20] [21] [22]
+[22] [23] [24]
 LaTeX Font Info:    Font shape `OMS/cmr/m/it' in size <10> not available
-(Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 632.
- [23] [24] [25] [26] [27] [28] [29] [30] [31]
+(Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 771.
+ [25] [26] [27] [28] [29] [30] [31] [32] [33]
 (./MeetingUpdates.aux) ) 
 Here is how much of TeX's memory you used:
- 2002 strings out of 492649
- 27858 string characters out of 6129622
- 101405 words of memory out of 5000000
- 5879 multiletter control sequences out of 15000+600000
+ 2003 strings out of 492649
+ 27882 string characters out of 6129622
+ 100405 words of memory out of 5000000
+ 5880 multiletter control sequences out of 15000+600000
  8600 words of font info for 30 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 41i,7n,35p,1495b,224s stack positions out of 5000i,500n,10000p,200000b,80000s
+ 41i,7n,35p,1495b,295s stack positions out of 5000i,500n,10000p,200000b,80000s
 </usr/local/texlive/2018/texmf-dist/fonts/type1/public/
 amsfonts/cm/cmbx10.pfb></usr/local/texlive/2018/texmf-dist/fonts/type1/public/a
 msfonts/cm/cmbx12.pfb></usr/local/texlive/2018/texmf-dist/fonts/type1/public/am
@@ -214,10 +215,10 @@ fonts/cm/cmr12.pfb></usr/local/texlive/2018/texmf-dist/fonts/type1/public/amsfo
 nts/cm/cmr17.pfb></usr/local/texlive/2018/texmf-dist/fonts/type1/public/amsfont
 s/cm/cmsy10.pfb></usr/local/texlive/2018/texmf-dist/fonts/type1/public/amsfonts
 /cm/cmti10.pfb>
-Output written on MeetingUpdates.pdf (31 pages, 226027 bytes).
+Output written on MeetingUpdates.pdf (33 pages, 228487 bytes).
 PDF statistics:
- 185 PDF objects out of 1000 (max. 8388607)
- 124 compressed objects within 2 object streams
+ 191 PDF objects out of 1000 (max. 8388607)
+ 128 compressed objects within 2 object streams
  0 named destinations out of 1000 (max. 500000)
  6 words of extra memory for PDF output out of 10000 (max. 10000000)
 

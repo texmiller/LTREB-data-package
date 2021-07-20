@@ -781,7 +781,7 @@ surv_dataplot <- ggplot(data = surv_fit_df) +
   scale_fill_manual(values = c("#59A1BC", "#4E816D", "#EFAD3A", "#397BB7", "#9E78A1", "#E04D55", "#9D5251")) +
   scale_color_manual(values = c("#59A1BC", "#4E816D", "#EFAD3A", "#397BB7", "#9E78A1", "#E04D55", "#9D5251")) +
   scale_shape_manual(values = c(19, 1),limits = factor(c(1,0)), name = "Endo Status", labels = c("E-", "E+"))+ 
-  scale_linetype_discrete(name = "Endo Status",limits = factor(c(1,0)), labels = c("E-", "E+"))+ 
+  scale_linetype_discrete(name = "Endo Status",limits = factor(c(1,0)), labels = c("E+", "E-"))+ 
   ggtitle("Yearly Prob. of Survival")+ xlab("log(size_t)") + ylab("Prob. Surv.") +
   guides(color = FALSE, size = FALSE, shape = FALSE, linetype = FALSE)+
   theme(panel.background = element_rect(fill = "white", color = NA),
@@ -806,8 +806,8 @@ FESUsurv_dataplot <- ggplot(data = subset(surv_fit_df, Species == "FESU")) +
   facet_wrap(~Species + Endo, ncol = 2, scales = "free")  +
   scale_fill_manual(values = c( "#397BB7")) +
   scale_color_manual(values = c( "#397BB7")) +
-  scale_shape_manual(values = c(19, 1),limits = factor(c(1,0)), name = "Endo Status", labels = c("E-", "E+"))+ 
-  scale_linetype_discrete(name = "Endo Status",limits = factor(c(1,0)), labels = c("E-", "E+"))+ 
+  scale_shape_manual(values = c(19, 1),limits = factor(c(1,0)), name = "Endo Status", labels = c("E+", "E-"))+ 
+  scale_linetype_discrete(name = "Endo Status",limits = factor(c(1,0)), labels = c("E+", "E-"))+ 
   ggtitle("Yearly Prob. of Survival")+ xlab("log(size_t)") + ylab("Prob. Surv.") +
   guides(color = FALSE, size = FALSE, shape = FALSE, linetype = FALSE)+
   theme(panel.background = element_rect(fill = "white", color = NA),
@@ -833,8 +833,8 @@ grow_dataplot <- ggplot(data = grow_fit_df) +
   facet_wrap(~Species + Endo, ncol = 2, scales = "free")  +
   scale_fill_manual(values = c("#59A1BC", "#4E816D", "#EFAD3A", "#397BB7", "#9E78A1", "#E04D55", "#9D5251")) +
   scale_color_manual(values = c("#59A1BC", "#4E816D", "#EFAD3A", "#397BB7", "#9E78A1", "#E04D55", "#9D5251")) +
-  scale_shape_manual(values = c(19, 1), name = "Endo Status", labels = c("E-", "E+"))+ 
-  scale_linetype_discrete(name = "Endo Status", labels = c("E-", "E+"))+ 
+  scale_shape_manual(values = c(19, 1), name = "Endo Status", labels = c("E+", "E-"))+ 
+  scale_linetype_discrete(name = "Endo Status",limits = factor(c(1,0)), labels = c("E+", "E-"))+ 
   ggtitle("Yearly Growth")+ xlab("log(size_t)") + ylab("Size_t1") +
   guides(color = FALSE, size = FALSE, shape = FALSE, linetype = FALSE)+
   theme(panel.background = element_rect(fill = "white", color = NA),
@@ -861,8 +861,8 @@ flw_dataplot <- ggplot(data = flw_fit_df) +
   facet_wrap(~Species + Endo, ncol = 2, scales = "free")  +
   scale_fill_manual(values = c("#59A1BC", "#4E816D", "#EFAD3A", "#397BB7", "#9E78A1", "#E04D55", "#9D5251")) +
   scale_color_manual(values = c("#59A1BC", "#4E816D", "#EFAD3A", "#397BB7", "#9E78A1", "#E04D55", "#9D5251")) +
-  scale_shape_manual(values = c(19, 1),limits = factor(c(1,0)), name = "Endo Status", labels = c("E-", "E+"))+ 
-  scale_linetype_discrete(name = "Endo Status",limits = factor(c(1,0)), labels = c("E-", "E+"))+ 
+  scale_shape_manual(values = c(19, 1),limits = factor(c(1,0)), name = "Endo Status", labels = c("E+", "E-"))+ 
+  scale_linetype_discrete(name = "Endo Status",limits = factor(c(1,0)), labels = c("E+", "E-"))+ 
   ggtitle("Yearly Prob. of Flowering")+ xlab("log(size_t)") + ylab("Prob. Flw.") +
   guides(color = FALSE, size = FALSE, shape = FALSE, linetype = FALSE)+
   theme(panel.background = element_rect(fill = "white", color = NA),
@@ -888,8 +888,8 @@ fert_dataplot <- ggplot(data = fert_fit_df) +
   facet_wrap(~Species + Endo, ncol = 2, scales = "free")  +
   scale_fill_manual(values = c("#59A1BC", "#4E816D", "#EFAD3A", "#397BB7", "#9E78A1", "#E04D55", "#9D5251")) +
   scale_color_manual(values = c("#59A1BC", "#4E816D", "#EFAD3A", "#397BB7", "#9E78A1", "#E04D55", "#9D5251")) +
-  scale_shape_manual(values = c(19, 1),limits = factor(c(1,0)), name = "Endo Status", labels = c("E-", "E+"))+ 
-  scale_linetype_discrete(name = "Endo Status",limits = factor(c(1,0)), labels = c("E-", "E+"))+ 
+  scale_shape_manual(values = c(19, 1),limits = factor(c(1,0)), name = "Endo Status", labels = c("E+", "E-"))+ 
+  scale_linetype_discrete(name = "Endo Status",limits = factor(c(1,0)), labels = c("E+", "E-"))+ 
   ggtitle("Yearly Flowering No.")+ xlab("log(size_t)") + ylab("No. Flw Tillers") +
   guides()+
   theme(panel.background = element_rect(fill = "white", color = NA),
@@ -1100,11 +1100,11 @@ size_bin_data_mean <- bin_by_size_mean(LTREB_full, nbins = 10)
 
 
 FESUsurv_dataplot_mean <- ggplot(data = subset(surv_fit_df, Species == "FESU")) +
-  geom_ribbon(aes(x = log(x_seq), ymin = five , ymax = ninetyfive, fill = as.factor(Endo), linetype = as.factor(Endo)), color = c("gray70"), alpha = .5) +
-  geom_line( aes(x = log(x_seq), y = mean, color = Species, linetype = as.factor(Endo), lwd = 2)) +
+  geom_ribbon(aes(x = log(x_seq), ymin = five , ymax = ninetyfive, fill = as.factor(Endo), linetype = as.factor(Endo)), color = c("gray80"), alpha = .2) +
+  geom_line( aes(x = log(x_seq), y = mean, color = Species, linetype = as.factor(Endo), lwd = 3)) +
   geom_point(data = subset(size_bin_data_mean$surv_bin_mean, Species == "FESU"), aes(x = mean_size, y = mean_surv, color = as.factor(Species), size = samplesize, shape = as.factor(Endo))) + 
   facet_wrap(~Species, ncol = 1, scales = "free")  +
-  scale_fill_manual(values = c( "gray80", "gray70")) +
+  scale_fill_manual(values = c( "gray70", "gray50")) +
   scale_color_manual(values = c( "#397BB7")) +
   scale_shape_manual(values = c(19, 1),limits = factor(c(1,0)), name = "Endo Status", labels = c("E-", "E+"))+ 
   scale_linetype_discrete(name = "Endo Status",limits = factor(c(1,0)), labels = c("E-", "E+"))+ 
