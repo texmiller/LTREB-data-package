@@ -27,26 +27,6 @@ Shripad~D. Tuljapurkar.
 \newblock URL
   \url{http://www.sciencedirect.com/science/article/pii/0040580982900107}.
 
-\bibitem[Hilde et~al.(2020)Hilde, Gamelon, Sæther, Gaillard, Yoccoz, and
-  Pélabon]{hilde_demographic_2020}
-Christoffer~H. Hilde, Marlène Gamelon, Bernt-Erik Sæther, Jean-Michel
-  Gaillard, Nigel~G. Yoccoz, and Christophe Pélabon.
-\newblock The {Demographic} {Buffering} {Hypothesis}: {Evidence} and
-  {Challenges}.
-\newblock \emph{Trends in Ecology \& Evolution}, 0\penalty0 (0), March 2020.
-\newblock ISSN 0169-5347.
-\newblock \doi{10.1016/j.tree.2020.02.004}.
-\newblock URL
-  \url{https://www.cell.com/trends/ecology-evolution/abstract/S0169-5347(20)30050-1}.
-\newblock Publisher: Elsevier.
-
-\bibitem[Pfister(1998)]{pfister1998patterns}
-Catherine~A Pfister.
-\newblock Patterns of variance in stage-structured populations: evolutionary
-  predictions and ecological implications.
-\newblock \emph{Proceedings of the National Academy of Sciences}, 95\penalty0
-  (1):\penalty0 213--218, 1998.
-
 \bibitem[on~Climate~Change)(2012)]{IPCC2012managing}
 IPCC (Intergovernmental~Panel on~Climate~Change).
 \newblock \emph{Managing the risks of extreme events and disasters to advance
@@ -60,6 +40,26 @@ David~T Iles, Robert~F Rockwell, and David~N Koons.
   to increasingly variable environments.
 \newblock \emph{The American Naturalist}, 193\penalty0 (3):\penalty0 E57--E64,
   2019.
+
+\bibitem[Pfister(1998)]{pfister1998patterns}
+Catherine~A Pfister.
+\newblock Patterns of variance in stage-structured populations: evolutionary
+  predictions and ecological implications.
+\newblock \emph{Proceedings of the National Academy of Sciences}, 95\penalty0
+  (1):\penalty0 213--218, 1998.
+
+\bibitem[Hilde et~al.(2020)Hilde, Gamelon, Sæther, Gaillard, Yoccoz, and
+  Pélabon]{hilde_demographic_2020}
+Christoffer~H. Hilde, Marlène Gamelon, Bernt-Erik Sæther, Jean-Michel
+  Gaillard, Nigel~G. Yoccoz, and Christophe Pélabon.
+\newblock The {Demographic} {Buffering} {Hypothesis}: {Evidence} and
+  {Challenges}.
+\newblock \emph{Trends in Ecology \& Evolution}, 0\penalty0 (0), March 2020.
+\newblock ISSN 0169-5347.
+\newblock \doi{10.1016/j.tree.2020.02.004}.
+\newblock URL
+  \url{https://www.cell.com/trends/ecology-evolution/abstract/S0169-5347(20)30050-1}.
+\newblock Publisher: Elsevier.
 
 \bibitem[Doak et~al.(2005)Doak, Morris, Pfister, Kendall, and
   Bruna]{doak2005correctly}
