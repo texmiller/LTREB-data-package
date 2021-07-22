@@ -1,4 +1,4 @@
-\begin{thebibliography}{8}
+\begin{thebibliography}{11}
 \providecommand{\natexlab}[1]{#1}
 \providecommand{\url}[1]{\texttt{#1}}
 \expandafter\ifx\csname urlstyle\endcsname\relax
@@ -34,12 +34,25 @@ IPCC (Intergovernmental~Panel on~Climate~Change).
   climate change. Special Report.}
 \newblock Cambridge University Press, 2012.
 
-\bibitem[Iles et~al.(2019)Iles, Rockwell, and Koons]{iles2019shifting}
-David~T Iles, Robert~F Rockwell, and David~N Koons.
-\newblock Shifting vital rate correlations alter predicted population responses
-  to increasingly variable environments.
-\newblock \emph{The American Naturalist}, 193\penalty0 (3):\penalty0 E57--E64,
-  2019.
+\bibitem[Seneviratne et~al.(2012)Seneviratne, Nicholls, Easterling, Goodess,
+  Kanae, Kossin, Luo, Marengo, McInnes, Rahimi, et~al.]{seneviratne2012changes}
+Sonia Seneviratne, Neville Nicholls, David Easterling, Clare Goodess, Shinjiro
+  Kanae, James Kossin, Yali Luo, Jose Marengo, Kathleen McInnes, Mohammad
+  Rahimi, et~al.
+\newblock Changes in climate extremes and their impacts on the natural physical
+  environment.
+\newblock 2012.
+
+\bibitem[Stocker et~al.(2013)Stocker, Qin, Plattner, Alexander, Allen, Bindoff,
+  Br{\'e}on, Church, Cubasch, Emori, et~al.]{stocker2013technical}
+Thomas~F Stocker, Dahe Qin, G-K Plattner, Lisa~V Alexander, Simon~K Allen,
+  Nathaniel~L Bindoff, F-M Br{\'e}on, John~A Church, Ulrich Cubasch, Seita
+  Emori, et~al.
+\newblock Technical summary.
+\newblock In \emph{Climate change 2013: the physical science basis.
+  Contribution of Working Group I to the Fifth Assessment Report of the
+  Intergovernmental Panel on Climate Change}, pages 33--115. Cambridge
+  University Press, 2013.
 
 \bibitem[Pfister(1998)]{pfister1998patterns}
 Catherine~A Pfister.
@@ -47,6 +60,23 @@ Catherine~A Pfister.
   predictions and ecological implications.
 \newblock \emph{Proceedings of the National Academy of Sciences}, 95\penalty0
   (1):\penalty0 213--218, 1998.
+
+\bibitem[Menges(1990)]{menges1990population}
+Eric~S Menges.
+\newblock Population viability analysis for an endangered plant.
+\newblock \emph{Conservation biology}, 4\penalty0 (1):\penalty0 52--62, 1990.
+
+\bibitem[Kivlin et~al.(2013)Kivlin, Emery, and Rudgers]{kivlin2013fungal}
+Stephanie~N Kivlin, Sarah~M Emery, and Jennifer~A Rudgers.
+\newblock Fungal symbionts alter plant responses to global change.
+\newblock \emph{American Journal of Botany}, 100\penalty0 (7):\penalty0
+  1445--1457, 2013.
+
+\bibitem[Chamberlain et~al.(2014)Chamberlain, Bronstein, and
+  Rudgers]{chamberlain2014context}
+Scott~A Chamberlain, Judith~L Bronstein, and Jennifer~A Rudgers.
+\newblock How context dependent are species interactions?
+\newblock \emph{Ecology letters}, 17\penalty0 (7):\penalty0 881--890, 2014.
 
 \bibitem[Hilde et~al.(2020)Hilde, Gamelon, Sæther, Gaillard, Yoccoz, and
   Pélabon]{hilde_demographic_2020}
@@ -69,11 +99,5 @@ Daniel~F Doak, William~F Morris, Cathy Pfister, Bruce~E Kendall, and Emilio~M
   fitness and population growth.
 \newblock \emph{The American Naturalist}, 166\penalty0 (1):\penalty0 E14--E21,
   2005.
-
-\bibitem[Chamberlain et~al.(2014)Chamberlain, Bronstein, and
-  Rudgers]{chamberlain2014context}
-Scott~A Chamberlain, Judith~L Bronstein, and Jennifer~A Rudgers.
-\newblock How context dependent are species interactions?
-\newblock \emph{Ecology letters}, 17\penalty0 (7):\penalty0 881--890, 2014.
 
 \end{thebibliography}

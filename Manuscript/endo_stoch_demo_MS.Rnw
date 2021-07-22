@@ -48,22 +48,35 @@ Please provide an abstract of no more than 250 words in a single paragraph. Abst
 
 % If your first paragraph (i.e. with the \dropcap) contains a list environment (quote, quotation, theorem, definition, enumerate, itemize...), the line after the list may have some extra indentation. If this is the case, add \parshape=0 to the end of the list environment.
 %Introduction
-\dropcap{C}lassic ecological theory predicts that environmental variation will reduce long-term population growth rates \cite{lewontin_population_1969,tuljapurkar_population_1982}. Under environmental variability, populations will have good years and bad years. The long-term stochastic growth rate ($\lambda_s$) is the long-run geometric mean of annual growth rates; This geometric mean will always be less than would be expected from the mean growth rate alone. Populations will increase over time if $\lambda_s$ is greater than 1, and can be expected to decrease if $\lambda_s$ is less than 1. 
+
+\dropcap{C}lassic ecological theory predicts that long-term population growth rates will be reduced by environmental variability \cite{lewontin_population_1969,tuljapurkar_population_1982}. Along with increases in average temperatures, global climate change is driving increases in environmental variability \cite{IPCC2012managing, seneviratne2012changes, stocker2013technical}. In stochastic environments, populations will have good years and bad years. The long-term stochastic growth rate ($\lambda_s$) is the long-run geometric mean of annual growth rates; This geometric mean will always be less than expected from the mean growth rate alone. Populations will increase over time if $\lambda_s$ is greater than 1, and can be expected to decrease if $\lambda_s$ is less than 1. 
 
 $\lambda_s$ can be approximated as: 
 
  $log(\lambda_s)  \approx log(\overline{\lambda}) - \frac{\sigma^2}{2\overline{\lambda}^2}$ 
 
-Where $\overline{\lambda} $ is the mean of annual population growth rates ($\lambda_t$) and $\sigma^2$ is the variance \citep{lewontin_population_1969}. Here, there are two pathways to influence $\lambda_s$: increasing the mean growth rate, and reducing the variance in growth rates. Anything that limits the negative effects of bad years, but are neutral or costly in good years has the potential to decrease the impact of interannual environmental variability on population dynamics because it would limit variance. 
+Where $\overline{\lambda} $ is the mean of annual population growth rates ($\lambda_t$) and $\sigma^2$ is the variance \citep{lewontin_population_1969}. Here, there are two pathways to influence $\lambda_s$: increasing the mean growth rate, and reducing the variance in growth rates. Anything that limits the negative effects of bad years, while being neutral or costly in good years has the potential to decrease the impact of interannual environmental variability on population dynamics because it would limit variance. The demographic tradeoff between mean and variance has been important in shaping life-history theory  \cite{pfister1998patterns} and population viability analysis \cite{menges1990population}. 
+
+\textcolor{red}{Maybe need to mention vital rates in introduction? not sure how much that will be part of our paper? It's kind of question 1, but also, not necessarily the main result.}
+
+In nature, microbial symbionts provide protection from environmental stresses including drought, temperature, and enemies across a broad range of taxa \cite{kivlin2013fungal}. Commonly, the benefits from these symbioses are context-dependent where the magnitude of interaction benefit changes depending on environmental conditions \cite{chamberlain2014context}. This can make it difficult to quantify the net effect of a given interaction, but it also allows for the possibility that interaction strength can vary through time (cite). Symbionts may provide benefits under harsh conditions when they are needed by their hosts, but be neutral or even costly under benign conditions (cite). Over time, this may lead symbiont-associated organisms to experience a reduction in variation in vital rates by reducing the frequency of extreme years (conceptual figure). Whether variance buffering by species interactions occurs is an underexplored question \cite{hilde_demographic_2020}, and a novel mechanism by which symbionts can act as mutualists that may come to be of increasing importance in a more variable future.
 
 
 
 
-Along with increases in average temperatures, global climate change is driving increases in environmental variability \cite{IPCC2012managing,iles2019shifting}.
 
 
 
-As in the demographic buffering hypothesis, where the fitness consequences of environmental variability may select for buffering in the vital rates that are most consequential for population growth \cite{pfister1998patterns}, the fitness consequences of species interactions may apply to both the mean and variance of vital rates. Whether variance buffering by species interactions occurs is an underexplored question, but it may come to be of increasing importance under climate change.
+
+
+The effect that species interactions have on the mean and variance of vital rates will 
+The fitness consequences of species interactions will also apply
+
+
+
+
+
+As in the demographic buffering hypothesis, where the fitness consequences of environmental variability may select for buffering in the vital rates that are most consequential for population growth \cite{pfister1998patterns}, the fitness consequences of species interactions may apply to both the mean and variance of vital rates. 
 
 Our ability to explore the demographic consequences of environmental variation in nature relies on long-term observational studies and experiments that capture natural climatic variation (cite) \textcolor{red}{plus maybe examples of other studies looking at demographic buffering}. While there is appreciation for long-term studies and recognition of the importance of studying both climate mean and variance in ecology, demographic studies that examine demographic buffering are limited due to the need for long term data and the need to account for multiple sources of variation within data \cite{hilde_demographic_2020}.
 
