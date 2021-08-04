@@ -78,6 +78,15 @@ Scott~A Chamberlain, Judith~L Bronstein, and Jennifer~A Rudgers.
 \newblock How context dependent are species interactions?
 \newblock \emph{Ecology letters}, 17\penalty0 (7):\penalty0 881--890, 2014.
 
+\bibitem[Doak et~al.(2005)Doak, Morris, Pfister, Kendall, and
+  Bruna]{doak2005correctly}
+Daniel~F Doak, William~F Morris, Cathy Pfister, Bruce~E Kendall, and Emilio~M
+  Bruna.
+\newblock Correctly estimating how environmental stochasticity influences
+  fitness and population growth.
+\newblock \emph{The American Naturalist}, 166\penalty0 (1):\penalty0 E14--E21,
+  2005.
+
 \bibitem[Hilde et~al.(2020)Hilde, Gamelon, Sæther, Gaillard, Yoccoz, and
   Pélabon]{hilde_demographic_2020}
 Christoffer~H. Hilde, Marlène Gamelon, Bernt-Erik Sæther, Jean-Michel
@@ -90,14 +99,5 @@ Christoffer~H. Hilde, Marlène Gamelon, Bernt-Erik Sæther, Jean-Michel
 \newblock URL
   \url{https://www.cell.com/trends/ecology-evolution/abstract/S0169-5347(20)30050-1}.
 \newblock Publisher: Elsevier.
-
-\bibitem[Doak et~al.(2005)Doak, Morris, Pfister, Kendall, and
-  Bruna]{doak2005correctly}
-Daniel~F Doak, William~F Morris, Cathy Pfister, Bruce~E Kendall, and Emilio~M
-  Bruna.
-\newblock Correctly estimating how environmental stochasticity influences
-  fitness and population growth.
-\newblock \emph{The American Naturalist}, 166\penalty0 (1):\penalty0 E14--E21,
-  2005.
 
 \end{thebibliography}
