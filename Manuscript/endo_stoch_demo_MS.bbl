@@ -1,4 +1,4 @@
-\begin{thebibliography}{11}
+\begin{thebibliography}{10}
 \providecommand{\natexlab}[1]{#1}
 \providecommand{\url}[1]{\texttt{#1}}
 \expandafter\ifx\csname urlstyle\endcsname\relax
@@ -77,15 +77,6 @@ Stephanie~N Kivlin, Sarah~M Emery, and Jennifer~A Rudgers.
 Scott~A Chamberlain, Judith~L Bronstein, and Jennifer~A Rudgers.
 \newblock How context dependent are species interactions?
 \newblock \emph{Ecology letters}, 17\penalty0 (7):\penalty0 881--890, 2014.
-
-\bibitem[Doak et~al.(2005)Doak, Morris, Pfister, Kendall, and
-  Bruna]{doak2005correctly}
-Daniel~F Doak, William~F Morris, Cathy Pfister, Bruce~E Kendall, and Emilio~M
-  Bruna.
-\newblock Correctly estimating how environmental stochasticity influences
-  fitness and population growth.
-\newblock \emph{The American Naturalist}, 166\penalty0 (1):\penalty0 E14--E21,
-  2005.
 
 \bibitem[Hilde et~al.(2020)Hilde, Gamelon, Sæther, Gaillard, Yoccoz, and
   Pélabon]{hilde_demographic_2020}
