@@ -1872,8 +1872,8 @@ dim(LTREB_full_update_lag)
 ####### Merging in the endophyte checks ------------------------------
 ##############################################################################
 
-LTREB_endo_check <- read_csv(file = "~/Dropbox/EndodemogData/Fulldataplusmetadata/endo_demog_status.csv") %>% 
-  dplyr::select(-recno,-check, -X11) %>% 
+LTREB_endo_check <- read_csv(file = "~/Dropbox/EndodemogData/Fulldataplusmetadata/endo_demog_status.csv") %>%  
+  dplyr::select(-recno,-check, -...11) %>% 
   rename("origin_from_check" = "origin", "endo_status_from_check" = "status", "plot_endo_for_check" = "endo") %>% 
   mutate(origin_01 = as.integer(case_when(origin_from_check == "O" ~ 0, 
                                           origin_from_check == "R" ~ 1))) %>% 
@@ -1912,7 +1912,7 @@ LTREB_endophyte_plot_numbers <- LTREB_full_2 %>%
   group_by(species, plot_fixed) %>% 
   summarize(endophyte_status = mean(plot_endo_for_check, na.rm = T)) %>% 
   filter(!is.nan(endophyte_status))
-write_csv(LTREB_endophyte_plot_numbers, path = "LTREB_endophyte_plot_numbers.csv")
+# write_csv(LTREB_endophyte_plot_numbers, path = "LTREB_endophyte_plot_numbers.csv")
 
 ##############################################################################
 ####### Merging in the location data ------------------------------
@@ -2050,8 +2050,9 @@ LTREB_full_climate <- LTREB_full_3 %>%
 
 LTREB_full <- LTREB_full_climate %>% 
   left_join(LTREB_distances, by = c("species" = "species","pos" = "pos", "plot_fixed" = "plot", "origin_01" = "origin_01", "id" = "id")) %>% 
+  mutate(spei12 = as.numeric(spei12)) %>% # I don't know why but this was giving an error when trying to write the file cause it was saving the column as a list
   dplyr::select(-duplicate, -origin_from_check, -origin_from_distance, -date_status, -date_dist ) # I'm removing some of the extraneous variable. We also have distance data in the new field data that needs to be merged in.
-# write_csv(LTREB_full,"~/Dropbox/EndodemogData/Fulldataplusmetadata/LTREB_full.csv")
+# write_csv(LTREB_full,file = "~/Dropbox/EndodemogData/Fulldataplusmetadata/LTREB_full.csv")
 
 ## Tom is loading this in, bypassing above code
 tompath <- "C:/Users/tm9/Dropbox/EndodemogData/"

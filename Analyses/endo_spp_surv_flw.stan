@@ -60,10 +60,10 @@ model {
 
       
     //fixed effect priors
-      beta0 ~ normal(0,10);
-      betasize ~ normal(0,10);
-      betaendo ~ normal(0,10);
-      betaorigin ~ normal(0,10);      
+      beta0 ~ normal(0,5);
+      betasize ~ normal(0,5);
+      betaendo ~ normal(0,5);
+      betaorigin ~ normal(0,5);      
       sigma0 ~ normal(0,1);
       sigmaendo ~ normal(0,1);
       

@@ -7,7 +7,7 @@
 library(tidyverse)
 library(rstan)
 library(StanHeaders)
-library(shinystan)
+# library(shinystan)
 library(bayesplot)
 library(devtools)
 library(moments)
@@ -247,24 +247,24 @@ str(spike_data_list)
 # Stan model runs------------------------------
 #########################################################################################################
 ## run this code to optimize computer system settings for MCMC
-rstan_options(auto_write = TRUE)
+rstan_options(auto_write = FALSE)
 options(mc.cores = parallel::detectCores())
 set.seed(123)
 
 ## MCMC settings
 mcmc_pars <- list(
-  warmup = 2000, 
-  iter = 3000, 
+  warmup = 50, 
+  iter = 100, 
   thin = 1, 
-  chains = 3
+  chains = 1
 )
+
 
 sm_surv <- stan(file = "Analyses/endo_spp_surv_flw.stan", data = surv_data_list,
                 iter = mcmc_pars$iter,
                 warmup = mcmc_pars$warmup,
                 chains = mcmc_pars$chains, 
-                thin = mcmc_pars$thin,
-                control = list(adapt_delta = .9))
+                thin = mcmc_pars$thin)
 # saveRDS(sm_surv, file = "~/Dropbox/EndodemogData/Model_Runs/endo_spp_surv_woseedling.rds")
 
 sm_seed_surv <- stan(file = "Analyses/seedling_surv.stan", data = seed_surv_data_list,
