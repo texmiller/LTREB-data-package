@@ -1999,7 +1999,7 @@ climate <- read_csv("~/Dropbox/EndodemogData/Bloomington_Climate_2020-12-20_USC0
 
 # census months for each species to define climate year
 census_months <- data.frame(species = c("AGPE", "ELRI", "ELVI", "FESU", "LOAR", "POAL", "POSY"),
-                            census_month = c(9,7,7,5,7,5,5))
+                            census_month = c(8,7,7,5,7,5,5)) #using august for now for AGPE because 2019 is missing data for temps for september 
 
 LTREB_full_3 <- LTREB_full_2 %>% 
   left_join(census_months)
@@ -2027,22 +2027,29 @@ climate_census_month$spei1 <- spei(climate_census_month$monthly_BAL, 1)$fitted
 # Making a dataframe with columns for each species and their census month
 spei_census_month_spp <- climate_census_month %>% 
   crossing(census_months) %>% 
-  mutate(climate_year = as.numeric(ifelse(month > census_month, year+1, year))) %>% 
-  filter(month == census_month) %>% # Here we are taking just the spei from the census month, which should cover the climate  year  preceding the census
-  dplyr::select(species, climate_year, census_month, spei12)
+  mutate(climate_year = as.numeric(ifelse(month > census_month, year+1, year))) %>%  
+  filter(month == census_month) %>% # Here we are taking just the spei starting from the census month, which should cover the climate  year  preceding the census
+  dplyr::select(species, year, climate_year, census_month, spei12)
 
 # Making a dataframe with annual precipitation and temperature for the census year
-ppt_temp_census_annual_spp <- climate_census_month %>% 
+ppt_temp_census_annual_spp_2 <- climate_census_month %>% 
   crossing(census_months) %>% 
-  mutate(climate_year = as.numeric(ifelse(month >= census_month, year+1, year))) %>% 
+  mutate(climate_year = as.numeric(ifelse(month > census_month, year+1, year))) %>% 
   group_by(species,census_month, climate_year) %>% 
   dplyr::summarize(annual_temp = mean(monthly_tmean, na.rm = T),
                    annual_precip = sum(monthly_ppt, na.rm = T))
 
 # Now merging the climate data to the year for each species
 LTREB_full_climate <- LTREB_full_3 %>% 
-  left_join(spei_census_month_spp, by = c("species" = "species",  "year_t1" = "climate_year", "census_month" = "census_month")) %>% 
-  left_join(ppt_temp_census_annual_spp, by = c("species" = "species",  "year_t1" = "climate_year", "census_month" = "census_month"))
+  left_join(ppt_temp_census_annual_spp, by = c("species" = "species",  "year_t1" = "climate_year", "census_month" = "census_month")) %>% 
+  left_join(spei_census_month_spp, by = c("species" = "species",  "year_t1" = "climate_year", "census_month" = "census_month"))
+
+
+#Trying to figure out NA's in the spei for AGPE
+
+LTREB_climate_check <- LTREB_full_climate %>% 
+  select(species,year_t1, year_t, surv_t1,census_month, spei12)
+
 
 ##############################################################################
 ####### This is the main dataframe that is used to fit vital rate models  ------------------------------
