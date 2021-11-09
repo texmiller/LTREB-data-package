@@ -253,10 +253,10 @@ set.seed(123)
 
 ## MCMC settings
 mcmc_pars <- list(
-  warmup = 50, 
-  iter = 100, 
+  iter = 4000, 
+  warmup = 2000, 
   thin = 1, 
-  chains = 1
+  chains = 3
 )
 
 

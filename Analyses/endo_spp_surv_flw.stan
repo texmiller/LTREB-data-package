@@ -21,7 +21,7 @@ parameters {
     vector[nSpp] beta0;                  // predictor parameters as grand means and spp rfx
     vector[nSpp] betasize;                  //   spp specific size slope 
     vector[nSpp] betaendo;                  // spp specific endophyt effect 
-    vector[nSpp] betaorigin;               // spp specific origin effect
+    real betaorigin;               // spp specific origin effect
     
     real tau_year[nSpp,nEndo,nYear];      // random year effect, unique to species and endo
 
@@ -38,7 +38,7 @@ transformed parameters {
 
     // surv Linear Predictor
     for(n in 1:N){
-    p[n] = beta0[spp[n]] + betasize[spp[n]]*logsize_t[n] + betaendo[spp[n]]*endo_01[n] + betaorigin[spp[n]]*origin_01[n]
+    p[n] = beta0[spp[n]] + betasize[spp[n]]*logsize_t[n] + betaendo[spp[n]]*endo_01[n] + betaorigin*origin_01[n]
     + tau_year[spp[n],(endo_01[n]+1),year_t[n]] 
     + tau_plot[plot[n]]
     ;
