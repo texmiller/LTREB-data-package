@@ -1757,6 +1757,22 @@ LTREB_update_data <- LTREB_update_data %>%
   merge(POAL_2020_data, by = c("species", "origin", "plot", "pos","id",  "birth_year", "observation_year", "species", "distance_A", "distance_B", "survival", "size_tillers", "flowering_tillers", "spikelets_A", "spikelets_B", "spikelets_C", "notes"), all = TRUE) %>%
   merge(POSY_2020_data, by = c("species", "origin", "plot", "pos","id",  "birth_year", "observation_year", "species", "distance_A", "distance_B", "survival", "size_tillers", "flowering_tillers", "spikelets_A", "spikelets_B", "spikelets_C", "notes"), all = TRUE)
 
+# 2021 census data
+AGPE_2021_data <- read_xlsx("~/Dropbox/EndodemogData/Field Data/2021/LTREB_data_2021.xlsx", sheet = "AGPE")
+ELRI_2021_data <- read_xlsx("~/Dropbox/EndodemogData/Field Data/2021/LTREB_data_2021.xlsx", sheet = "ELRI")
+ELVI_2021_data <- read_xlsx("~/Dropbox/EndodemogData/Field Data/2021/LTREB_data_2021.xlsx", sheet = "ELVI")
+FESU_2021_data <- read_xlsx("~/Dropbox/EndodemogData/Field Data/2021/LTREB_data_2021.xlsx", sheet = "FESU")
+POAL_2021_data <- read_xlsx("~/Dropbox/EndodemogData/Field Data/2021/LTREB_data_2021.xlsx", sheet = "POAL")
+POSY_2021_data <- read_xlsx("~/Dropbox/EndodemogData/Field Data/2021/LTREB_data_2021.xlsx", sheet = "POSY")
+# # Now we can merge all the different species together.
+LTREB_update_data <- LTREB_update_data %>%
+  merge(AGPE_2021_data, by = c("species", "origin", "plot", "pos","id",  "birth_year", "observation_year", "species", "distance_A", "distance_B", "survival", "size_tillers", "flowering_tillers", "spikelets_A", "spikelets_B", "spikelets_C", "notes"), all = TRUE) %>% 
+  merge(ELRI_2021_data, by = c("species", "origin", "plot", "pos","id",  "birth_year", "observation_year", "species", "distance_A", "distance_B", "survival", "size_tillers", "flowering_tillers", "spikelets_A", "spikelets_B", "spikelets_C", "notes"), all = TRUE) %>% 
+  merge(ELVI_2021_data, by = c("species", "origin", "plot", "pos","id",  "birth_year", "observation_year", "species", "distance_A", "distance_B", "survival", "size_tillers", "flowering_tillers", "spikelets_A", "spikelets_B", "spikelets_C", "notes"), all = TRUE) %>% 
+  merge(FESU_2021_data, by = c("species", "origin", "plot", "pos","id",  "birth_year", "observation_year", "species", "distance_A", "distance_B", "survival", "size_tillers", "flowering_tillers", "spikelets_A", "spikelets_B", "spikelets_C", "notes"), all = TRUE) %>% 
+  merge(POAL_2021_data, by = c("species", "origin", "plot", "pos","id",  "birth_year", "observation_year", "species", "distance_A", "distance_B", "survival", "size_tillers", "flowering_tillers", "spikelets_A", "spikelets_B", "spikelets_C", "notes"), all = TRUE) %>%
+  merge(POSY_2021_data, by = c("species", "origin", "plot", "pos","id",  "birth_year", "observation_year", "species", "distance_A", "distance_B", "survival", "size_tillers", "flowering_tillers", "spikelets_A", "spikelets_B", "spikelets_C", "notes"), all = TRUE)
+
 
 
 # # We need to do a little bit of cleaning up for some of the missing tags and changing variable names.
@@ -1814,7 +1830,7 @@ LTREB_plot_endo_status <- LTREB_full_to2018 %>%
 LTREB_update <- LTREB_update %>% 
   left_join(LTREB_plot_endo_status)
 
-# Now we can merge our 2019 data with our full dataframe
+# Now we can merge our post-2018 data with our full dataframe
 LTREB_full_update <- LTREB_full_to2018_lag %>%
   full_join(LTREB_update)
 
@@ -2032,7 +2048,7 @@ spei_census_month_spp <- climate_census_month %>%
   dplyr::select(species, year, climate_year, census_month, spei12)
 
 # Making a dataframe with annual precipitation and temperature for the census year
-ppt_temp_census_annual_spp_2 <- climate_census_month %>% 
+ppt_temp_census_annual_spp <- climate_census_month %>% 
   crossing(census_months) %>% 
   mutate(climate_year = as.numeric(ifelse(month > census_month, year+1, year))) %>% 
   group_by(species,census_month, climate_year) %>% 
