@@ -1801,11 +1801,12 @@ LTREB_update_cleaned <- LTREB_update_data %>%
                                           is.na(surv_t1) & birth == year_t1 ~ 1))) %>% 
     filter(!is.na(size_t1) & surv_t1 == 1 | surv_t1 == 0) # filtering out mismatches where there is no size data entry but the survival was recorded; this is sometimes TNF or new recruits where I think it was an oversight in data entry where they are likely a small size like 1 tiller. For now, I am just removing them
 
-# There are a few plants that were not found in 2019, but found in 2020. Here I am updating the survival of those plants to be 1, although we do not have size data for them.
+# There are a few plants that were not found in 2019 or 2020, but found in the following year. Here I am updating the survival of those plants to be 1, although we do not have size data for them.
 LTREB_update_tnfs <- LTREB_update_cleaned %>% 
   group_by(id) %>% 
   filter(year_t1[1] <= year_t1[2] & surv_t1[1] == 0) %>% 
-  mutate(surv_t1 = 1)
+  mutate(surv_t1 = case_when(year_t1 == min(year_t1) ~ 1,
+                             TRUE ~ as.numeric(surv_t1)))
 dim(LTREB_update_tnfs)
 # now rebind the these updated rows to the rest of the data
 LTREB_update_cleaned_tnf<- filter(LTREB_update_cleaned, !(id %in% LTREB_update_tnfs$id)) %>% 
