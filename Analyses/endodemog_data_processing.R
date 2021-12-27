@@ -25,7 +25,7 @@ year_factor_key <- c('2007' = 1, '2008' = 2, '2009' = 3,
                        '2010' = 4, '2011' = 5, '2012' = 6, 
                        '2013' = 7, '2014' = 8, '2015' = 9, 
                        '2016' = 10, '2017' = 11, "2018" = 12,
-                       "2019" = 13, "2020" = 14)
+                       "2019" = 13, "2020" = 14, "2021" = 15)
 species_factor_key <- c("AGPE" = 1, "ELRI" = 2, "ELVI" = 3, 
                         "FESU" = 4, "LOAR" = 5, "POAL" = 6, 
                         "POSY" = 7)
@@ -1792,9 +1792,10 @@ LTREB_update_cleaned <- LTREB_update_data %>%
                                    FLW_COUNT_T1 > 0 ~1)) %>% 
     mutate(species_index = as.integer(recode(species, !!!species_factor_key))) %>% 
     mutate(year_t1_index = as.integer(recode(year_t1, !!!year_factor_key))) %>%
-    mutate(origin_01 = as.integer(case_when(origin == "O" ~ 0,
-                                            origin == "R" ~ 1,
-                                            origin != "R" | origin != "O" ~ 1))) %>% 
+    mutate(origin_01 = as.integer(case_when(origin == "O" ~ 0, # original transplanted plants from 2007
+                                            origin == "O21" ~ 0, # original transplanted plants from 2021. In our model, we have an origin effect for recruit vs transplant, and we are treating the transplants the same.
+                                            origin == "R" ~ 1, # recruit
+                                            origin != "R" | origin != "O" | origin != "O21" ~ 1))) %>% 
     mutate(surv_t1 = as.integer(case_when(surv_t1 == 1 ~ 1,
                                           surv_t1 == 0 ~ 0,
                                           is.na(surv_t1) & birth == year_t1 ~ 1))) %>% 
