@@ -1986,10 +1986,10 @@ mon_near_ldw_coverage <- mon_near_ldw$ldw %>% full_join(meteo_coverage(meteo_pul
 
 mon_near_ldw_coverage$id <- reorder(mon_near_ldw_coverage$id, mon_near_ldw_coverage$distance)
 
-mon_near_ldw_coverage %>% 
-  filter(prcp >0) %>% 
-ggplot()+
-  geom_point(aes(y = id, x = date)) + theme_minimal()
+# mon_near_ldw_coverage %>% 
+#   filter(prcp >0) %>% 
+# ggplot()+
+#   geom_point(aes(y = id, x = date)) + theme_minimal()
 
 # USC00126056 is the closest in Nashville (~1 km away) but has gap in the history and doesn't have coverage more recent than 2019
 # USC00120784 is the station near Bloomington (27 km away), with good coverage with the best coverage into the past (although is seems there is a gap in the middle) 
@@ -1998,15 +1998,54 @@ ggplot()+
 
 # Here is a better plot of all the variables from these stations which makes it clear the coverage between Columbus and Bloomington is very similar
 monitors <- c("USC00126056", "USC00120784", "USC00121747")
-autoplot(meteo_coverage(meteo_pull_monitors(monitors)))
+# autoplot(meteo_coverage(meteo_pull_monitors(monitors)))
+
+# Getting lat, long and elevation for each station
+station_data <- ghcnd_stations() %>% 
+  filter(id %in% monitors) %>% 
+  dplyr::select(id, name, latitude, longitude, elevation)
 
 # extract precipitation data for the three stations
-climate_dat <- 
+climate <- 
   meteo_pull_monitors(
     monitors = monitors, #choosing the Bloomington one from our list
     date_min = "1895-01-01",
     date_max = Sys.Date()
-  )
+  ) %>% 
+  # mutate(name = case_when(id == "USC00126056" ~ "NASHVILLE 2 NNE",
+  #                         id == "USC00120784" ~ "BLOOMINGTON INDIANA UNIV",
+  #                         id == "USC00121747" ~ "COLUMBUS")) %>% 
+  left_join(station_data) # merging the station name, the distance to Lilly-Dickey Woods, and the lat long for each weather station
+
+# census months for each species to define climate year
+census_months <- data.frame(species = c("AGPE", "ELRI", "ELVI", "FESU", "LOAR", "POAL", "POSY"),
+                            census_month = c(8,7,7,5,7,5,5)) #using august for now for AGPE because 2019 is missing data for temps for september 
+
+LTREB_full_3 <- LTREB_full_2 %>% 
+  left_join(census_months)
+
+  
+# Getting climate data for species with census month (just bloomington)
+
+climate_census_month <- climate %>% 
+  filter(id == "USC00120784") %>% 
+  mutate(year = year(date), month = month(date), day = day(date)) %>% 
+  filter(year >1895) %>% 
+  mutate(tmean = (tmax +tmin)/2) %>%    # there are some NA's in the Max or Min temp at various times, and so that gives us NA's in the mean temp too, but I filter those out
+  filter(!is.na(tmean), !is.na(prcp), !is.na(latitude)) %>% 
+  mutate(PET = thornthwaite(tmean, unique(latitude)), #PET is Potential Evapotranspiration
+         BAL = prcp - PET) %>% # BAL is Climatic Water Balance
+  group_by(latitude, longitude, ELEVATION, STATION, NAME, year,month) %>% 
+  dplyr::summarize(monthly_ppt = sum(PRCP),
+                   monthly_tmean = mean(TMEAN),
+                   monthly_PET = thornthwaite(mean(TMEAN), mean(LATITUDE), na.rm = FALSE),
+                   monthly_BAL = monthly_ppt - monthly_PET) 
+# calulate SPEI, we'll use the 12 month spei which is calculated as a 12 month lag from each month
+climate_census_month$spei12 <- spei(climate_census_month$monthly_BAL, 12)$fitted
+climate_census_month$spei24 <- spei(climate_census_month$monthly_BAL, 24)$fitted
+climate_census_month$spei1 <- spei(climate_census_month$monthly_BAL, 1)$fitted
+
+
 
 
 # reading in  downloaded daily climate data from NOAA-NCEI from the bloomington weather station
@@ -2068,7 +2107,7 @@ census_months <- data.frame(species = c("AGPE", "ELRI", "ELVI", "FESU", "LOAR", 
                             census_month = c(8,7,7,5,7,5,5)) #using august for now for AGPE because 2019 is missing data for temps for september 
 
 LTREB_full_3 <- LTREB_full_2 %>% 
-  left_join(census_months)
+  left_join(census_months) 
 
 # Getting climate data for species with census month
 
