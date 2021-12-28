@@ -7,6 +7,7 @@ library(tidyverse)
 library(reshape2)
 library(lubridate)
 library(readxl)
+library(rnoaa)
 library(SPEI)
 
 
@@ -1961,7 +1962,54 @@ setdiff(LTREB_distances$id, LTREB_full_2$id)
 ##############################################################################
 ####### Getting climate data and calculating SPEI  ------------------------------
 ##############################################################################
-# reading in downloaded daily climate data from NOAA-NCEI from the bloomington weather station
+#The lat lon of Lilly-Dickey Woods
+lat_lon_df <- data.frame(id = "ldw",
+                         lat = 39.2359000,
+                         lon = -86.2181000)
+# Finding the nearest weather stations within 60 km to Lilly-Dickey Woods
+mon_near_ldw <-  meteo_nearby_stations(
+    lat_lon_df = lat_lon_df,
+    lat_colname = "lat",
+    lon_colname = "lon",
+    var = "PRCP",
+    year_min = 1880,
+    year_max = 2020,
+    radius = 30, #kilometers
+  ) 
+
+
+# Looking at the temporal coverage of these stations
+
+mon_near_ldw_coverage <- mon_near_ldw$ldw %>% full_join(meteo_coverage(meteo_pull_monitors(mon_near_ldw$ldw$id, var = "PRCP"))$detail)
+
+# plotting the time coverage of the different stations. Ordered by distance from ldw
+
+mon_near_ldw_coverage$id <- reorder(mon_near_ldw_coverage$id, mon_near_ldw_coverage$distance)
+
+mon_near_ldw_coverage %>% 
+  filter(prcp >0) %>% 
+ggplot()+
+  geom_point(aes(y = id, x = date)) + theme_minimal()
+
+# USC00126056 is the closest in Nashville (~1 km away) but has gap in the history and doesn't have coverage more recent than 2019
+# USC00120784 is the station near Bloomington (27 km away), with good coverage with the best coverage into the past (although is seems there is a gap in the middle) 
+# USC00121747 is the station near Columbus (26 km away in other direction) with seemingly even better coverage into the past
+# Both of these seem to be continuing to be update (have current year data)
+
+# Here is a better plot of all the variables from these stations which makes it clear the coverage between Columbus and Bloomington is very similar
+monitors <- c("USC00126056", "USC00120784", "USC00121747")
+autoplot(meteo_coverage(meteo_pull_monitors(monitors)))
+
+# extract precipitation data for the three stations
+climate_dat <- 
+  meteo_pull_monitors(
+    monitors = monitors, #choosing the Bloomington one from our list
+    date_min = "1895-01-01",
+    date_max = Sys.Date()
+  )
+
+
+# reading in  downloaded daily climate data from NOAA-NCEI from the bloomington weather station
 climate <- read_csv("~/Dropbox/EndodemogData/Bloomington_Climate_2020-12-20_USC00120784.csv",
                     col_types = cols(STATION = col_character(),
                     NAME = col_character(),
