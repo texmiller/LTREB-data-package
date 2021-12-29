@@ -1962,6 +1962,15 @@ setdiff(LTREB_distances$id, LTREB_full_2$id)
 ##############################################################################
 ####### Getting climate data and calculating SPEI  ------------------------------
 ##############################################################################
+
+# Using rnoaa to get weather station data
+
+# From the user manual:
+# • PRCP: Precipitation, in tenths of millimeters
+# • TAVG: Average temperature, in tenths of degrees Celsius
+# • TMAX: Maximum temperature, in tenths of degrees Celsius
+# • TMIN: Minimum temperature, in tenths of degrees Celsius
+
 #The lat lon of Lilly-Dickey Woods
 lat_lon_df <- data.frame(id = "ldw",
                          lat = 39.2359000,
@@ -1977,14 +1986,13 @@ mon_near_ldw <-  meteo_nearby_stations(
     radius = 30, #kilometers
   ) 
 
-
 # Looking at the temporal coverage of these stations
 
 mon_near_ldw_coverage <- mon_near_ldw$ldw %>% full_join(meteo_coverage(meteo_pull_monitors(mon_near_ldw$ldw$id, var = "PRCP"))$detail)
 
 # plotting the time coverage of the different stations. Ordered by distance from ldw
 
-mon_near_ldw_coverage$id <- reorder(mon_near_ldw_coverage$id, mon_near_ldw_coverage$distance)
+# mon_near_ldw_coverage$id <- reorder(mon_near_ldw_coverage$id, mon_near_ldw_coverage$distance)
 
 # mon_near_ldw_coverage %>% 
 #   filter(prcp >0) %>% 
@@ -2012,10 +2020,56 @@ climate <-
     date_min = "1895-01-01",
     date_max = Sys.Date()
   ) %>% 
-  # mutate(name = case_when(id == "USC00126056" ~ "NASHVILLE 2 NNE",
-  #                         id == "USC00120784" ~ "BLOOMINGTON INDIANA UNIV",
-  #                         id == "USC00121747" ~ "COLUMBUS")) %>% 
   left_join(station_data) # merging the station name, the distance to Lilly-Dickey Woods, and the lat long for each weather station
+
+#Some graphs to look at how the different stations's values compare 
+# climate %>% 
+#   dplyr::select(id, date, prcp, tmax) %>% 
+#   distinct() %>% 
+#   pivot_wider(id_cols = c(id,date), names_from = c(id), values_from = c(prcp, tmax)) %>% 
+# ggplot()+
+#   geom_point(aes(x = prcp_USC00126056, y = tmax_USC00126056), col = "red")+
+#   geom_point(aes(x = prcp_USC00120784, y = tmax_USC00120784), col = "blue")+ #bloomington
+#   geom_point(aes(x = prcp_USC00121747, y = tmax_USC00121747), col = "green") #columbus
+# 
+# 
+# climate %>% 
+#   dplyr::select(id, date, prcp, tmax) %>% 
+#   distinct() %>% 
+#   pivot_wider(id_cols = c(id,date), names_from = c(id), values_from = c(prcp, tmax)) %>% 
+#   ggplot()+
+#   geom_point(aes(x = prcp_USC00126056, y = prcp_USC00120784), col = "red")+ #nashville vs bloomington
+#   geom_point(aes(x = prcp_USC00126056, y = prcp_USC00121747), col = "blue")+ #nashville vs columbus
+#   geom_point(aes(x = prcp_USC00121747, y = prcp_USC00120784), col = "green")+ #columbus vs bloominton
+#   geom_abline(slope = 1, intercept = 0)
+# 
+# climate %>% 
+#   dplyr::select(id, date, prcp, tmax) %>% 
+#   distinct() %>% 
+#   pivot_wider(id_cols = c(id,date), names_from = c(id), values_from = c(prcp, tmax)) %>% 
+#   ggplot()+
+#   geom_point(aes(x = tmax_USC00126056, y = tmax_USC00120784), col = "red")+ #nashville vs bloomington
+#   geom_point(aes(x = tmax_USC00126056, y = tmax_USC00121747), col = "blue")+ #nashville vs columbus
+#   geom_point(aes(x = tmax_USC00121747, y = tmax_USC00120784), col = "green")+#columbus vs bloominton
+#   geom_abline(slope = 1, intercept = 0)
+#   
+
+
+# Looking at how many years for each of the stations have the full 12 months of data
+# This is not very elegant, but Bloomington has the best recent data, while Columbus has the best historic data, but they are fairly similar
+# month_count <- climate %>% 
+#   mutate(year = year(date), month = month(date)) %>% 
+#   group_by(id, year, month) %>% 
+#   summarize(prcp = sum(prcp)) %>% 
+#   group_by(id, year) %>% 
+#   summarize(n())
+# 
+# ggplot(data = month_count)+
+#   geom_histogram(aes(x = as.integer(`n()`))) + facet_wrap(~id)
+# 
+# ggplot(data = filter(month_count, year >2005))+
+#   geom_histogram(aes(x = as.integer(`n()`))) + facet_wrap(~id)
+
 
 # census months for each species to define climate year
 census_months <- data.frame(species = c("AGPE", "ELRI", "ELVI", "FESU", "LOAR", "POAL", "POSY"),
@@ -2028,106 +2082,29 @@ LTREB_full_3 <- LTREB_full_2 %>%
 # Getting climate data for species with census month (just bloomington)
 
 climate_census_month <- climate %>% 
-  filter(id == "USC00120784") %>% 
+  rename(station_id = id) %>% #renaming this so it's not confusing with plant id's
+  filter(station_id == "USC00120784") %>% 
   mutate(year = year(date), month = month(date), day = day(date)) %>% 
   filter(year >1895) %>% 
-  mutate(tmean = (tmax +tmin)/2) %>%    # there are some NA's in the Max or Min temp at various times, and so that gives us NA's in the mean temp too, but I filter those out
-  filter(!is.na(tmean), !is.na(prcp), !is.na(latitude)) %>% 
-  mutate(PET = thornthwaite(tmean, unique(latitude)), #PET is Potential Evapotranspiration
-         BAL = prcp - PET) %>% # BAL is Climatic Water Balance
-  group_by(latitude, longitude, ELEVATION, STATION, NAME, year,month) %>% 
-  dplyr::summarize(monthly_ppt = sum(PRCP),
-                   monthly_tmean = mean(TMEAN),
-                   monthly_PET = thornthwaite(mean(TMEAN), mean(LATITUDE), na.rm = FALSE),
+  mutate(tmax = tmax/10, tmin = tmin/10, prcp = prcp/10) %>%  # Converting temp. to Celsius, and precip. to mm (from 10ths of units)
+  mutate(tmean = (tmax + tmin)/2) %>%  # there are some NA's in the Max or Min temp at various times, and so that gives us NA's in the mean temp too, but I filter those out
+  mutate(tmean_forthorthwaite = case_when(tmean <= 0 ~ 0,
+                                          TRUE ~ tmean)) %>% 
+  # mutate(PET = thornthwaite(tmean, unique(latitude)), #PET is Potential Evapotranspiration
+  #        BAL = prcp - PET) %>% # BAL is Climatic Water Balance
+  group_by(latitude, longitude, elevation, station_id, name, year, month) %>% 
+  dplyr::summarize(monthly_ppt = sum(prcp, na.rm = TRUE),
+                   monthly_tmean = mean(tmean, na.rm = TRUE),
+                   monthly_PET = thornthwaite(mean(tmean_forthorthwaite), mean(latitude), na.rm = TRUE), # I have to give the formula only temperatures >0, so I transformed it to that, and there are still some NA's where this is just no data at all.
                    monthly_BAL = monthly_ppt - monthly_PET) 
+  filter(!is.na(monthly_tmean), !is.na(monthly_PET), !is.na(monthly_BAL)) 
+
 # calulate SPEI, we'll use the 12 month spei which is calculated as a 12 month lag from each month
-climate_census_month$spei12 <- spei(climate_census_month$monthly_BAL, 12)$fitted
-climate_census_month$spei24 <- spei(climate_census_month$monthly_BAL, 24)$fitted
-climate_census_month$spei1 <- spei(climate_census_month$monthly_BAL, 1)$fitted
+  # I am removing NA's which means that spei is calculated without those months for some of the time intervals, but I think thiis is better than if we were to drop the months from the database. Dropping the months leads to the column having some skipped months, and the spei's would be calculated with the shifted set of months.
+climate_census_month$spei12 <- spei(climate_census_month$monthly_BAL, 12, na.rm = TRUE)$fitted
+climate_census_month$spei24 <- spei(climate_census_month$monthly_BAL, 24, na.rm = TRUE)$fitted
+climate_census_month$spei1 <- spei(climate_census_month$monthly_BAL, 1, na.rm = TRUE)$fitted
 
-
-
-
-# reading in  downloaded daily climate data from NOAA-NCEI from the bloomington weather station
-climate <- read_csv("~/Dropbox/EndodemogData/Bloomington_Climate_2020-12-20_USC00120784.csv",
-                    col_types = cols(STATION = col_character(),
-                    NAME = col_character(),
-                    LATITUDE = col_double(),
-                    LONGITUDE = col_double(),
-                    ELEVATION = col_double(),
-                    DATE = col_date(format = ""),
-                    DAPR = col_double(),
-                    DAPR_ATTRIBUTES = col_character(),
-                    DASF = col_double(),
-                    DASF_ATTRIBUTES = col_character(),
-                    MDPR = col_double(),
-                    MDPR_ATTRIBUTES = col_character(),
-                    MDSF = col_double(),
-                    MDSF_ATTRIBUTES = col_character(),
-                    PRCP = col_double(),
-                    PRCP_ATTRIBUTES = col_character(),
-                    SNOW = col_double(),
-                    SNOW_ATTRIBUTES = col_character(),
-                    SNWD = col_double(),
-                    SNWD_ATTRIBUTES = col_character(),
-                    TMAX = col_double(),
-                    TMAX_ATTRIBUTES = col_character(),
-                    TMIN = col_double(),
-                    TMIN_ATTRIBUTES = col_character(),
-                    TOBS = col_double(),
-                    TOBS_ATTRIBUTES = col_character(),
-                    WT01 = col_double(),
-                    WT01_ATTRIBUTES = col_character(),
-                    WT03 = col_double(),
-                    WT03_ATTRIBUTES = col_character(),
-                    WT04 = col_double(),
-                    WT04_ATTRIBUTES = col_character(),
-                    WT05 = col_double(),
-                    WT05_ATTRIBUTES = col_character(),
-                    WT06 = col_double(),
-                    WT06_ATTRIBUTES = col_character(),
-                    WT07 = col_double(),
-                    WT07_ATTRIBUTES = col_character(),
-                    WT08 = col_double(),
-                    WT08_ATTRIBUTES = col_character(),
-                    WT09 = col_double(),
-                    WT09_ATTRIBUTES = col_character(),
-                    WT11 = col_double(),
-                    WT11_ATTRIBUTES = col_character(),
-                    WT14 = col_double(),
-                    WT14_ATTRIBUTES = col_character(),
-                    WT16 = col_double(),
-                    WT16_ATTRIBUTES = col_character(),
-                    WT18 = col_double(),
-                    WT18_ATTRIBUTES = col_character()))
-# View(climate)
-
-# census months for each species to define climate year
-census_months <- data.frame(species = c("AGPE", "ELRI", "ELVI", "FESU", "LOAR", "POAL", "POSY"),
-                            census_month = c(8,7,7,5,7,5,5)) #using august for now for AGPE because 2019 is missing data for temps for september 
-
-LTREB_full_3 <- LTREB_full_2 %>% 
-  left_join(census_months) 
-
-# Getting climate data for species with census month
-
-climate_census_month <- climate %>% 
-  filter(STATION == "USC00120784") %>% 
-  mutate(year = year(DATE), month = month(DATE), day = day(DATE)) %>% 
-  filter(year >1895) %>% 
-  mutate(TMEAN = (TMAX +TMIN)/2) %>%    # there are some NA's in the Max or Min temp at various times, and so that gives us NA's in the mean temp too, but I filter those out
-  filter(!is.na(TMEAN), !is.na(PRCP), !is.na(LATITUDE)) %>% 
-  mutate(PET = thornthwaite(TMEAN, unique(LATITUDE)), #PET is Potential Evapotranspiration
-         BAL = PRCP - PET) %>%  # BAL is Climatic Water Balance
-  group_by(LATITUDE, LONGITUDE, ELEVATION, STATION, NAME, year,month) %>% 
-  dplyr::summarize(monthly_ppt = sum(PRCP),
-                   monthly_tmean = mean(TMEAN),
-                   monthly_PET = thornthwaite(mean(TMEAN), mean(LATITUDE), na.rm = FALSE),
-                   monthly_BAL = monthly_ppt - monthly_PET) 
-# calulate SPEI, we'll use the 12 month spei which is calculated as a 12 month lag from each month
-climate_census_month$spei12 <- spei(climate_census_month$monthly_BAL, 12)$fitted
-climate_census_month$spei24 <- spei(climate_census_month$monthly_BAL, 24)$fitted
-climate_census_month$spei1 <- spei(climate_census_month$monthly_BAL, 1)$fitted
 
 # Making a dataframe with columns for each species and their census month
 spei_census_month_spp <- climate_census_month %>% 
@@ -2148,12 +2125,6 @@ ppt_temp_census_annual_spp <- climate_census_month %>%
 LTREB_full_climate <- LTREB_full_3 %>% 
   left_join(ppt_temp_census_annual_spp, by = c("species" = "species",  "year_t1" = "climate_year", "census_month" = "census_month")) %>% 
   left_join(spei_census_month_spp, by = c("species" = "species",  "year_t1" = "climate_year", "census_month" = "census_month"))
-
-
-#Trying to figure out NA's in the spei for AGPE
-
-LTREB_climate_check <- LTREB_full_climate %>% 
-  select(species,year_t1, year_t, surv_t1,census_month, spei12)
 
 
 ##############################################################################
