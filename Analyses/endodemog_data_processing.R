@@ -2111,7 +2111,7 @@ spei_census_month_spp <- climate_census_month %>%
   crossing(census_months) %>% 
   mutate(climate_year = as.numeric(ifelse(month > census_month, year+1, year))) %>%  
   filter(month == census_month) %>% # Here we are taking just the spei starting from the census month, which should cover the climate  year  preceding the census
-  dplyr::select(species, year, climate_year, census_month, spei12)
+  dplyr::select(species, year, climate_year, census_month, spei1, spei12, spei24)
 
 # Making a dataframe with annual precipitation and temperature for the census year
 ppt_temp_census_annual_spp <- climate_census_month %>% 
@@ -2133,7 +2133,7 @@ LTREB_full_climate <- LTREB_full_3 %>%
 
 LTREB_full <- LTREB_full_climate %>% 
   left_join(LTREB_distances, by = c("species" = "species","pos" = "pos", "plot_fixed" = "plot", "origin_01" = "origin_01", "id" = "id")) %>% 
-  mutate(spei12 = as.numeric(spei12)) %>% # I don't know why but this was giving an error when trying to write the file cause it was saving the column as a list
+  mutate(spei1 = as.numeric(spei1), spei12 = as.numeric(spei12), spei24 = as.numeric(spei24)) %>% # I don't know why but this was giving an error when trying to write the file cause it was saving the column as a list
   dplyr::select(-duplicate, -origin_from_check, -origin_from_distance, -date_status, -date_dist ) # I'm removing some of the extraneous variable. We also have distance data in the new field data that needs to be merged in.
 # write_csv(LTREB_full,file = "~/Dropbox/EndodemogData/Fulldataplusmetadata/LTREB_full.csv")
 
