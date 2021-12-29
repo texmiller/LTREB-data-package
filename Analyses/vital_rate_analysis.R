@@ -24,6 +24,7 @@ Lkurtosis=function(x) log(kurtosis(x));
 
 #  data are prepared in the endodemog_data_processing.R file, 
 source("Analyses/endodemog_data_processing.R")
+# LTREB_full <- read_csv("~/Dropbox/EndodemogData/Fulldataplusmetadata/LTREB_full.csv")
 
 
 #############################################################################################
@@ -136,7 +137,7 @@ LTREB_data_forspike <- LTREB_full %>%
 # Create data lists to be used for the Stan model
 
 surv_data_list <- list(y = LTREB_data_forsurv$surv_t1,
-                       logsize_t = LTREB_data_forsurv$logsize_t,
+                       logsize = LTREB_data_forsurv$logsize_t,
                        origin_01 = LTREB_data_forsurv$origin_01,
                        endo_01 = as.integer(LTREB_data_forsurv$endo_01),
                        endo_index = as.integer(LTREB_data_forsurv$endo_index),
@@ -166,20 +167,20 @@ seed_surv_data_list <- list(y = LTREB_surv_seedling$surv_t1,
 str(seed_surv_data_list)
 
 
-flw_data_list <- list(y = LTREB_data_forflw$FLW_STAT_T,
-                      logsize_t = LTREB_data_forflw$logsize_t,
-                      origin_01 = LTREB_data_forflw$origin_01,
-                      endo_01 = as.integer(LTREB_data_forflw$endo_01),
-                      endo_index = as.integer(LTREB_data_forflw$endo_index),
-                      spp = as.integer(LTREB_data_forflw$species_index),
-                      year_t = as.integer(LTREB_data_forflw$year_t_index),
-                      plot = as.integer(LTREB_data_forflw$plot_index),
-                      N = nrow(LTREB_data_forflw),
-                      nSpp = length(unique(LTREB_data_forflw$species_index)),
-                      nYear = max(unique(LTREB_data_forflw$year_t_index)),
-                      nPlot = length(unique(LTREB_data_forflw$plot_index)),
-                      nEndo =   length(unique(LTREB_data_forflw$endo_01)))
-str(flw_data_list)
+# flw_data_list <- list(y = LTREB_data_forflw$FLW_STAT_T,
+#                       logsize_t = LTREB_data_forflw$logsize_t,
+#                       origin_01 = LTREB_data_forflw$origin_01,
+#                       endo_01 = as.integer(LTREB_data_forflw$endo_01),
+#                       endo_index = as.integer(LTREB_data_forflw$endo_index),
+#                       spp = as.integer(LTREB_data_forflw$species_index),
+#                       year_t = as.integer(LTREB_data_forflw$year_t_index),
+#                       plot = as.integer(LTREB_data_forflw$plot_index),
+#                       N = nrow(LTREB_data_forflw),
+#                       nSpp = length(unique(LTREB_data_forflw$species_index)),
+#                       nYear = max(unique(LTREB_data_forflw$year_t_index)),
+#                       nPlot = length(unique(LTREB_data_forflw$plot_index)),
+#                       nEndo =   length(unique(LTREB_data_forflw$endo_01)))
+# str(flw_data_list)
 
 grow_data_list <- list(y = as.integer(LTREB_data_forgrow$size_t1),
                        logsize_t = LTREB_data_forgrow$logsize_t,
@@ -211,37 +212,37 @@ seed_grow_data_list <- list(y = as.integer(LTREB_grow_seedling$size_t1),
 str(seed_grow_data_list)
 
 
+# 
+# fert_data_list <- list(y = as.integer(LTREB_data_forfert$FLW_COUNT_T),
+#                        logsize_t = LTREB_data_forfert$logsize_t,
+#                        origin_01 = LTREB_data_forfert$origin_01,
+#                        endo_01 = as.integer(LTREB_data_forfert$endo_01),
+#                        endo_index = as.integer(LTREB_data_forfert$endo_index),
+#                        spp = as.integer(LTREB_data_forfert$species_index),
+#                        year_t = as.integer(LTREB_data_forfert$year_t_index),
+#                        plot = as.integer(LTREB_data_forfert$plot_index),
+#                        N = nrow(LTREB_data_forfert),
+#                        nSpp = length(unique(LTREB_data_forfert$species_index)),
+#                        nYear = max(unique(LTREB_data_forfert$year_t_index)),
+#                        nPlot = max(unique(LTREB_data_forfert$plot_index)),
+#                        nEndo =   length(unique(LTREB_data_forfert$endo_01)))
+# str(fert_data_list)
 
-fert_data_list <- list(y = as.integer(LTREB_data_forfert$FLW_COUNT_T),
-                       logsize_t = LTREB_data_forfert$logsize_t,
-                       origin_01 = LTREB_data_forfert$origin_01,
-                       endo_01 = as.integer(LTREB_data_forfert$endo_01),
-                       endo_index = as.integer(LTREB_data_forfert$endo_index),
-                       spp = as.integer(LTREB_data_forfert$species_index),
-                       year_t = as.integer(LTREB_data_forfert$year_t_index),
-                       plot = as.integer(LTREB_data_forfert$plot_index),
-                       N = nrow(LTREB_data_forfert),
-                       nSpp = length(unique(LTREB_data_forfert$species_index)),
-                       nYear = max(unique(LTREB_data_forfert$year_t_index)),
-                       nPlot = max(unique(LTREB_data_forfert$plot_index)),
-                       nEndo =   length(unique(LTREB_data_forfert$endo_01)))
-str(fert_data_list)
 
 
-
-spike_data_list <- list(nYear = max(unique(LTREB_data_forspike$year_t_index)),
-                        nPlot = max(unique(LTREB_data_forspike$plot_index)),
-                        nSpp = length(unique(LTREB_data_forspike$species)),
-                        nEndo=length(unique(LTREB_data_forspike$endo_01)),
-                        N = nrow(LTREB_data_forspike),
-                        year_t = as.integer(LTREB_data_forspike$year_t_index),
-                        plot = as.integer(LTREB_data_forspike$plot_index),
-                        spp = as.integer(as.numeric(as.factor(LTREB_data_forspike$species))),
-                        y = LTREB_data_forspike$spike_count_t,
-                        logsize_t = LTREB_data_forspike$logsize_t,
-                        endo_01 = LTREB_data_forspike$endo_01,
-                        origin_01 = LTREB_data_forspike$origin_01)
-str(spike_data_list)
+# spike_data_list <- list(nYear = max(unique(LTREB_data_forspike$year_t_index)),
+#                         nPlot = max(unique(LTREB_data_forspike$plot_index)),
+#                         nSpp = length(unique(LTREB_data_forspike$species)),
+#                         nEndo=length(unique(LTREB_data_forspike$endo_01)),
+#                         N = nrow(LTREB_data_forspike),
+#                         year_t = as.integer(LTREB_data_forspike$year_t_index),
+#                         plot = as.integer(LTREB_data_forspike$plot_index),
+#                         spp = as.integer(as.numeric(as.factor(LTREB_data_forspike$species))),
+#                         y = LTREB_data_forspike$spike_count_t,
+#                         logsize_t = LTREB_data_forspike$logsize_t,
+#                         endo_01 = LTREB_data_forspike$endo_01,
+#                         origin_01 = LTREB_data_forspike$origin_01)
+# str(spike_data_list)
 
 #########################################################################################################
 # Stan model runs------------------------------
@@ -253,8 +254,8 @@ set.seed(123)
 
 ## MCMC settings
 mcmc_pars <- list(
-  iter = 4000, 
-  warmup = 2000, 
+  iter = 2000, 
+  warmup = 1000, 
   thin = 1, 
   chains = 3
 )
@@ -406,7 +407,7 @@ y_s_sim <- matrix(NA,n_post_draws,length(surv_data_list$y))
 for(i in 1:n_post_draws){
   y_s_sim[i,] <- rbinom(n=length(surv_data_list$y), size=1, prob = invlogit(predS[post_draws[i],]))
 }
-ppc_dens_overlay(surv_data_list$y, y_s_sim)
+# ppc_dens_overlay(surv_data_list$y, y_s_sim)
 surv_densplot <- ppc_dens_overlay(surv_data_list$y, y_s_sim) + theme_classic() + labs(title = "Adult Survival", x = "Survival status", y = "Density")
 surv_densplot
 ggsave(surv_densplot, filename = "surv_densplot.png", width = 4, height = 4)

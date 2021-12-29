@@ -10,8 +10,8 @@ data {
     int<lower=0, upper=nYear> year_t[N];         // year of observation for surv model
     int<lower=0> plot[N];                   // plot of observation for surv model
     int<lower=0, upper=nSpp> spp[N];         // year of observation for surv model
-    int<lower=0, upper=1> y[N];      // plant survival at time t+1 or flowering at time t
-    vector<lower=0>[N] logsize_t;             // plant size at time t for surv model
+    int<lower=0, upper=1> y[N];      // plant survival at time t+1 or flowering at time t+1
+    vector<lower=0>[N] logsize;             // plant size at time t for surv model or time t+1 for flowering
     int<lower=0,upper=1> endo_01[N];            // plant endophyte status for surv model
     int<lower=0,upper=1> origin_01[N];          // plant origin status for surv model
 }
@@ -38,7 +38,7 @@ transformed parameters {
 
     // surv Linear Predictor
     for(n in 1:N){
-    p[n] = beta0[spp[n]] + betasize[spp[n]]*logsize_t[n] + betaendo[spp[n]]*endo_01[n] + betaorigin*origin_01[n]
+    p[n] = beta0[spp[n]] + betasize[spp[n]]*logsize[n] + betaendo[spp[n]]*endo_01[n] + betaorigin*origin_01[n]
     + tau_year[spp[n],(endo_01[n]+1),year_t[n]] 
     + tau_plot[plot[n]]
     ;

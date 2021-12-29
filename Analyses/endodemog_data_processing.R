@@ -1988,7 +1988,7 @@ mon_near_ldw <-  meteo_nearby_stations(
 
 # Looking at the temporal coverage of these stations
 
-mon_near_ldw_coverage <- mon_near_ldw$ldw %>% full_join(meteo_coverage(meteo_pull_monitors(mon_near_ldw$ldw$id, var = "PRCP"))$detail)
+# mon_near_ldw_coverage <- mon_near_ldw$ldw %>% full_join(meteo_coverage(meteo_pull_monitors(mon_near_ldw$ldw$id, var = "PRCP"))$detail)
 
 # plotting the time coverage of the different stations. Ordered by distance from ldw
 
@@ -2016,7 +2016,7 @@ station_data <- ghcnd_stations() %>%
 # extract precipitation data for the three stations
 climate <- 
   meteo_pull_monitors(
-    monitors = monitors, #choosing the Bloomington one from our list
+    monitors = monitors,
     date_min = "1895-01-01",
     date_max = Sys.Date()
   ) %>% 
@@ -2097,7 +2097,7 @@ climate_census_month <- climate %>%
                    monthly_tmean = mean(tmean, na.rm = TRUE),
                    monthly_PET = thornthwaite(mean(tmean_forthorthwaite), mean(latitude), na.rm = TRUE), # I have to give the formula only temperatures >0, so I transformed it to that, and there are still some NA's where this is just no data at all.
                    monthly_BAL = monthly_ppt - monthly_PET) 
-  filter(!is.na(monthly_tmean), !is.na(monthly_PET), !is.na(monthly_BAL)) 
+  # filter(!is.na(monthly_tmean), !is.na(monthly_PET), !is.na(monthly_BAL)) 
 
 # calulate SPEI, we'll use the 12 month spei which is calculated as a 12 month lag from each month
   # I am removing NA's which means that spei is calculated without those months for some of the time intervals, but I think thiis is better than if we were to drop the months from the database. Dropping the months leads to the column having some skipped months, and the spei's would be calculated with the shifted set of months.
@@ -2138,11 +2138,11 @@ LTREB_full <- LTREB_full_climate %>%
 # write_csv(LTREB_full,file = "~/Dropbox/EndodemogData/Fulldataplusmetadata/LTREB_full.csv")
 
 ## Tom is loading this in, bypassing above code
-tompath <- "C:/Users/tm9/Dropbox/EndodemogData/"
-# LTREB_full <- read_csv(paste0(tompath,"Fulldataplusmetadata/LTREB_full.csv"))
-
-LTREB_findtypo <- LTREB_full %>% 
-  filter(species == "ELRI", plot_fixed == 109)
+# tompath <- "C:/Users/tm9/Dropbox/EndodemogData/"
+# # LTREB_full <- read_csv(paste0(tompath,"Fulldataplusmetadata/LTREB_full.csv"))
+# 
+# LTREB_findtypo <- LTREB_full %>% 
+#   filter(species == "ELRI", plot_fixed == 109)
 
 
 
