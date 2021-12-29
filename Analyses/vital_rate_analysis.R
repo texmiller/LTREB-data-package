@@ -79,8 +79,8 @@ dim(LTREB_surv_big_seedling)
 table(LTREB_surv_big_seedling$year_t,LTREB_surv_big_seedling$size_t, LTREB_surv_big_seedling$species)
 
 LTREB_data_forflw <- LTREB_full %>% 
-  filter(!is.na(FLW_STAT_T)) %>% 
-  filter(!is.na(logsize_t)) %>% 
+  filter(!is.na(FLW_STAT_T1)) %>% 
+  filter(!is.na(logsize_t1)) %>% 
   filter(!is.na(endo_01))
 dim(LTREB_data_forflw)
 
@@ -103,9 +103,9 @@ dim(LTREB_grow_seedling)
 
 
 LTREB_data_forfert <- LTREB_full %>% 
-  filter(!is.na(FLW_COUNT_T)) %>% 
-  filter(FLW_COUNT_T > 0) %>% 
-  filter(!is.na(logsize_t))
+  filter(!is.na(FLW_COUNT_T1)) %>% 
+  filter(FLW_COUNT_T1 > 0) %>% 
+  filter(!is.na(logsize_t1))
 dim(LTREB_data_forfert)
 
 LTREB_data_forspike <- LTREB_full %>%
@@ -152,7 +152,7 @@ surv_data_list <- list(y = LTREB_data_forsurv$surv_t1,
 str(surv_data_list)
 
 seed_surv_data_list <- list(y = LTREB_surv_seedling$surv_t1,
-                            logsize_t = LTREB_surv_seedling$logsize_t,
+                            logsize = LTREB_surv_seedling$logsize_t,
                             origin_01 = LTREB_surv_seedling$origin_01,
                             endo_01 = as.integer(LTREB_surv_seedling$endo_01),
                             endo_index = as.integer(LTREB_surv_seedling$endo_index),
@@ -254,8 +254,8 @@ set.seed(123)
 
 ## MCMC settings
 mcmc_pars <- list(
-  iter = 2000, 
-  warmup = 1000, 
+  iter = 4000, 
+  warmup = 2000, 
   thin = 1, 
   chains = 3
 )
@@ -272,8 +272,7 @@ sm_seed_surv <- stan(file = "Analyses/seedling_surv.stan", data = seed_surv_data
                      iter = mcmc_pars$iter,
                      warmup = mcmc_pars$warmup,
                      chains = mcmc_pars$chains, 
-                     thin = mcmc_pars$thin,
-                     control = list(adapt_delta = .9))
+                     thin = mcmc_pars$thin)
 # saveRDS(sm_seed_surv, file = "~/Dropbox/EndodemogData/Model_Runs/endo_seedling_surv.rds")
 
 
@@ -410,7 +409,7 @@ for(i in 1:n_post_draws){
 # ppc_dens_overlay(surv_data_list$y, y_s_sim)
 surv_densplot <- ppc_dens_overlay(surv_data_list$y, y_s_sim) + theme_classic() + labs(title = "Adult Survival", x = "Survival status", y = "Density")
 surv_densplot
-ggsave(surv_densplot, filename = "surv_densplot.png", width = 4, height = 4)
+# ggsave(surv_densplot, filename = "surv_densplot.png", width = 4, height = 4)
 
 mean_s_plot <-   ppc_stat(surv_data_list$y, y_s_sim, stat = "mean")
 sd_s_plot <- ppc_stat(surv_data_list$y, y_s_sim, stat = "sd")
@@ -436,7 +435,7 @@ y_s_sim <- matrix(NA,n_post_draws,length(seed_surv_data_list$y))
 for(i in 1:n_post_draws){
   y_s_sim[i,] <- rbinom(n=length(seed_surv_data_list$y), size=1, prob = invlogit(predS[post_draws[i],]))
 }
-ppc_dens_overlay(seed_surv_data_list$y, y_s_sim)
+# ppc_dens_overlay(seed_surv_data_list$y, y_s_sim)
 seedsurv_densplot <- ppc_dens_overlay(seed_surv_data_list$y, y_s_sim) + theme_classic() + labs(title = "Seedling Survival", x = "Survival status", y = "Density")
 seedsurv_densplot
 ggsave(seedsurv_densplot, filename = "seedsurv_densplot.png", width = 4, height = 4)
