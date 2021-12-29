@@ -167,23 +167,23 @@ seed_surv_data_list <- list(y = LTREB_surv_seedling$surv_t1,
 str(seed_surv_data_list)
 
 
-# flw_data_list <- list(y = LTREB_data_forflw$FLW_STAT_T,
-#                       logsize_t = LTREB_data_forflw$logsize_t,
-#                       origin_01 = LTREB_data_forflw$origin_01,
-#                       endo_01 = as.integer(LTREB_data_forflw$endo_01),
-#                       endo_index = as.integer(LTREB_data_forflw$endo_index),
-#                       spp = as.integer(LTREB_data_forflw$species_index),
-#                       year_t = as.integer(LTREB_data_forflw$year_t_index),
-#                       plot = as.integer(LTREB_data_forflw$plot_index),
-#                       N = nrow(LTREB_data_forflw),
-#                       nSpp = length(unique(LTREB_data_forflw$species_index)),
-#                       nYear = max(unique(LTREB_data_forflw$year_t_index)),
-#                       nPlot = length(unique(LTREB_data_forflw$plot_index)),
-#                       nEndo =   length(unique(LTREB_data_forflw$endo_01)))
-# str(flw_data_list)
+flw_data_list <- list(y = LTREB_data_forflw$FLW_STAT_T1,
+                      logsize = LTREB_data_forflw$logsize_t1,
+                      origin_01 = LTREB_data_forflw$origin_01,
+                      endo_01 = as.integer(LTREB_data_forflw$endo_01),
+                      endo_index = as.integer(LTREB_data_forflw$endo_index),
+                      spp = as.integer(LTREB_data_forflw$species_index),
+                      year_t = as.integer(LTREB_data_forflw$year_t_index),
+                      plot = as.integer(LTREB_data_forflw$plot_index),
+                      N = nrow(LTREB_data_forflw),
+                      nSpp = length(unique(LTREB_data_forflw$species_index)),
+                      nYear = max(unique(LTREB_data_forflw$year_t_index)),
+                      nPlot = length(unique(LTREB_data_forflw$plot_index)),
+                      nEndo =   length(unique(LTREB_data_forflw$endo_01)))
+str(flw_data_list)
 
 grow_data_list <- list(y = as.integer(LTREB_data_forgrow$size_t1),
-                       logsize_t = LTREB_data_forgrow$logsize_t,
+                       logsize = LTREB_data_forgrow$logsize_t,
                        origin_01 = as.integer(LTREB_data_forgrow$origin_01),
                        endo_01 = as.integer(LTREB_data_forgrow$endo_01),
                        endo_index = as.integer(LTREB_data_forgrow$endo_index),
@@ -212,21 +212,21 @@ seed_grow_data_list <- list(y = as.integer(LTREB_grow_seedling$size_t1),
 str(seed_grow_data_list)
 
 
-# 
-# fert_data_list <- list(y = as.integer(LTREB_data_forfert$FLW_COUNT_T),
-#                        logsize_t = LTREB_data_forfert$logsize_t,
-#                        origin_01 = LTREB_data_forfert$origin_01,
-#                        endo_01 = as.integer(LTREB_data_forfert$endo_01),
-#                        endo_index = as.integer(LTREB_data_forfert$endo_index),
-#                        spp = as.integer(LTREB_data_forfert$species_index),
-#                        year_t = as.integer(LTREB_data_forfert$year_t_index),
-#                        plot = as.integer(LTREB_data_forfert$plot_index),
-#                        N = nrow(LTREB_data_forfert),
-#                        nSpp = length(unique(LTREB_data_forfert$species_index)),
-#                        nYear = max(unique(LTREB_data_forfert$year_t_index)),
-#                        nPlot = max(unique(LTREB_data_forfert$plot_index)),
-#                        nEndo =   length(unique(LTREB_data_forfert$endo_01)))
-# str(fert_data_list)
+
+fert_data_list <- list(y = as.integer(LTREB_data_forfert$FLW_COUNT_T1),
+                       logsize = LTREB_data_forfert$logsize_t1,
+                       origin_01 = LTREB_data_forfert$origin_01,
+                       endo_01 = as.integer(LTREB_data_forfert$endo_01),
+                       endo_index = as.integer(LTREB_data_forfert$endo_index),
+                       spp = as.integer(LTREB_data_forfert$species_index),
+                       year_t = as.integer(LTREB_data_forfert$year_t_index),
+                       plot = as.integer(LTREB_data_forfert$plot_index),
+                       N = nrow(LTREB_data_forfert),
+                       nSpp = length(unique(LTREB_data_forfert$species_index)),
+                       nYear = max(unique(LTREB_data_forfert$year_t_index)),
+                       nPlot = max(unique(LTREB_data_forfert$plot_index)),
+                       nEndo =   length(unique(LTREB_data_forfert$endo_01)))
+str(fert_data_list)
 
 
 
@@ -274,7 +274,6 @@ sm_seed_surv <- stan(file = "Analyses/seedling_surv.stan", data = seed_surv_data
                      chains = mcmc_pars$chains, 
                      thin = mcmc_pars$thin)
 # saveRDS(sm_seed_surv, file = "~/Dropbox/EndodemogData/Model_Runs/endo_seedling_surv.rds")
-
 
 sm_flw <- stan(file = "Analyses/endo_spp_surv_flw.stan", data = flw_data_list,
                iter = mcmc_pars$iter,
@@ -458,7 +457,7 @@ y_f_sim <- matrix(NA,n_post_draws,length(flw_data_list$y))
 for(i in 1:n_post_draws){
   y_f_sim[i,] <- rbinom(n=length(flw_data_list$y), size=1, prob = invlogit(predF[post_draws[i],]))
 }
-ppc_dens_overlay(flw_data_list$y, y_f_sim)
+# ppc_dens_overlay(flw_data_list$y, y_f_sim)
 flw_densplot <- ppc_dens_overlay(flw_data_list$y, y_f_sim) + theme_classic() + labs(title = "Flowering", x = "Flowering status", y = "Density")
 flw_densplot
 ggsave(flw_densplot, filename = "flw_densplot.png", width = 4, height = 4)
@@ -473,9 +472,9 @@ grid.arrange(mean_f_plot,sd_f_plot,skew_f_plot,kurt_f_plot,  top = "Flowering")
 
 # now we want to look at how the the model is fitting across sizes
 flw_size_ppc <- size_moments_ppc(data = LTREB_data_forflw,
-                                  y_name = "FLW_STAT_T",
+                                  y_name = "FLW_STAT_T1",
                                   sim = y_f_sim, 
-                                  n_bins = 3, 
+                                  n_bins = 2, 
                                   title = "Flowering")
 
 
