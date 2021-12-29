@@ -6,7 +6,7 @@ Josh Fowler and Tom Miller
 Jenn Rudgers, Ken Whitney, and Shaun Ziegler
 
 ## README file last updated: 
-Jan 11, 2021
+Dec 29, 2021
 
 ### Project Overview:
 Fungal endophytes are widespread symbionts of grasses that have been shown to provide a variety of context dependent benefits under environmental stress such as drought or salinity tolerance. Context-dependence may make interactions seem unpredictable as environmental conditions vary between years, but it provides a distinct mechanism by which symbionts may act as mutualists beyond influencing mean population growth rates. We are quantifying the relative importance of mean and variance effects of microbial symbionts using long-term demographic data from experimental plots in Indiana at Lilly-Dickey Woods. 
