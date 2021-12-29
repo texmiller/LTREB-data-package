@@ -11,7 +11,7 @@ data {
   int<lower=0> plot[N];                   // plot of observation for surv model
   int<lower=0, upper=nSpp> spp[N];         // year of observation for surv model
   int<lower=0, upper=1> y[N];      // plant survival at time t+1 or flowering at time t
-  vector<lower=0>[N] logsize_t;             // plant size at time t for surv model
+  // vector<lower=0>[N] logsize;             // plant size at time t for surv model (we are fitting this model for all seedlings size == 1)
   int<lower=0,upper=1> endo_01[N];            // plant endophyte status for surv model
   int<lower=0,upper=1> origin_01[N];          // plant origin status for surv model
 }
@@ -55,26 +55,16 @@ model {
   sigma_plot ~ normal(0, 1);
   
   //fixed effect priors
-  beta0 ~ normal(0,10);
-  betaendo ~ normal(0,10);
+  beta0 ~ normal(0,5);
+  betaendo ~ normal(0,5);
   sigma0 ~ normal(0,1);
   sigmaendo ~ normal(0,1);
   
   //species endo year priors
-  to_vector(tau_year[1,1,]) ~ normal(0,sigma_year[1,1]); // sample year effects
-  to_vector(tau_year[2,1,]) ~ normal(0,sigma_year[2,1]); 
-  to_vector(tau_year[3,1,]) ~ normal(0,sigma_year[3,1]); 
-  to_vector(tau_year[4,1,]) ~ normal(0,sigma_year[4,1]); 
-  to_vector(tau_year[5,1,]) ~ normal(0,sigma_year[5,1]); 
-  to_vector(tau_year[6,1,]) ~ normal(0,sigma_year[6,1]); 
-  to_vector(tau_year[7,1,]) ~ normal(0,sigma_year[7,1]); 
-  
-  to_vector(tau_year[1,2,]) ~ normal(0,sigma_year[1,2]); 
-  to_vector(tau_year[2,2,]) ~ normal(0,sigma_year[2,2]); 
-  to_vector(tau_year[3,2,]) ~ normal(0,sigma_year[3,2]); 
-  to_vector(tau_year[4,2,]) ~ normal(0,sigma_year[4,2]); 
-  to_vector(tau_year[5,2,]) ~ normal(0,sigma_year[5,2]); 
-  to_vector(tau_year[6,2,]) ~ normal(0,sigma_year[6,2]); 
-  to_vector(tau_year[7,2,]) ~ normal(0,sigma_year[7,2]); 
+    for(s in 1:nSpp){
+          to_vector(tau_year[s,1,]) ~ normal(0,sigma_year[s,1]); // sample year effects for each species for each endo status
+          to_vector(tau_year[s,2,]) ~ normal(0,sigma_year[s,2]);
+    }
+    
   y ~ bernoulli_logit(p);
 }
