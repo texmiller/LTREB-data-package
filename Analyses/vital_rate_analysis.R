@@ -197,7 +197,7 @@ grow_data_list <- list(y = as.integer(LTREB_data_forgrow$size_t1),
                        nEndo =   length(unique(LTREB_data_forgrow$endo_01)))
 str(grow_data_list)
 seed_grow_data_list <- list(y = as.integer(LTREB_grow_seedling$size_t1),
-                       logsize_t = LTREB_grow_seedling$logsize_t,
+                       logsize = LTREB_grow_seedling$logsize_t,
                        origin_01 = as.integer(LTREB_grow_seedling$origin_01),
                        endo_01 = as.integer(LTREB_grow_seedling$endo_01),
                        endo_index = as.integer(LTREB_grow_seedling$endo_index),
@@ -513,6 +513,7 @@ ZTNB_growth_size_ppc <- size_moments_ppc(data = LTREB_data_forgrow,
                                     sim = y_g_sim, 
                                     n_bins = 6, 
                                     title = "Growth ZTNB")
+# ggsave(ZTNB_growth_size_ppc, filename = "ZTNB_growth_size_pcc.png", width = 4, height = 4)
 
 #growth PIG distribution
 grow_fit <- read_rds("~/Dropbox/EndodemogData/Model_Runs/endo_spp_grow_PIG.rds")
@@ -547,7 +548,7 @@ ppc_dens_overlay(grow_data_list$y, y_g_sim) + xlim(50,120)
 
 grow_densplot <- ppc_dens_overlay(grow_data_list$y, y_g_sim) + xlim(0,60) + theme_classic() + labs(title = "Growth", x = "No. of Tillers", y = "Density")
 grow_densplot
-ggsave(grow_densplot, filename = "grow_densplot.png", width = 4, height = 4)
+# ggsave(grow_densplot, filename = "grow_densplot.png", width = 4, height = 4)
 
 
 
@@ -564,6 +565,8 @@ PIG_growth_size_ppc <- size_moments_ppc(data = LTREB_data_forgrow,
                                          sim = y_g_sim, 
                                          n_bins = 6, 
                                          title = "Growth PIG")
+# ggsave(PIG_growth_size_ppc, filename = "PIG_growth_size_pcc.png", width = 4, height = 4)
+
 
 #### seedling growth ppc ####
 
