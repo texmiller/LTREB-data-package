@@ -301,7 +301,7 @@ sm_seed_grow <- stan(file = "Analyses/seedling_grow.stan", data = seed_grow_data
                 warmup = mcmc_pars$warmup,
                 chains = mcmc_pars$chains, 
                 thin = mcmc_pars$thin,
-                control = list(adapt_delta = .9))
+                control = list(max_treedepth = 15))
 # saveRDS(sm_seed_grow, file = "~/Dropbox/EndodemogData/Model_Runs/endo_seedling_grow.rds")
 
 
@@ -310,8 +310,7 @@ sm_fert <- stan(file = "Analyses/endo_spp_grow_fert.stan", data = fert_data_list
                iter = mcmc_pars$iter,
                warmup = mcmc_pars$warmup,
                chains = mcmc_pars$chains, 
-               thin = mcmc_pars$thin,
-               control = list(adapt_delta = .99, max_treedepth = 15))
+               thin = mcmc_pars$thin)
 # saveRDS(sm_fert, file = "~/Dropbox/EndodemogData/Model_Runs/endo_spp_fert.rds")
 
 sm_fert_nc <- stan(file = "Analyses/endo_spp_grow_fert_nc.stan", data = fert_data_list,
@@ -320,6 +319,14 @@ sm_fert_nc <- stan(file = "Analyses/endo_spp_grow_fert_nc.stan", data = fert_dat
                 chains = mcmc_pars$chains, 
                 thin = mcmc_pars$thin)
 # saveRDS(sm_fert, file = "~/Dropbox/EndodemogData/Model_Runs/endo_spp_fert_nc.rds")
+
+sm_fert_pig <- stan(file = "Analyses/endo_spp_grow_fert_PIG.stan", data = fert_data_list,
+                   iter = mcmc_pars$iter,
+                   warmup = mcmc_pars$warmup,
+                   chains = mcmc_pars$chains, 
+                   thin = mcmc_pars$thin)
+# saveRDS(sm_fert_pig, file = "~/Dropbox/EndodemogData/Model_Runs/endo_spp_fert_pig.rds")
+
 
 sm_fert <- stan(file = "Analyses/endo_spp_grow_fert_noplot.stan", data = fert_data_list,
                 iter = mcmc_pars$iter,
@@ -629,7 +636,7 @@ grid.arrange(mean_fert_plot,sd_fert_plot,skew_fert_plot,kurt_fert_plot)
 
 # Now we can look at the binned size fit for fertility
 fert_size_ppc <- size_moments_ppc(data = LTREB_data_forfert,
-                                        y_name = "FLW_COUNT_T",
+                                        y_name = "FLW_COUNT_T1",
                                         sim = y_fert_sim, 
                                         n_bins = 6, 
                                         title = "Inflorescence Count")
@@ -638,6 +645,51 @@ mcmc_trace(fert_fit,pars=c("betaendo[1]","betaendo[2]","betaendo[3]"
                            ,"betaendo[4]","betaendo[5]","betaendo[6]"
                            ,"betaendo[7]"))
 
+
+# Fert fit with Poisson inverse Gaussian
+
+fert_fit_pig <- read_rds("~/Dropbox/EndodemogData/Model_Runs/endo_spp_fert_pig.rds")
+fert_par <- rstan::extract(fert_fit_pig, pars = c("predG","beta0","betasize","betaendo","betaorigin","tau_year","tau_plot","theta", "sigma"))
+predG <- fert_par$predG
+theta <- fert_par$theta
+n_post_draws <- 500
+post_draws <- sample.int(dim(predG)[1], n_post_draws)
+y_fert_sim   <-  matrix(NA,n_post_draws,length(fert_data_list$y))
+
+# simulate data
+for(i in 1:n_post_draws){
+  ## sample fertilty data (zero-truncated PIG)
+  for(j in 1:length(fert_data_list$y)){
+    # probability without truncation
+    prob_v <- dpois( 1:1000, 
+                     lambda = (predG[i,j] * theta[i,j]) )
+    # probability for trunctation (denominator)
+    prob_t <- (1 - dpois(0, lambda = (predG[i,j] * theta[i,j]) ) )
+    
+    y_f_sim[i,j] <- sample( x=1:1000, 
+                            size = 1, replace = T,
+                            prob = prob_v / prob_t )
+  }
+}
+
+# Posterior predictive check
+ppc_dens_overlay(fert_data_list$y, y_fert_sim)
+ppc_dens_overlay(fert_data_list$y, y_fert_sim) + xlim(0,30) + ggtitle("fertility with PIG")
+ppc_dens_overlay(fert_data_list$y, y_fert_sim) + xlim(50,120)
+
+mean_fert_plot <-   ppc_stat(fert_data_list$y, y_fert_sim, stat = "mean")
+sd_fert_plot <- ppc_stat(fert_data_list$y, y_fert_sim, stat = "sd")
+skew_fert_plot <- ppc_stat(fert_data_list$y, y_fert_sim, stat = "skewness")
+kurt_fert_plot <- ppc_stat(fert_data_list$y, y_fert_sim, stat = "Lkurtosis")
+grid.arrange(mean_fert_plot,sd_fert_plot,skew_fert_plot,kurt_fert_plot)
+
+
+# Now we can look at the binned size fit for fertility
+fert_size_ppc <- size_moments_ppc(data = LTREB_data_forfert,
+                                  y_name = "FLW_COUNT_T1",
+                                  sim = y_fert_sim, 
+                                  n_bins = 3, 
+                                  title = "Inflorescence Count")
 
 #### spikelet ppc ####
 spike_fit <- read_rds("~/Dropbox/EndodemogData/Model_Runs/endo_spp_spike_year_plot.rds")
