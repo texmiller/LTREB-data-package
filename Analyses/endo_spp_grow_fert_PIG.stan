@@ -56,7 +56,7 @@ transformed parameters {
   real predG[N]; 
   real sigma_year[nSpp,nEndo]; 
   
-  // surv Linear Predictor
+  // growth Linear Predictor
   for(n in 1:N){
     predG[n] = exp(beta0[spp[n]] + betasize[spp[n]]*logsize[n] + betaendo[spp[n]]*endo_01[n] +
       betaorigin*origin_01[n]
