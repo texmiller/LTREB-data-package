@@ -230,19 +230,19 @@ str(fert_data_list)
 
 
 
-# spike_data_list <- list(nYear = max(unique(LTREB_data_forspike$year_t_index)),
-#                         nPlot = max(unique(LTREB_data_forspike$plot_index)),
-#                         nSpp = length(unique(LTREB_data_forspike$species)),
-#                         nEndo=length(unique(LTREB_data_forspike$endo_01)),
-#                         N = nrow(LTREB_data_forspike),
-#                         year_t = as.integer(LTREB_data_forspike$year_t_index),
-#                         plot = as.integer(LTREB_data_forspike$plot_index),
-#                         spp = as.integer(as.numeric(as.factor(LTREB_data_forspike$species))),
-#                         y = LTREB_data_forspike$spike_count_t,
-#                         logsize_t = LTREB_data_forspike$logsize_t,
-#                         endo_01 = LTREB_data_forspike$endo_01,
-#                         origin_01 = LTREB_data_forspike$origin_01)
-# str(spike_data_list)
+spike_data_list <- list(nYear = max(unique(LTREB_data_forspike$year_t_index)),
+                        nPlot = max(unique(LTREB_data_forspike$plot_index)),
+                        nSpp = length(unique(LTREB_data_forspike$species)),
+                        nEndo=length(unique(LTREB_data_forspike$endo_01)),
+                        N = nrow(LTREB_data_forspike),
+                        year_t = as.integer(LTREB_data_forspike$year_t_index),
+                        plot = as.integer(LTREB_data_forspike$plot_index),
+                        spp = as.integer(LTREB_data_forspike$species_index),
+                        y = LTREB_data_forspike$spike_count_t1,
+                        logsize = LTREB_data_forspike$logsize_t1,
+                        endo_01 = LTREB_data_forspike$endo_01,
+                        origin_01 = LTREB_data_forspike$origin_01)
+str(spike_data_list)
 
 #########################################################################################################
 # Stan model runs------------------------------
