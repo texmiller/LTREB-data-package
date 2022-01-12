@@ -109,9 +109,9 @@ LTREB_data_forfert <- LTREB_full %>%
 dim(LTREB_data_forfert)
 
 LTREB_data_forspike <- LTREB_full %>%
-  dplyr::select(-FLW_COUNT_T1, -FLW_STAT_T1, -SPIKE_A_T1, -SPIKE_B_T1, -SPIKE_C_T1, -SPIKE_D_T1, -SPIKE_AGPE_MEAN_T1, -endo_status_from_check, -plot_endo_for_check, -endo_mismatch, -dist_a, -dist_b) %>% 
-  filter(!is.na(FLW_STAT_T)) %>% 
-  filter(FLW_STAT_T>0) %>% 
+  dplyr::select(-FLW_COUNT_T, -FLW_STAT_T, -SPIKE_A_T, -SPIKE_B_T, -SPIKE_C_T, -SPIKE_D_T, -SPIKE_AGPE_MEAN_T, -census_month, -year, -spei1, -spei12, -spei24, -annual_temp, -annual_precip, -endo_status_from_check, -plot_endo_for_check, -endo_mismatch, -dist_a, -dist_b) %>% 
+  filter(!is.na(FLW_STAT_T1)) %>% 
+  filter(FLW_STAT_T1>0) %>% 
   melt(id.var = c("plot_fixed" ,   "plot_index",         "pos"         ,           "id",
                   "species"       ,         "species_index"  ,        "endo_01",
                   "endo_index"  ,           "origin_01"       ,       "birth" ,
@@ -119,11 +119,11 @@ LTREB_data_forspike <- LTREB_full %>%
                   "size_t1"         ,       "logsize_t1"       ,
                   "year_t",
                   "year_t_index"     ,      "size_t"           ,      "logsize_t"  ,
-                  "FLW_COUNT_T"      ,      "FLW_STAT_T"),
-       value.name = "spike_count_t") %>% 
+                  "FLW_COUNT_T1"      ,      "FLW_STAT_T1"),
+       value.name = "spike_count_t1") %>% 
   rename(spikelet_id = variable) %>% 
-  filter(!is.na(spike_count_t), spike_count_t > 0) %>% 
-  mutate(spike_count_t = as.integer(spike_count_t))
+  filter(!is.na(spike_count_t1), spike_count_t1 > 0) %>% 
+  mutate(spike_count_t1 = as.integer(spike_count_t1))
 
 # ggplot(LTREB_data_forspike)+
 #   geom_histogram(aes(x=spike_count_t))+
@@ -254,8 +254,8 @@ set.seed(123)
 
 ## MCMC settings
 mcmc_pars <- list(
-  iter = 4000, 
-  warmup = 2000, 
+  iter = 10000, 
+  warmup = 5000, 
   thin = 1, 
   chains = 3
 )
@@ -304,6 +304,13 @@ sm_seed_grow <- stan(file = "Analyses/seedling_grow.stan", data = seed_grow_data
                 control = list(max_treedepth = 15))
 # saveRDS(sm_seed_grow, file = "~/Dropbox/EndodemogData/Model_Runs/endo_seedling_grow.rds")
 
+sm_seed_grow_pig <- stan(file = "Analyses/seedling_grow_PIG.stan", data = seed_grow_data_list,
+                    iter = mcmc_pars$iter,
+                    warmup = mcmc_pars$warmup,
+                    chains = mcmc_pars$chains, 
+                    thin = mcmc_pars$thin)
+saveRDS(sm_seed_grow_pig, file = "~/Dropbox/EndodemogData/Model_Runs/endo_seedling_grow_PIG_10000iterations.rds")
+
 
 
 sm_fert <- stan(file = "Analyses/endo_spp_grow_fert.stan", data = fert_data_list,
@@ -318,7 +325,7 @@ sm_fert_nc <- stan(file = "Analyses/endo_spp_grow_fert_nc.stan", data = fert_dat
                 warmup = mcmc_pars$warmup,
                 chains = mcmc_pars$chains, 
                 thin = mcmc_pars$thin)
-# saveRDS(sm_fert, file = "~/Dropbox/EndodemogData/Model_Runs/endo_spp_fert_nc.rds")
+# saveRDS(sm_fert_nc, file = "~/Dropbox/EndodemogData/Model_Runs/endo_spp_fert_nc.rds")
 
 sm_fert_pig <- stan(file = "Analyses/endo_spp_grow_fert_PIG.stan", data = fert_data_list,
                    iter = mcmc_pars$iter,
@@ -328,13 +335,13 @@ sm_fert_pig <- stan(file = "Analyses/endo_spp_grow_fert_PIG.stan", data = fert_d
 # saveRDS(sm_fert_pig, file = "~/Dropbox/EndodemogData/Model_Runs/endo_spp_fert_pig.rds")
 
 
-sm_fert <- stan(file = "Analyses/endo_spp_grow_fert_noplot.stan", data = fert_data_list,
+sm_fert_noplot <- stan(file = "Analyses/endo_spp_grow_fert_noplot.stan", data = fert_data_list,
                 iter = mcmc_pars$iter,
                 warmup = mcmc_pars$warmup,
                 chains = mcmc_pars$chains, 
                 thin = mcmc_pars$thin,
                 control = list(adapt_delta = .99)) # run without this, there is a small number of divergent transitions
-# saveRDS(sm_fert, file = "~/Dropbox/EndodemogData/Model_Runs/endo_spp_fert_noplot.rds")
+# saveRDS(sm_fert_noplot, file = "~/Dropbox/EndodemogData/Model_Runs/endo_spp_fert_noplot.rds")
 
 
 
@@ -600,6 +607,50 @@ sd_seed_g_plot <- ppc_stat(seed_grow_data_list$y, y_g_sim, stat = "sd")+ ggtitle
 skew_seed_g_plot <- ppc_stat(seed_grow_data_list$y, y_g_sim, stat = "skewness")+ ggtitle("skew")
 kurt_seed_g_plot <- ppc_stat(seed_grow_data_list$y, y_g_sim, stat = "Lkurtosis")+ ggtitle("kurt")
 grid.arrange(mean_seed_g_plot,sd_seed_g_plot,skew_seed_g_plot,kurt_seed_g_plot, top = "Seedling Growth")
+
+
+#seedling growth PIG distribution
+s_grow_fit <- read_rds("~/Dropbox/EndodemogData/Model_Runs/seedling_grow_PIG.rds")
+# pairs(grow_fit, pars = c("beta0"))
+s_grow_par <- rstan::extract(s_grow_fit, pars = c("predG","beta0","betaendo","tau_year","tau_plot","theta", "sigma"))
+predG <- s_grow_par$predG
+theta <- s_grow_par$theta
+n_post_draws <- 500
+post_draws <- sample.int(dim(predG)[1], n_post_draws)
+y_g_sim   <-  matrix(NA,n_post_draws,length(seed_grow_data_list$y))
+
+# simulate data
+for(i in 1:n_post_draws){
+  ## sample growth data (zero-truncated PIG)
+  for(j in 1:length(seed_grow_data_list$y)){
+    # probability without truncation
+    prob_v <- dpois( 1:1000, 
+                     lambda = (predG[i,j] * theta[i,j]) )
+    # probability for trunctation (denominator)
+    prob_t <- (1 - dpois(0, lambda = (predG[i,j] * theta[i,j]) ) )
+    
+    y_g_sim[i,j] <- sample( x=1:1000, 
+                            size = 1, replace = T,
+                            prob = prob_v / prob_t )
+  }
+}
+
+# Posterior predictive check
+ppc_dens_overlay(seed_grow_data_list$y, y_g_sim)
+ppc_dens_overlay(seed_grow_data_list$y, y_g_sim) + xlim(0,60) + ggtitle("seedling growth w/ PIG")
+ppc_dens_overlay(seed_grow_data_list$y, y_g_sim) + xlim(50,120)
+
+seed_grow_densplot <- ppc_dens_overlay(seed_grow_data_list$y, y_g_sim) + xlim(0,60) + theme_classic() + labs(title = "Seedling Growth", x = "No. of Tillers", y = "Density")
+seed_grow_densplot
+# ggsave(seed_grow_densplot, filename = "seed_grow_densplot.png", width = 4, height = 4)
+
+
+
+mean_seed_g_plot <-   ppc_stat(seed_grow_data_list$y, y_g_sim, stat = "mean")
+sd_seed_g_plot <- ppc_stat(seed_grow_data_list$y, y_g_sim, stat = "sd")
+skew_seed_g_plot <- ppc_stat(seed_grow_data_list$y, y_g_sim, stat = "skewness")
+kurt_seed_g_plot <- ppc_stat(seed_grow_data_list$y, y_g_sim, stat = "Lkurtosis")
+grid.arrange(mean_seed_g_plot,sd_seed_g_plot,skew_seed_g_plot,kurt_seed_g_plot, top = "Seedling Growth PIG")
 
 #### fertility ppc ####
 # This fit is maybe not super great, but it's good enough for now probably.
