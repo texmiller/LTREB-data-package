@@ -17,12 +17,11 @@ data {
 }
 
 parameters {
-  // surv params
-  vector[nSpp] beta0; 
-  vector[nSpp] betasize;
-  vector[nSpp] betaendo; 
-  real betaorigin;  
-  
+  // spikelet params
+  vector[nSpp] beta0;           // predictor parameters as grand means and spp rfx
+  vector[nSpp] betasize;                  //   spp specific size slope 
+  vector[nSpp] betaendo;                  // spp specific endophyt effect 
+  real betaorigin;               //  origin effect
     
   real tau_year[nSpp,nEndo,nYear];      // random year effect, unique to species and endo
 
@@ -32,18 +31,24 @@ parameters {
   vector[nPlot] tau_plot;        // random plot effect
   real<lower=0> sigma_plot;          // plot variance effect
   
+  //neg bin overdispersion
+  vector[nSpp] phi; 
+  
 }
 
 transformed parameters {
   real lambda[N]; 
+  real od[N];     // overdispersion parameter
   real sigma_year[nSpp,nEndo];
 
   
-  // surv Linear Predictor
+  // spike Linear Predictor
   for(n in 1:N){
-    lambda[n] = beta0[spp[n]] + betasize[spp[n]]*logsize_t[n] + betaendo[spp[n]]*endo_01[n] + betaorigin*origin_01[n] 
+    lambda[n] = beta0[spp[n]] + betasize[spp[n]]*logsize[n] + betaendo[spp[n]]*endo_01[n] + betaorigin*origin_01[n] 
     + tau_year[spp[n],(endo_01[n]+1),year_t[n]] 
     + tau_plot[plot[n]];
+    
+    od[n] = exp(phi[spp[n]]);
   }
   
       // endo effect on variance
@@ -65,14 +70,16 @@ model {
     betaendo ~ normal(0,5); 
     betaorigin ~ normal(0,5); 
     
-      sigma0 ~ normal(0,1);
-      sigmaendo ~ normal(0,1);
-    
+    sigma0 ~ normal(0,1);
+    sigmaendo ~ normal(0,1);
+    phi ~ normal(0,1);    
+
     //species endo year priors
     for(s in 1:nSpp){
           to_vector(tau_year[s,1,]) ~ normal(0,sigma_year[s,1]); // sample year effects for each species for each endo status
           to_vector(tau_year[s,2,]) ~ normal(0,sigma_year[s,2]);
     }
 
-  y ~ poisson_log(lambda);
+  y ~ neg_binomial_2_log(lambda, od);
 }
+
