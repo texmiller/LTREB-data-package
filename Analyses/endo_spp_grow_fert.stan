@@ -21,7 +21,7 @@ parameters {
     vector[nSpp] beta0; //spp-specific      // predictor parameters as grand means and spp rfx
     vector[nSpp] betasize;                  //   spp specific size slope 
     vector[nSpp] betaendo;                  // spp specific endophyt effect 
-    real betaorigin;               // spp specific origin effect
+    real betaorigin;               //  origin effect
     
     real tau_year[nSpp,nEndo,nYear];      // random year effect, unique to species and endo
 
