@@ -346,7 +346,7 @@ sm_fert_noplot <- stan(file = "Analyses/endo_spp_grow_fert_noplot.stan", data = 
 
 
 # Fitting spikelet data as a poisson, this converges without errors mostly sampling with the increased treedepth
-sm_spike_pois <- stan(file = "Analyses/endo_spp_spike.stan", data = spike_data_list,
+sm_spike_pois <- stan(file = "Analyses/endo_spp_spike_poisson.stan", data = spike_data_list,
                  iter = mcmc_pars$iter,
                  warmup = mcmc_pars$warmup,
                  chains = mcmc_pars$chains, 
