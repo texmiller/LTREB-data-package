@@ -254,8 +254,8 @@ set.seed(123)
 
 ## MCMC settings
 mcmc_pars <- list(
-  iter = 10000, 
-  warmup = 5000, 
+  iter = 4000, 
+  warmup = 2000, 
   thin = 1, 
   chains = 3
 )
@@ -304,6 +304,7 @@ sm_seed_grow <- stan(file = "Analyses/seedling_grow.stan", data = seed_grow_data
                 control = list(max_treedepth = 15))
 # saveRDS(sm_seed_grow, file = "~/Dropbox/EndodemogData/Model_Runs/endo_seedling_grow.rds")
 
+#This fits well, but had to run for a longer time (10000 iterations) to get good effective sample size from Stan.
 sm_seed_grow_pig <- stan(file = "Analyses/seedling_grow_PIG.stan", data = seed_grow_data_list,
                     iter = mcmc_pars$iter,
                     warmup = mcmc_pars$warmup,
@@ -344,13 +345,22 @@ sm_fert_noplot <- stan(file = "Analyses/endo_spp_grow_fert_noplot.stan", data = 
 # saveRDS(sm_fert_noplot, file = "~/Dropbox/EndodemogData/Model_Runs/endo_spp_fert_noplot.rds")
 
 
-
-sm_spike <- stan(file = "Analyses/endo_spp_spike.stan", data = spike_data_list,
+# Fitting spikelet data as a poisson, this converges without errors mostly sampling with the increased treedepth
+sm_spike_pois <- stan(file = "Analyses/endo_spp_spike.stan", data = spike_data_list,
                  iter = mcmc_pars$iter,
                  warmup = mcmc_pars$warmup,
                  chains = mcmc_pars$chains, 
-                 thin = mcmc_pars$thin)
-saveRDS(sm_spike, file = "~/Dropbox/EndodemogData/Model_Runs/endo_spp_spike_year_plot.rds")
+                 thin = mcmc_pars$thin,
+                 control = list(max_treedepth = 15))
+# saveRDS(sm_spike_pois, file = "~/Dropbox/EndodemogData/Model_Runs/endo_spp_spike_year_plot_poisson.rds")
+
+#fitting the spike data as negative binomial because the poisson fits well for mean, but not sd
+sm_spike_nb <- stan(file = "Analyses/endo_spp_spike_nb.stan", data = spike_data_list,
+                      iter = mcmc_pars$iter,
+                      warmup = mcmc_pars$warmup,
+                      chains = mcmc_pars$chains, 
+                      thin = mcmc_pars$thin)
+saveRDS(sm_spike_nb, file = "~/Dropbox/EndodemogData/Model_Runs/endo_spp_spike_year_plot_nb.rds")
 
 #########################################################################################################
 # Model Diagnostics ------------------------------
@@ -743,7 +753,8 @@ fert_size_ppc <- size_moments_ppc(data = LTREB_data_forfert,
                                   title = "Inflorescence Count")
 
 #### spikelet ppc ####
-spike_fit <- read_rds("~/Dropbox/EndodemogData/Model_Runs/endo_spp_spike_year_plot.rds")
+# Looking at the poisson fit
+spike_fit <- read_rds("~/Dropbox/EndodemogData/Model_Runs/endo_spp_spike_year_plot_poisson.rds")
 spike_pars <- rstan::extract(spike_fit, pars = c("lambda"))
 predSpike <- spike_pars$lambda
 n_post_draws <- 500
@@ -753,14 +764,13 @@ for(i in 1:n_post_draws){
   y_spike_sim[i,] <- rpois(n=length(spike_data_list$y), lambda = exp(predSpike[post_draws[i],]))
 }
 ppc_dens_overlay(spike_data_list$y, y_spike_sim)
-ppc_dens_overlay(spike_data_list$y, y_spike_sim) + xlim(0,100)
+ppc_dens_overlay(spike_data_list$y, y_spike_sim) + xlim(0,250)
 
-fert_densplot <- ppc_dens_overlay(fert_data_list$y, y_fert_sim) + xlim(0,30) + theme_classic() + labs(title = "Panicles", x = "No. of Panicles", y = "Density")
-fert_densplot
-ggsave(fert_densplot, filename = "fert_densplot.png", width = 4, height = 4)
+spike_densplot <- ppc_dens_overlay(spike_data_list$y, y_spike_sim) + xlim(0,30) + theme_classic() + labs(title = "Panicles", x = "No. of Panicles", y = "Density")
+spike_densplot
+ggsave(spike_densplot, filename = "spike_densplot.png", width = 4, height = 4)
 
-
-# Fit isn't super great for this yet, but probably close enough for the mean. (Also this is just fit as a poisson, but could look at neg binom and zero truncate)
+# Fit isn't super great for the poisson, but probably close enough for the mean. (Also this is just fit as a poisson, but could look at neg binom and zero truncate)
 
 mean_spike_plot <-   ppc_stat(spike_data_list$y, y_spike_sim, stat = "mean")
 sd_spike_plot <- ppc_stat(spike_data_list$y, y_spike_sim, stat = "sd")
@@ -768,13 +778,33 @@ skew_spike_plot <- ppc_stat(spike_data_list$y, y_spike_sim, stat = "skewness")
 kurt_spike_plot <- ppc_stat(spike_data_list$y, y_spike_sim, stat = "Lkurtosis")
 grid.arrange(mean_spike_plot,sd_spike_plot,skew_spike_plot,kurt_spike_plot)
 
-# Now we can look at the binned size fit for fertility
-spike_size_ppc <- size_moments_ppc(data = LTREB_data_forspike,
-                                  y_name = "spike_count_t",
-                                  sim = y_spike_sim, 
-                                  n_bins = 6, 
-                                  title = "Spikelets/Inflorescence")
 
 mcmc_trace(spike_fit,pars=c("betaendo[1]","betaendo[2]","betaendo[3]"
                            ,"betaendo[4]","betaendo[5]","betaendo[6]"
                            ,"betaendo[7]"))
+# looking at the negative binomial fit, fits really nicely
+spike_fit <- read_rds("~/Dropbox/EndodemogData/Model_Runs/endo_spp_spike_year_plot_nb.rds")
+spike_par <- rstan::extract(spike_fit, pars = c("lambda","beta0","betasize","betaendo","betaorigin","tau_year","tau_plot", "phi", "od"))
+predSpike <- spike_par$lambda
+phiSpike <- spike_par$phi
+odSpike <- spike_par$od
+
+n_post_draws <- 100
+post_draws <- sample.int(dim(predSpike)[1], n_post_draws)
+y_spike_sim <- matrix(NA,n_post_draws,length(spike_data_list$y))
+for(i in 1:n_post_draws){
+  for(j in 1:length(spike_data_list$y)){
+    y_spike_sim[i,j] <- sample(x = 1:max(spike_data_list$y), size = 1, replace = T, prob = dnbinom(1:max(spike_data_list$y), mu = exp(predSpike[post_draws[i],j]), size = odSpike[post_draws[i],j]))
+  }
+}
+ppc_dens_overlay(spike_data_list$y, y_spike_sim)
+ppc_dens_overlay(spike_data_list$y, y_spike_sim) + xlim(0,250) + ggtitle("spikelet count")
+
+mean_spike_plot <-   ppc_stat(spike_data_list$y, y_spike_sim, stat = "mean")
+sd_spike_plot <- ppc_stat(spike_data_list$y, y_spike_sim, stat = "sd")
+skew_spike_plot <- ppc_stat(spike_data_list$y, y_spike_sim, stat = "skewness")
+kurt_spike_plot <- ppc_stat(spike_data_list$y, y_spike_sim, stat = "Lkurtosis")
+grid.arrange(mean_spike_plot,sd_spike_plot,skew_spike_plot,kurt_spike_plot,  top = "Growth ZTNB")
+
+
+
