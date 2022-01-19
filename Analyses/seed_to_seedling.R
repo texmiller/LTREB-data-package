@@ -25,47 +25,83 @@ Lkurtosis=function(x) log(kurtosis(x));
 source("Analyses/endodemog_data_processing.R")
 
 # Loading in our vital rate model samples to estimate seed production
-sm_seed_means <- read_rds("~/Dropbox/EndodemogData/Model_Runs/seed_mean.rds")
-sm_spikelet <- read_rds("~/Dropbox/EndodemogData/Model_Runs/endo_spp_spike_year_plot.rds")
+sm_seed_means <- read_rds("~/Dropbox/EndodemogData/Model_Runs/endo_spp_seed_mean.rds")
+sm_spikelet <- read_rds("~/Dropbox/EndodemogData/Model_Runs/endo_spp_spike_year_plot_nb.rds")
 
 
-# I'm going to use LTREB_full to generate estimates of seed production and calculate our numbers of recruits
-seed_mean_pars <- rstan::extract(sm_seed_means, pars = c("beta0", "betaendo", "sigma0"))
-spikelet_pars <- rstan::extract(sm_spikelet, pars = c("beta0", "betasize", "betaendo", "betaorigin", 
+# I'm going to use LTREB_full to generate estimates of seed production and then calculate our numbers of recruits
+seed_mean_pars <- rstan::extract(sm_seed_means, pars = c("mu_seed","beta0", "betaendo", "sigma0"))
+spikelet_pars <- rstan::extract(sm_spikelet, pars = c("lambda", "phi",  "od", "beta0", "betasize", "betaendo", "betaorigin", 
                                                       "tau_plot", "sigma_plot", 
                                                       "tau_year", "sigma_year"))
 
-LTREB_rec <- LTREB_full
+
 seedmean_prob <- c(NA)
 spikeperinf_prob <- c(NA)
-
-for(i in 1:nrow(LTREB_rec)){
-      seedmean_prob[i] <- sample(seed_mean_pars$beta0[,LTREB_rec$species_index[i]], size = 1) +
-                            sample(seed_mean_pars$betaendo[,LTREB_rec$species_index[i]], size = 1)*LTREB_rec$endo_01[i]
+spikeperinf_pred <- c(NA)
+spike_od <- c(NA)
+for(i in 1:nrow(LTREB_full)){
+      seedmean_prob[i] <- sample(seed_mean_pars$beta0[,LTREB_full$species_index[i]], size = 1) +
+                            sample(seed_mean_pars$betaendo[,LTREB_full$species_index[i]], size = 1)*LTREB_full$endo_01[i]
       
-      spikeperinf_prob[i] <- exp(sample(spikelet_pars$beta0[,LTREB_rec$species_index[i]], size = 1) +
-                               sample(spikelet_pars$betasize[,LTREB_rec$species_index[i]], size = 1)*LTREB_rec$logsize_t[i] +
-                                 sample(spikelet_pars$betaendo[,LTREB_rec$species_index[i]], size = 1)*LTREB_rec$endo_01[i] +
-                                   sample(spikelet_pars$betaorigin[,LTREB_rec$species_index[i]], size = 1)*LTREB_rec$origin_01[i] +
-                                     sample(spikelet_pars$betasize[,LTREB_rec$species_index[i]], size = 1)*LTREB_rec$logsize_t[i] +
-                                       sample(spikelet_pars$tau_plot[,LTREB_rec$plot_index[i]], size = 1) +
-                                         sample(spikelet_pars$tau_year[,LTREB_rec$year_t_index[i]], size = 1))
-        
-}
-LTREB_rec$spikeperinf_pred <- rpois(n = nrow(LTREB_rec), lambda = spikeperinf_prob)
-LTREB_rec$seedmean_prob <- seedmean_prob
+      spikeperinf_prob[i] <- exp(sample(spikelet_pars$beta0[,LTREB_full$species_index[i]], size = 1) +
+                               sample(spikelet_pars$betasize[,LTREB_full$species_index[i]], size = 1)*LTREB_full$logsize_t1[i] +
+                                 sample(spikelet_pars$betaendo[,LTREB_full$species_index[i]], size = 1)*LTREB_full$endo_01[i] +
+                                   sample(spikelet_pars$betaorigin, size = 1)*LTREB_full$origin_01[i] +
+                                       sample(spikelet_pars$tau_plot[,LTREB_full$plot_index[i]], size = 1) +
+                                         sample(spikelet_pars$tau_year[,LTREB_full$species_index[i],LTREB_full$endo_index[i],LTREB_full$year_t_index[i]], size = 1))
+      spike_od[i] <-   exp(sample(spikelet_pars$phi[,LTREB_full$species_index[i]], size = 1))
 
-LTREB_s_to_s_data <- LTREB_rec %>% 
-  mutate(seed_est = as.integer(FLW_STAT_T*FLW_COUNT_T*spikeperinf_pred*seedmean_prob)) %>% 
+}
+LTREB_full$spikeperinf_prob_t1 <- spikeperinf_prob
+LTREB_full$spikeperinf_pred_t1 <- rnbinom(n = nrow(LTREB_full), mu = spikeperinf_prob, size = spike_od)
+LTREB_full$seedmean_pred_t1 <- seedmean_prob
+
+
+#My spikelet predictions are higher than seen in the data:
+# max(filter(LTREB_full, species == "AGPE")$SPIKE_A_T1, na.rm = T)
+# max(filter(LTREB_full, species == "AGPE")$spikeperinf_pred, na.rm = T)
+# 
+# max(filter(LTREB_full, species == "ELVI")$SPIKE_A_T1, na.rm = T)
+# max(filter(LTREB_full, species == "ELVI")$spikeperinf_pred, na.rm = T)
+# 
+# plot(LTREB_full$logsize_t1, LTREB_full$spikeperinf_pred, col = LTREB_full$species_index)
+# plot( LTREB_full$spikeperinf_pred, LTREB_full$SPIKE_A_T1)
+# 
+# hist(LTREB_full$spikeperinf_pred)
+# hist(LTREB_full$SPIKE_A_T1)
+# hist(LTREB_full$SPIKE_AGPE_MEAN_T1)
+
+
+
+LTREB_annual_seed_data <- LTREB_full %>% 
+  mutate(seed_est_t1 = round(FLW_STAT_T1*FLW_COUNT_T1*spikeperinf_pred_t1*seedmean_pred_t1)) %>% 
   group_by(species, species_index, plot_index, year_t, year_t_index, year_t1, year_t1_index, endo_01, endo_index) %>% 
-  summarize(tot_seed_t = as.integer(round(sum(seed_est, na.rm = TRUE))),
-            tot_recruit_t1 = length(origin_01 == "1" & year_t == birth),
-            samplesize = n()) %>% 
-  filter(tot_seed_t>=tot_recruit_t1) #There are 373 rows where there are recruits but no seeds from the previous year, so we filter these out for now. Think about a seed bank
+  summarize(tot_plants_t1 = n(),
+            tot_seed_t1 = sum(seed_est_t1, na.rm = TRUE)) %>% 
+  ungroup() %>% 
+  mutate(tot_seed_t = dplyr::lag(tot_seed_t1, order_by = plot_index))
+  
+  
+
+LTREB_annual_recruit_data <- LTREB_full %>% 
+  mutate(seed_est_t1 = round(FLW_STAT_T1*FLW_COUNT_T1*spikeperinf_pred_t1*seedmean_pred_t1)) %>% 
+  filter(origin_01 == "1" & year_t == birth) %>% 
+  group_by(species, species_index, plot_index, year_t, year_t_index, year_t1, year_t1_index, endo_01, endo_index) %>% 
+  summarize(tot_recruits_t = n()) %>% 
+  ungroup() %>% 
+  mutate(tot_recruits_t1 = dplyr::lead(tot_recruits_t, order_by = plot_index))
+
+
+LTREB_s_to_s_data <- LTREB_annual_seed_data %>% 
+  left_join(LTREB_annual_recruit_data) %>% 
+  filter(!is.na(tot_recruits_t1), tot_seed_t >= tot_recruits_t1) %>%  # There are many rows where there are recruits, but no seeds from previous year, or more recruits than seeds. Think about a seed bank
+  filter(!is.na(endo_01)) # There are a few LOAR which have NA's for endophyte status, probably from data entry iin the endo_demog_long file
+
 dim(LTREB_s_to_s_data)
 
 # Create data lists to be used for the Stan model
-s_to_s_data_list <- list(tot_recruit_t1 = LTREB_s_to_s_data$tot_recruit_t1,
+s_to_s_data_list <- list(tot_recruit_t1 = LTREB_s_to_s_data$tot_recruits_t1,
                               tot_seed_t = LTREB_s_to_s_data$tot_seed_t,
                               endo_01 = as.integer(LTREB_s_to_s_data$endo_01),
                               endo_index = as.integer(LTREB_s_to_s_data$endo_index),
@@ -74,7 +110,7 @@ s_to_s_data_list <- list(tot_recruit_t1 = LTREB_s_to_s_data$tot_recruit_t1,
                               spp = LTREB_s_to_s_data$species_index,
                               N = nrow(LTREB_s_to_s_data),
                               nYear = as.integer(max(unique(LTREB_s_to_s_data$year_t_index))),
-                              nPlot = max(unique(LTREB_s_to_s_data$plot_index)),
+                              nPlot = 88L,
                               nSpp = length(unique(LTREB_s_to_s_data$species_index)),
                               nEndo = length(unique(LTREB_s_to_s_data$endo_01)))
 str(s_to_s_data_list)
@@ -89,8 +125,8 @@ set.seed(123)
 
 ## MCMC settings
 mcmc_pars <- list(
-  warmup = 5000, 
-  iter = 10000, 
+  warmup = 2000, 
+  iter =4000, 
   thin = 1, 
   chains = 3
 )
@@ -104,9 +140,9 @@ sm_s_to_s <- stan(file = "Analyses/endo_spp_s_to_s.stan", data = s_to_s_data_lis
                      iter = mcmc_pars$iter,
                      warmup = mcmc_pars$warmup,
                      chains = mcmc_pars$chains, 
-                     thin = mcmc_pars$thin,
-                     control = list(max_treedepth = 15))
-saveRDS(sm_s_to_s, file = "~/Dropbox/EndodemogData/Model_Runs/endo_spp_s_to_s.rds")
+                     thin = mcmc_pars$thin, 
+                  control = list(max_treedepth = 15))
+# saveRDS(sm_s_to_s, file = "~/Dropbox/EndodemogData/Model_Runs/endo_spp_s_to_s.rds")
 
 
 
