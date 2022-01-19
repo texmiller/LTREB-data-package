@@ -40,6 +40,7 @@ plot_factor_key <- c("1" = 1, "2" = 2, "3" = 3, "4" = 4, "5" = 5,"6" = 6, "7" = 
                      "141" = 71, "142" = 72, "143" = 73, "144" = 74, "145" = 75, "146" = 76, "147" = 77, "148" = 78, "149" = 79, "150" = 80,
                      "151" = 81, "152" = 82, "153" = 83, "154" = 84, "155" = 85, "156" = 86, "157" = 87, "158" = 88)
 
+
 LTREB_data <- LTREB_endodemog %>% 
   mutate(size_t = na_if(size_t, 0)) %>% 
   mutate(size_t1 = na_if(size_t1, 0)) %>%  
@@ -74,6 +75,12 @@ LTREB_data <- LTREB_endodemog %>%
   filter(duplicated(.) == FALSE)
 # dim(LTREB_data)
 
+#This is a list of all the original plot endophyte status
+# There are a few plants, particularly in LOAR that have NA's or potentially have the incorrect endo status for their plots. leaving this for now.
+LTREB_endophyte_plot_numbers <- LTREB_data %>% 
+  group_by(species, plot_fixed) %>% 
+  summarize(endophyte_status = as.integer(mean(endo_01, na.rm = T)))
+  filter(!is.nan(endophyte_status))
 
 
 ########################################################################################################################
