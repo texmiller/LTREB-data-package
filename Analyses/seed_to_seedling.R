@@ -60,41 +60,59 @@ LTREB_full$seedmean_pred_t1 <- seedmean_prob
 
 #My spikelet predictions are higher than seen in the data:
 # max(filter(LTREB_full, species == "AGPE")$SPIKE_A_T1, na.rm = T)
-# max(filter(LTREB_full, species == "AGPE")$spikeperinf_pred, na.rm = T)
+# max(filter(LTREB_full, species == "AGPE")$spikeperinf_pred_t1, na.rm = T)
 # 
 # max(filter(LTREB_full, species == "ELVI")$SPIKE_A_T1, na.rm = T)
-# max(filter(LTREB_full, species == "ELVI")$spikeperinf_pred, na.rm = T)
-# 
+# max(filter(LTREB_full, species == "ELVI")$spikeperinf_pred_t1, na.rm = T)
+
 # plot(LTREB_full$logsize_t1, LTREB_full$spikeperinf_pred, col = LTREB_full$species_index)
-# plot( LTREB_full$spikeperinf_pred, LTREB_full$SPIKE_A_T1)
-# 
-# hist(LTREB_full$spikeperinf_pred)
+# plot( LTREB_full$spikeperinf_pred_t1, LTREB_full$SPIKE_A_T1)
+# abline(0,1)
+# # 
+# hist(LTREB_full$spikeperinf_pred_t1)
 # hist(LTREB_full$SPIKE_A_T1)
-# hist(LTREB_full$SPIKE_AGPE_MEAN_T1)
+# # hist(LTREB_full$SPIKE_AGPE_MEAN_T1)
 
 
-
+# Here we want to generate a estimate of the seed production for each plant. We are using the our reproductive data and our seed mean model. Where we don't have spikelet data, we use the spikelet model to fill in our estimates
+# Then I want to get a value for the total number of seeds for each plot for each year.
 LTREB_annual_seed_data <- LTREB_full %>% 
-  mutate(seed_est_t1 = round(FLW_STAT_T1*FLW_COUNT_T1*spikeperinf_pred_t1*seedmean_pred_t1)) %>% 
+  rowwise() %>% 
+  mutate(spike_t1_mean = mean(c(SPIKE_A_T1, SPIKE_B_T1, SPIKE_C_T1, SPIKE_AGPE_MEAN_T1), na.rm = T)) %>% # getting a spikelet mean for each plant where we actually have data
+  ungroup() %>% 
+  mutate(seed_est_t1 = case_when( is.na(SPIKE_A_T1) & !is.na(FLW_STAT_T1) ~ round(FLW_STAT_T1*FLW_COUNT_T1*spikeperinf_pred_t1*seedmean_pred_t1),
+                                  !is.na(SPIKE_A_T1) & !is.na(FLW_STAT_T1) ~ round(FLW_STAT_T1*FLW_COUNT_T1*spike_t1_mean*seedmean_pred_t1))) %>% 
+  mutate(seed_est_t1_factor = as.factor(seed_est_t1)) %>% 
   group_by(species, species_index, plot_index, year_t, year_t_index, year_t1, year_t1_index, endo_01, endo_index) %>% 
   summarize(tot_plants_t1 = n(),
-            tot_seed_t1 = sum(seed_est_t1, na.rm = TRUE)) %>% 
+            tot_seed_t1 = sum(seed_est_t1, na.rm = T)) %>% 
+  complete(species, species_index, plot_index, year_t, year_t_index, year_t1, year_t1_index, endo_01, endo_index,
+           fill = list(tot_seed_t1 = 0, tot_plants_t1 = 0)) %>% 
   ungroup() %>% 
   mutate(tot_seed_t = dplyr::lag(tot_seed_t1, order_by = plot_index))
   
-  
+LTREB_annual_seed_data_nozero <- LTREB_full %>% 
+  rowwise() %>% 
+  mutate(spike_t1_mean = mean(c(SPIKE_A_T1, SPIKE_B_T1, SPIKE_C_T1, SPIKE_AGPE_MEAN_T1), na.rm = T)) %>% # getting a spikelet mean for each plant where we actually have data
+  ungroup() %>% 
+  mutate(seed_est_t1 = case_when( is.na(SPIKE_A_T1) & !is.na(FLW_STAT_T1) ~ round(FLW_STAT_T1*FLW_COUNT_T1*spikeperinf_pred_t1*seedmean_pred_t1),
+                                  !is.na(SPIKE_A_T1) & !is.na(FLW_STAT_T1) ~ round(FLW_STAT_T1*FLW_COUNT_T1*spike_t1_mean*seedmean_pred_t1))) %>% 
+  mutate(seed_est_t1_factor = as.factor(seed_est_t1)) %>% 
+  group_by(species, species_index, plot_index, year_t, year_t_index, year_t1, year_t1_index, endo_01, endo_index) %>% 
+  summarize(tot_plants_t1 = n(),
+            tot_seed_t1 = sum(seed_est_t1, na.rm = T))
 
 LTREB_annual_recruit_data <- LTREB_full %>% 
   mutate(seed_est_t1 = round(FLW_STAT_T1*FLW_COUNT_T1*spikeperinf_pred_t1*seedmean_pred_t1)) %>% 
   filter(origin_01 == "1" & year_t == birth) %>% 
-  group_by(species, species_index, plot_index, year_t, year_t_index, year_t1, year_t1_index, endo_01, endo_index) %>% 
+  group_by(species, species_index, plot_index, year_t, year_t_index, year_t1, year_t1_index, endo_01, endo_index, drop = FALSE) %>% 
   summarize(tot_recruits_t = n()) %>% 
   ungroup() %>% 
   mutate(tot_recruits_t1 = dplyr::lead(tot_recruits_t, order_by = plot_index))
 
 
 LTREB_s_to_s_data <- LTREB_annual_seed_data %>% 
-  left_join(LTREB_annual_recruit_data) %>% 
+  left_join(LTREB_annual_recruit_data) 
   filter(!is.na(tot_recruits_t1), tot_seed_t >= tot_recruits_t1) %>%  # There are many rows where there are recruits, but no seeds from previous year, or more recruits than seeds. Think about a seed bank
   filter(!is.na(endo_01)) # There are a few LOAR which have NA's for endophyte status, probably from data entry iin the endo_demog_long file
 
