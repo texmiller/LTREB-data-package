@@ -75,12 +75,12 @@ LTREB_data <- LTREB_endodemog %>%
   filter(duplicated(.) == FALSE)
 # dim(LTREB_data)
 
-#This is a list of all the original plot endophyte status
-# There are a few plants, particularly in LOAR that have NA's or potentially have the incorrect endo status for their plots. leaving this for now.
-LTREB_endophyte_plot_numbers <- LTREB_data %>% 
-  group_by(species, plot_fixed) %>% 
-  summarize(endophyte_status = as.integer(mean(endo_01, na.rm = T)))
-  filter(!is.nan(endophyte_status))
+# #This is a list of all the original plot endophyte status
+# # There are a few plants, particularly in LOAR that have NA's or potentially have the incorrect endo status for their plots. leaving this for now.
+# LTREB_endophyte_plot_numbers <- LTREB_data %>% 
+#   group_by(species, plot_fixed) %>% 
+#   summarize(endophyte_status = as.integer(mean(endo_01, na.rm = T)))
+#   filter(!is.nan(endophyte_status))
 
 
 ########################################################################################################################
@@ -790,7 +790,7 @@ lseed_3 <- lseed_2 %>%
   filter(!is.na(seed))
 
 
-
+# 2011 doesn't seem to have clear spikelet/infl data. In the LOAR_for_demog_long.xlsx file, there is a column for good_seeds/inf, and a column for number of infl counted, so presumably it is a mean. There are some spikelet counts in the LOAR_to2016_complete.xlsx for what I believe is 2011. One example: plant 601, has listed 42 spike/infl in the later DB, but has 0 good seeds/infl listed in the former.
 lspike <- LOAR_data %>% 
   rename("plot" = "PLOT", "pos" = "POS", 
          "tag" = "TAG") %>%
@@ -1742,6 +1742,7 @@ POAL_2019_data <- read_xlsx("~/Dropbox/EndodemogData/Field Data/2019/LTREB_data_
 POSY_2019_data <- read_xlsx("~/Dropbox/EndodemogData/Field Data/2019/LTREB_data_2019.xlsx", sheet = "POSY")
 # # Now we can merge all the different species together.
 LTREB_update_data <- AGPE_2019_data %>% 
+  merge(AGPE_2019_data, by = c("species", "origin", "plot", "pos","id",  "birth_year", "observation_year", "species", "distance_A", "distance_B", "survival", "size_tillers", "flowering_tillers", "spikelets_A", "spikelets_B", "spikelets_C", "notes"), all = TRUE) %>%
   merge(ELRI_2019_data, by = c("species", "origin", "plot", "pos","id",  "birth_year", "observation_year", "species", "distance_A", "distance_B", "survival", "size_tillers", "flowering_tillers", "spikelets_A", "spikelets_B", "spikelets_C", "notes"), all = TRUE) %>%
   merge(ELVI_2019_data, by = c("species", "origin", "plot", "pos","id",  "birth_year", "observation_year", "species", "distance_A", "distance_B", "survival", "size_tillers", "flowering_tillers", "spikelets_A", "spikelets_B", "spikelets_C", "notes"), all = TRUE) %>%
   merge(FESU_2019_data, by = c("species", "origin", "plot", "pos","id",  "birth_year", "observation_year", "species", "distance_A", "distance_B", "survival", "size_tillers", "flowering_tillers", "spikelets_A", "spikelets_B", "spikelets_C", "notes"), all = TRUE) %>%
