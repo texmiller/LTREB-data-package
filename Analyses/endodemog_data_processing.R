@@ -72,6 +72,10 @@ LTREB_data <- LTREB_endodemog %>%
                                    surv_t1 == 0 ~ 0,
                                    is.na(surv_t1) & birth == year_t1 ~ 1,
                                    is.na(surv_t1) & size_t1 > 0 ~ 1))) %>% 
+  mutate(size_t1 = case_when(birth == year_t1 & surv_t1 == 1 & is.na(size_t1) ~ 1, 
+                             TRUE ~ size_t1),
+         size_t = case_when(birth == year_t1-1 & !is.na(seed_t) & is.na(size_t) ~ 1,
+                            TRUE ~ size_t)) # This is for a few copy errors where seedlings have no size_t1 data entered, or a 0 entered.
   filter(duplicated(.) == FALSE)
 # dim(LTREB_data)
 
@@ -1880,7 +1884,7 @@ LTREB_full_update_lag <- LTREB_full_update %>%
                                !is.na(SPIKE_C_T_NEW) ~ SPIKE_C_T_NEW),
          SPIKE_D_T = case_when(!is.na(SPIKE_D_T) ~ SPIKE_D_T,
                                !is.na(SPIKE_D_T_NEW) ~ SPIKE_D_T_NEW),
-         SPIKE_AGHE_MEAN_T = case_when(!is.na(SPIKE_AGPE_MEAN_T) ~ SPIKE_AGPE_MEAN_T,
+         SPIKE_AGPE_MEAN_T = case_when(!is.na(SPIKE_AGPE_MEAN_T) ~ SPIKE_AGPE_MEAN_T,
                                        !is.na(SPIKE_AGPE_MEAN_T_NEW) ~ SPIKE_AGPE_MEAN_T_NEW),
          ) %>% 
   dplyr::select(plot_fixed, plot_index, pos, id, species, species_index, 
