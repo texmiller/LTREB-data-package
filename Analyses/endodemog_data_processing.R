@@ -75,7 +75,7 @@ LTREB_data <- LTREB_endodemog %>%
   mutate(size_t1 = case_when(birth == year_t1 & surv_t1 == 1 & is.na(size_t1) ~ 1, 
                              TRUE ~ size_t1),
          size_t = case_when(birth == year_t1-1 & !is.na(seed_t) & is.na(size_t) ~ 1,
-                            TRUE ~ size_t)) # This is for a few copy errors where seedlings have no size_t1 data entered, or a 0 entered.
+                            TRUE ~ size_t)) %>%  # This is for a few copy errors where seedlings have no size_t1 data entered, or a 0 entered.
   filter(duplicated(.) == FALSE)
 # dim(LTREB_data)
 
