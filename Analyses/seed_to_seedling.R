@@ -79,43 +79,45 @@ LTREB_full$seedmean_pred_t1 <- seedmean_prob
 LTREB_annual_seed_data <- LTREB_full %>% 
   rowwise() %>% 
   mutate(spike_t1_mean = mean(c(SPIKE_A_T1, SPIKE_B_T1, SPIKE_C_T1, SPIKE_AGPE_MEAN_T1), na.rm = T)) %>% # getting a spikelet mean for each plant where we actually have data
-  ungroup() %>% 
   mutate(seed_est_t1 = case_when( is.na(SPIKE_A_T1) & !is.na(FLW_STAT_T1) ~ round(FLW_STAT_T1*FLW_COUNT_T1*spikeperinf_pred_t1*seedmean_pred_t1),
                                   !is.na(SPIKE_A_T1) & !is.na(FLW_STAT_T1) ~ round(FLW_STAT_T1*FLW_COUNT_T1*spike_t1_mean*seedmean_pred_t1))) %>% 
+  mutate(year_t1_factor = factor(year_t1_index, levels = min(year_t1_index):max(year_t1_index)),
+         plot_factor = factor(plot_index, levels = min(plot_index):max(plot_index))) %>% 
   group_by(species, species_index, plot_index, year_t, year_t_index, year_t1, year_t1_index, endo_01, endo_index) %>% 
   summarize(n_rows = n(),
             surviving_plants_t1 = sum(surv_t1, na.rm = T),
-            tot_seed_t1 = sum(seed_est_t1, na.rm = T)) %>% 
-  complete(species, species_index, plot_index, year_t, year_t_index, year_t1, year_t1_index, endo_01, endo_index,
-           fill = list(tot_seed_t1 = 0, tot_plants_t1 = 0)) %>%   #This should do the job of filling in the zeros, there are a few yearss and plots where there is nothing thaat are still misisinig, and iin those cases, the rows are missing (e.g. Plot 57 in 2020), but I think that's okay cause we also have no recruit data for those years
+            tot_seed_t1 = sum(seed_est_t1, na.rm = T))%>% 
   ungroup() %>% 
+  complete(nesting(species, species_index, plot_index, endo_01, endo_index), nesting(year_t1, year_t1_index, year_t, year_t_index), 
+           fill =  list(tot_seed_t1 = 0)) %>% 
   mutate(tot_seed_t = dplyr::lag(tot_seed_t1, order_by = plot_index))
-  
 
 LTREB_annual_recruit_data <- LTREB_full %>% 
   filter(origin_01 == "1" & year_t == birth) %>% 
   mutate(surv_t = case_when(!is.na(size_t) ~ 1,
                            is.na(size_t) ~ 0)) %>% 
-  filter(surv_t == 1)   # There are a few plants which were TNF or other issues that weren't actually recruits, so I'm dropping these (~22 plants)
-  filter(size_t <= 10) # dropping all the plants bigger than 10 tillers. There aar
-
-# These are the problem recruit id's
-View(filter(LTREB_annual_recruit_data, surv_t == 0))
-# Should also consider dropping the plants that are big and aren't actually recruits. In new data, i'm trying to leave the birth year NA, but some of the previous have assigned the birth year, with a note saying it's probably an older plant. There aren't a ton, but maybe worth dropping the really big plants
-unique(LTREB_annual_recruit_data$size_t)
-table(LTREB_annual_recruit_data$size_t)
-     
+  filter(surv_t == 1) %>%    # There are a few plants which were TNF or other issues that weren't actually recruits, so I'm dropping these (~22 plants)
+  filter(size_t <= 5) %>% # dropping all the plants bigger than 5 tillers. There are ~13000 recruits that are size 1 tiller, and 682 "recruits" that are bigger. Some of these we have notes saying they arer probablly older. For currrent data collection, we are leaviing the birth year as NA, instead of adding a definite year. Filtering out at 5 tillers drops 112 plants, which allows for the occasional recruit that is actually bigger than 1 tiller.
   group_by(species, species_index, plot_index, year_t, year_t_index, year_t1, year_t1_index, endo_01, endo_index) %>% 
-  summarize(tot_recruits_t = n()) %>% 
-  complete(nesting(species, species_index, plot_index, year_t, year_t_index, year_t1, year_t1_index, endo_01, endo_index),
-           fill = list(tot_recruits_t = 0))
+  summarize(n_rows = n(),
+            surviving_plants_t1 = sum(surv_t1, na.rm = T),
+            tot_recruits_t = sum(surv_t, na.rm = T)) %>% 
   ungroup() %>% 
+  complete(nesting(species, species_index, plot_index, endo_01, endo_index), nesting(year_t1, year_t1_index, year_t, year_t_index), 
+           fill = list(tot_recruits_t = 0)) %>% 
   mutate(tot_recruits_t1 = dplyr::lead(tot_recruits_t, order_by = plot_index))
 
 
+# These are the problem recruit id's
+# View(filter(LTREB_annual_recruit_data, surv_t == 0))
+# Should also consider dropping the plants that are big and aren't actually recruits. In new data, i'm trying to leave the birth year NA, but some of the previous have assigned the birth year, with a note saying it's probably an older plant. There aren't a ton, but maybe worth dropping the really big plants
+# unique(LTREB_annual_recruit_data$size_t)
+# table(LTREB_annual_recruit_data$size_t)
+     
+
   
 LTREB_s_to_s_data <- LTREB_annual_seed_data %>% 
-  left_join(LTREB_annual_recruit_data) 
+  left_join(LTREB_annual_recruit_data, by = c("species", "species_index", "plot_index", "year_t", "year_t_index", "year_t1", "year_t1_index", "endo_01", "endo_index")) 
   filter(!is.na(tot_recruits_t1), tot_seed_t >= tot_recruits_t1) %>%  # There are many rows where there are recruits, but no seeds from previous year, or more recruits than seeds. Think about a seed bank
   filter(!is.na(endo_01)) # There are a few LOAR which have NA's for endophyte status, probably from data entry iin the endo_demog_long file
 
