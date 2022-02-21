@@ -84,8 +84,8 @@ LTREB_annual_seed_data <- LTREB_full %>%
   mutate(year_t1_factor = factor(year_t1_index, levels = min(year_t1_index):max(year_t1_index)),
          plot_factor = factor(plot_index, levels = min(plot_index):max(plot_index))) %>% 
   group_by(species, species_index, plot_index, year_t, year_t_index, year_t1, year_t1_index, endo_01, endo_index) %>% 
-  summarize(n_rows = n(),
-            surviving_plants_t1 = sum(surv_t1, na.rm = T),
+  summarize(seeds_n_rows = n(),
+            seeds_surviving_plants_t1 = sum(surv_t1, na.rm = T),
             tot_seed_t1 = sum(seed_est_t1, na.rm = T))%>% 
   ungroup() %>% 
   complete(nesting(species, species_index, plot_index, endo_01, endo_index), nesting(year_t1, year_t1_index, year_t, year_t_index), 
@@ -99,8 +99,8 @@ LTREB_annual_recruit_data <- LTREB_full %>%
   filter(surv_t == 1) %>%    # There are a few plants which were TNF or other issues that weren't actually recruits, so I'm dropping these (~22 plants)
   filter(size_t <= 5) %>% # dropping all the plants bigger than 5 tillers. There are ~13000 recruits that are size 1 tiller, and 682 "recruits" that are bigger. Some of these we have notes saying they arer probablly older. For currrent data collection, we are leaviing the birth year as NA, instead of adding a definite year. Filtering out at 5 tillers drops 112 plants, which allows for the occasional recruit that is actually bigger than 1 tiller.
   group_by(species, species_index, plot_index, year_t, year_t_index, year_t1, year_t1_index, endo_01, endo_index) %>% 
-  summarize(n_rows = n(),
-            surviving_plants_t1 = sum(surv_t1, na.rm = T),
+  summarize(recruits_n_rows = n(),
+            recruits_surviving_plants_t1 = sum(surv_t1, na.rm = T),
             tot_recruits_t = sum(surv_t, na.rm = T)) %>% 
   ungroup() %>% 
   complete(nesting(species, species_index, plot_index, endo_01, endo_index), nesting(year_t1, year_t1_index, year_t, year_t_index), 
@@ -117,25 +117,27 @@ LTREB_annual_recruit_data <- LTREB_full %>%
 
   
 LTREB_s_to_s_data <- LTREB_annual_seed_data %>% 
-  left_join(LTREB_annual_recruit_data, by = c("species", "species_index", "plot_index", "year_t", "year_t_index", "year_t1", "year_t1_index", "endo_01", "endo_index")) 
-  filter(!is.na(tot_recruits_t1), tot_seed_t >= tot_recruits_t1) %>%  # There are many rows where there are recruits, but no seeds from previous year, or more recruits than seeds. Think about a seed bank
+  left_join(LTREB_annual_recruit_data, by = c("species", "species_index", "plot_index", "year_t", "year_t_index", "year_t1", "year_t1_index", "endo_01", "endo_index")) %>% 
+  mutate(tot_recruits_t1 = case_when(is.na(tot_recruits_t1) ~ 0, 
+                                      TRUE ~ tot_recruits_t1)) %>% # Giving a zero value of recruits for 2007 and 2008. This pretty true, I think, but there may be some instance where the birth years of those earlly recruits are just weird because the Original plants all have birth year 2007
+  filter(!is.na(tot_recruits_t1), tot_seed_t >= tot_recruits_t1) %>%   # There are ~120 rows where there are recruits, but no seeds from previous year, or more recruits than seeds. Think about a seed bank
   filter(!is.na(endo_01)) # There are a few LOAR which have NA's for endophyte status, probably from data entry iin the endo_demog_long file
 
 dim(LTREB_s_to_s_data)
 
 # Create data lists to be used for the Stan model
 s_to_s_data_list <- list(tot_recruit_t1 = LTREB_s_to_s_data$tot_recruits_t1,
-                              tot_seed_t = LTREB_s_to_s_data$tot_seed_t,
-                              endo_01 = as.integer(LTREB_s_to_s_data$endo_01),
-                              endo_index = as.integer(LTREB_s_to_s_data$endo_index),
-                              year_t = as.integer(LTREB_s_to_s_data$year_t_index),
-                              plot = as.integer(LTREB_s_to_s_data$plot_index),
-                              spp = LTREB_s_to_s_data$species_index,
-                              N = nrow(LTREB_s_to_s_data),
-                              nYear = as.integer(max(unique(LTREB_s_to_s_data$year_t_index))),
-                              nPlot = 88L,
-                              nSpp = length(unique(LTREB_s_to_s_data$species_index)),
-                              nEndo = length(unique(LTREB_s_to_s_data$endo_01)))
+                         tot_seed_t = LTREB_s_to_s_data$tot_seed_t,
+                         endo_01 = as.integer(LTREB_s_to_s_data$endo_01),
+                         endo_index = as.integer(LTREB_s_to_s_data$endo_index),
+                         year_t = as.integer(LTREB_s_to_s_data$year_t_index),
+                         plot = as.integer(LTREB_s_to_s_data$plot_index),
+                         spp = LTREB_s_to_s_data$species_index,
+                         N = nrow(LTREB_s_to_s_data),
+                         nYear = as.integer(max(unique(LTREB_s_to_s_data$year_t_index))),
+                         nPlot = 88L,
+                         nSpp = length(unique(LTREB_s_to_s_data$species_index)),
+                         nEndo = length(unique(LTREB_s_to_s_data$endo_01)))
 str(s_to_s_data_list)
 
 #########################################################################################################
