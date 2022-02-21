@@ -135,7 +135,7 @@ s_to_s_data_list <- list(tot_recruit_t1 = LTREB_s_to_s_data$tot_recruits_t1,
                          spp = LTREB_s_to_s_data$species_index,
                          N = nrow(LTREB_s_to_s_data),
                          nYear = as.integer(max(unique(LTREB_s_to_s_data$year_t_index))),
-                         nPlot = 88L,
+                         nPlot = length(unique(LTREB_s_to_s_data$plot_index)),
                          nSpp = length(unique(LTREB_s_to_s_data$species_index)),
                          nEndo = length(unique(LTREB_s_to_s_data$endo_01)))
 str(s_to_s_data_list)
