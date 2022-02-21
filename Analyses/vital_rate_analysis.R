@@ -125,13 +125,94 @@ LTREB_data_forspike <- LTREB_full %>%
   filter(!is.na(spike_count_t1), spike_count_t1 > 0) %>% 
   mutate(spike_count_t1 = as.integer(spike_count_t1))
 
-# ggplot(LTREB_data_forspike)+
-#   geom_histogram(aes(x=spike_count_t))+
-#   facet_grid(year_t~species)
-## I don't think there are enough data to fit year variances
-## so I am just going to fit fixed effects of size and endo
+# Looking at the data coverage across years, 
+# and if there are differences between Shaun data and the data since 2018
+LTREB_data_forspike %>% 
+  filter(species == "AGPE") %>% 
+ggplot()+
+  geom_histogram(aes(x=spike_count_t1))+
+  facet_grid(year_t1~species)
 
-# rm(LTREB_full)
+LTREB_data_forspike %>% 
+  filter(species == "ELVI") %>% 
+  ggplot()+
+  geom_histogram(aes(x=spike_count_t1))+
+  facet_grid(year_t1~species)
+
+LTREB_data_forspike %>% 
+  filter(species == "ELRI") %>% 
+  ggplot()+
+  geom_histogram(aes(x=spike_count_t1))+
+  facet_grid(year_t1~species)
+
+LTREB_data_forspike %>% 
+  filter(species == "FESU") %>% 
+  ggplot()+
+  geom_histogram(aes(x=spike_count_t1))+
+  facet_grid(year_t1~species)
+
+LTREB_data_forspike %>% 
+  filter(species == "POAL") %>% 
+  ggplot()+
+  geom_histogram(aes(x=spike_count_t1))+
+  facet_grid(year_t1~species)
+
+LTREB_data_forspike %>% 
+  filter(species == "POSY") %>% 
+  ggplot()+
+  geom_histogram(aes(x=spike_count_t1))+
+  facet_grid(year_t1~species)
+
+LTREB_data_forspike %>% 
+  filter(species == "LOAR") %>% 
+  ggplot()+
+  geom_histogram(aes(x=spike_count_t1))+
+  facet_grid(year_t1~species)
+
+
+
+
+pre_2018_data <- filter(LTREB_data_forspike, year_t1<2018 & species == "AGPE")$spike_count_t1
+post_2018_data <- filter(LTREB_data_forspike, year_t1>=2018 & species == "AGPE")$spike_count_t1
+
+t.test(pre_2018_data, post_2018_data, two.sided = T)
+wilcox.test(pre_2018_data, post_2018_data)
+
+pre_2018_data <- filter(LTREB_data_forspike, year_t1<2018 & species == "ELVI")$spike_count_t1
+post_2018_data <- filter(LTREB_data_forspike, year_t1>=2018 & species == "ELVI")$spike_count_t1
+
+t.test(pre_2018_data, post_2018_data, two.sided = T)
+wilcox.test(pre_2018_data, post_2018_data)
+
+pre_2018_data <- filter(LTREB_data_forspike, year_t1<2018 & species == "ELRI")$spike_count_t1
+post_2018_data <- filter(LTREB_data_forspike, year_t1>=2018 & species == "ELRI")$spike_count_t1
+
+t.test(pre_2018_data, post_2018_data, two.sided = T)
+wilcox.test(pre_2018_data, post_2018_data)
+
+pre_2018_data <- filter(LTREB_data_forspike, year_t1<2018 & species == "POAL")$spike_count_t1
+post_2018_data <- filter(LTREB_data_forspike, year_t1>=2018 & species == "POAL")$spike_count_t1
+
+t.test(pre_2018_data, post_2018_data, two.sided = T)
+wilcox.test(pre_2018_data, post_2018_data)
+
+pre_2018_data <- filter(LTREB_data_forspike, year_t1<2018 & species == "FESU")$spike_count_t1
+post_2018_data <- filter(LTREB_data_forspike, year_t1>=2018 & species == "FESU")$spike_count_t1
+
+t.test(pre_2018_data, post_2018_data, two.sided = T)
+wilcox.test(pre_2018_data, post_2018_data)
+
+#Note to self, look at number of rows that have flower data but not spikelet data
+dim(LTREB_data_forfert) #There are 5072 rows that have flower status = 1 and have inflorescence counts
+
+flow_but_not_spike <- LTREB_full %>%
+  filter(FLW_STAT_T1 == 1 & is.na(SPIKE_A_T1) & is.na(SPIKE_AGPE_MEAN_T1)) # There are 330 rows that have that have flow status without spikelet counts.
+
+#Some of these are one off plants where the infloresce wasn't expanded (especially some of the AGPE in 2021), but others were potentially just forgotten. There are a few years and species that have signifiicant chunks missing, and so I'm going to look at the raw data for those years.
+table(data = flow_but_not_spike$species, flow_but_not_spike$year_t1) #Look at AGPE 2014, FESU 2012, LOAR 2011, POAL 2010, POSY 2010-2011
+
+#And revisit the data merging for each species
+
 
 
 # Create data lists to be used for the Stan model
