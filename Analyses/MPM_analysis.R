@@ -49,11 +49,11 @@ source("Analyses/MPM_functions.R")
 
 surv_fit_seedling <- read_rds("~/Dropbox/EndodemogData/Model_Runs/endo_seedling_surv.rds")
 surv_fit <- read_rds("~/Dropbox/EndodemogData/Model_Runs/endo_spp_surv_woseedling.rds")
-grow_fit_seedling <- read_rds("~/Dropbox/EndodemogData/Model_Runs/endo_seedling_grow.rds")
+grow_fit_seedling <- read_rds("~/Dropbox/EndodemogData/Model_Runs/endo_seedling_grow_PIG.rds")
 grow_fit <- read_rds("~/Dropbox/EndodemogData/Model_Runs/endo_spp_grow_PIG.rds")
 flw_fit <- read_rds("~/Dropbox/EndodemogData/Model_Runs/endo_spp_flw.rds")
-fert_fit <- read_rds("~/Dropbox/EndodemogData/Model_Runs/endo_spp_fert_noplot.rds")
-spike_fit <- read_rds("~/Dropbox/EndodemogData/Model_Runs/endo_spp_spike_year_plot.rds")
+fert_fit <- read_rds("~/Dropbox/EndodemogData/Model_Runs/endo_spp_fert_PIG.rds")
+spike_fit <- read_rds("~/Dropbox/EndodemogData/Model_Runs/endo_spp_spike_year_plot_nb.rds")
 seedmean_fit <- read_rds("~/Dropbox/EndodemogData/Model_Runs/seed_mean.rds")
 stos_fit <- read_rds("~/Dropbox/EndodemogData/Model_Runs/endo_spp_s_to_s.rds") 
 
@@ -66,13 +66,14 @@ grow_par <- rstan::extract(grow_fit, pars = quote_bare(beta0,betasize,betaendo,b
                                                        sigma))
 grow_sdlg_par <- rstan::extract(grow_fit_seedling, pars = quote_bare(beta0,betaendo,
                                                        tau_year, tau_plot,
-                                                       phi))
+                                                       sigma))
 flow_par <- rstan::extract(flw_fit, pars = quote_bare(beta0,betasize,betaendo,betaorigin,
                                                        tau_year, tau_plot))
 fert_par <- rstan::extract(fert_fit, pars = quote_bare(beta0,betasize,betaendo,betaorigin,
-                                                      tau_year)) # plot effects didn't converge
+                                                      tau_year, tau_plot))
 spike_par <- rstan::extract(spike_fit, pars = quote_bare(beta0,betasize,betaendo,betaorigin,
-                                                                         tau_year, tau_plot))
+                                                                         tau_year, tau_plot,
+                                                         phi))
 seed_par <- rstan::extract(seedmean_fit, pars = quote_bare(beta0,betaendo)) #no plot or year effect
 recruit_par <- rstan::extract(stos_fit, pars = quote_bare(beta0,betaendo,
                                                           tau_year, tau_plot))
