@@ -18,8 +18,8 @@ make_params <- function(species,endo_mean,endo_var,original=0,draw,rfx=F,year=NU
     rfx_grow_sdlg <- grow_sdlg_par$tau_year[draw,species,(endo_var+1),(year+1)];
     rfx_flow <- flow_par$tau_year[draw,species,(endo_var+1),year];
     rfx_fert <- fert_par$tau_year[draw,species,(endo_var+1),year]; 
-    rfx_spike <- spike_par$tau_year[draw,year]; #no endo effects on variance
-    rfx_rct <- recruit_par$tau_year[draw,species, (endo_var+1),year];
+    rfx_spike <- spike_par$tau_year[draw,species,(endo_var+1),year];
+    rfx_rct <- recruit_par$tau_year[draw,species,(endo_var+1),year];
   }
   
   params <- c()
