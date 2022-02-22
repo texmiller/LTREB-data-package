@@ -42,7 +42,7 @@ make_params <- function(species,endo_mean,endo_var,original=0,draw,rfx=F,year=NU
   params$grow_sdlg_int <- grow_sdlg_par$beta0[draw,species] + 
     endo_mean * grow_sdlg_par$betaendo[draw,species] + 
     rfx_grow_sdlg
-  params$grow_sdlg_phi <- grow_sdlg_par$phi[draw] 
+  params$grow_sdlg_sigma <- grow_sdlg_par$sigma[draw] 
   
   #flowering
   params$flow_int <- flow_par$beta0[draw,species] + 
@@ -95,9 +95,16 @@ gxy <- function(x,y,params){
 
 gxy_sdlg <- function(x,y,params){
   grow_mean <- params$grow_sdlg_int
-  grow <- dnbinom(x=y,mu=exp(grow_mean),size=exp(params$grow_sdlg_phi),log=F)
-  truncLower<-dnbinom(x=0,mu=exp(grow_mean),size=exp(params$grow_sdlg_phi),log=F)
-  truncUpper<-sum(dnbinom(x=params$max_size:10000,mu=exp(grow_mean),size=exp(params$grow_sdlg_phi),log=F))
+  
+  grow<-dpoisinvgauss(x=y,mean=exp(grow_mean),shape=(exp(grow_mean)*params$grow_sdlg_sigma))
+  grow<-ifelse(is.nan(grow) | is.infinite(grow),0,grow)
+  
+  truncLower<-dpoisinvgauss(x=0,mean=exp(grow_mean), shape=(exp(grow_mean)*params$grow_sdlg_sigma))
+  # truncLower<-sum(ifelse(is.nan(truncLower) | is.infinite(truncLower),0,truncLower))
+  
+  truncUpper<-sum(dpoisinvgauss(x=params$max_size:10000,mean=exp(grow_mean),shape=(exp(grow_mean)*params$grow_sdlg_sigma)))
+  # truncUpper<-sum(ifelse(is.nan(truncUpper) | is.infinite(truncUpper),0,truncUpper))
+
   return(grow/(1-(truncLower+truncUpper)))
 }
 
