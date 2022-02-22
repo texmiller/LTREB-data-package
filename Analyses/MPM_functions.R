@@ -26,7 +26,7 @@ make_params <- function(species,endo_mean,endo_var,original=0,draw,rfx=F,year=NU
   #survival
   params$surv_int <- surv_par$beta0[draw,species] + 
     endo_mean * surv_par$betaendo[draw,species] + 
-    original * surv_par$betaorigin[draw,species] + rfx_surv
+    original * surv_par$betaorigin[draw] + rfx_surv
   params$surv_slope <- surv_par$betasize[draw,species]
   # seedling survival
   params$surv_sdlg_int <- surv_sdlg_par$beta0[draw,species] + 
@@ -35,7 +35,7 @@ make_params <- function(species,endo_mean,endo_var,original=0,draw,rfx=F,year=NU
   #growth
   params$grow_int <- grow_par$beta0[draw,species] + 
     endo_mean * grow_par$betaendo[draw,species] + 
-    original * grow_par$betaorigin[draw,species] + rfx_grow
+    original * grow_par$betaorigin[draw] + rfx_grow
   params$grow_slope <- grow_par$betasize[draw,species]  
   params$grow_sigma <- grow_par$sigma[draw] 
   # seedling growth
@@ -47,18 +47,18 @@ make_params <- function(species,endo_mean,endo_var,original=0,draw,rfx=F,year=NU
   #flowering
   params$flow_int <- flow_par$beta0[draw,species] + 
     endo_mean * flow_par$betaendo[draw,species] + 
-    original * flow_par$betaorigin[draw,species] + rfx_flow
+    original * flow_par$betaorigin[draw] + rfx_flow
   params$flow_slope <- flow_par$betasize[draw,species]  
   #fertility
   params$fert_int <- fert_par$beta0[draw,species] +
    endo_mean * fert_par$betaendo[draw,species] +
-   original * fert_par$betaorigin[draw,species] + rfx_fert
+   original * fert_par$betaorigin[draw] + rfx_fert
   params$fert_slope <- fert_par$betasize[draw,species]
 
   #spikelets
   params$spike_int <- spike_par$beta0[draw,species]  +
     endo_mean * spike_par$betaendo[draw,species] +
-    original * spike_par$betaorigin[draw,species] + rfx_spike
+    original * spike_par$betaorigin[draw] + rfx_spike
   params$spike_slope <- spike_par$betasize[draw,species]  
   #seeds per spikelet
   params$seeds_per_spike <- seed_par$beta0[draw,species] + 
