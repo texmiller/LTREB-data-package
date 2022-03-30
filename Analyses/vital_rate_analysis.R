@@ -11,7 +11,8 @@ library(StanHeaders)
 library(bayesplot)
 library(devtools)
 library(moments)
-library(gridExtra)
+library(patchwork)
+
 
 invlogit<-function(x){exp(x)/(1+exp(x))}
 logit = function(x) { log(x/(1-x)) }
@@ -127,89 +128,89 @@ LTREB_data_forspike <- LTREB_full %>%
 
 # Looking at the data coverage across years, 
 # and if there are differences between Shaun data and the data since 2018
-LTREB_data_forspike %>% 
-  filter(species == "AGPE") %>% 
-ggplot()+
-  geom_histogram(aes(x=spike_count_t1))+
-  facet_grid(year_t1~species)
+# LTREB_data_forspike %>% 
+#   filter(species == "AGPE") %>% 
+# ggplot()+
+#   geom_histogram(aes(x=spike_count_t1))+
+#   facet_grid(year_t1~species)
+# 
+# LTREB_data_forspike %>% 
+#   filter(species == "ELVI") %>% 
+#   ggplot()+
+#   geom_histogram(aes(x=spike_count_t1))+
+#   facet_grid(year_t1~species)
+# 
+# LTREB_data_forspike %>% 
+#   filter(species == "ELRI") %>% 
+#   ggplot()+
+#   geom_histogram(aes(x=spike_count_t1))+
+#   facet_grid(year_t1~species)
+# 
+# LTREB_data_forspike %>% 
+#   filter(species == "FESU") %>% 
+#   ggplot()+
+#   geom_histogram(aes(x=spike_count_t1))+
+#   facet_grid(year_t1~species)
+# 
+# LTREB_data_forspike %>% 
+#   filter(species == "POAL") %>% 
+#   ggplot()+
+#   geom_histogram(aes(x=spike_count_t1))+
+#   facet_grid(year_t1~species)
+# 
+# LTREB_data_forspike %>% 
+#   filter(species == "POSY") %>% 
+#   ggplot()+
+#   geom_histogram(aes(x=spike_count_t1))+
+#   facet_grid(year_t1~species)
+# 
+# LTREB_data_forspike %>% 
+#   filter(species == "LOAR") %>% 
+#   ggplot()+
+#   geom_histogram(aes(x=spike_count_t1))+
+#   facet_grid(year_t1~species)
+# 
 
-LTREB_data_forspike %>% 
-  filter(species == "ELVI") %>% 
-  ggplot()+
-  geom_histogram(aes(x=spike_count_t1))+
-  facet_grid(year_t1~species)
 
-LTREB_data_forspike %>% 
-  filter(species == "ELRI") %>% 
-  ggplot()+
-  geom_histogram(aes(x=spike_count_t1))+
-  facet_grid(year_t1~species)
-
-LTREB_data_forspike %>% 
-  filter(species == "FESU") %>% 
-  ggplot()+
-  geom_histogram(aes(x=spike_count_t1))+
-  facet_grid(year_t1~species)
-
-LTREB_data_forspike %>% 
-  filter(species == "POAL") %>% 
-  ggplot()+
-  geom_histogram(aes(x=spike_count_t1))+
-  facet_grid(year_t1~species)
-
-LTREB_data_forspike %>% 
-  filter(species == "POSY") %>% 
-  ggplot()+
-  geom_histogram(aes(x=spike_count_t1))+
-  facet_grid(year_t1~species)
-
-LTREB_data_forspike %>% 
-  filter(species == "LOAR") %>% 
-  ggplot()+
-  geom_histogram(aes(x=spike_count_t1))+
-  facet_grid(year_t1~species)
-
-
-
-
-pre_2018_data <- filter(LTREB_data_forspike, year_t1<2018 & species == "AGPE")$spike_count_t1
-post_2018_data <- filter(LTREB_data_forspike, year_t1>=2018 & species == "AGPE")$spike_count_t1
-
-t.test(pre_2018_data, post_2018_data, two.sided = T)
-wilcox.test(pre_2018_data, post_2018_data)
-
-pre_2018_data <- filter(LTREB_data_forspike, year_t1<2018 & species == "ELVI")$spike_count_t1
-post_2018_data <- filter(LTREB_data_forspike, year_t1>=2018 & species == "ELVI")$spike_count_t1
-
-t.test(pre_2018_data, post_2018_data, two.sided = T)
-wilcox.test(pre_2018_data, post_2018_data)
-
-pre_2018_data <- filter(LTREB_data_forspike, year_t1<2018 & species == "ELRI")$spike_count_t1
-post_2018_data <- filter(LTREB_data_forspike, year_t1>=2018 & species == "ELRI")$spike_count_t1
-
-t.test(pre_2018_data, post_2018_data, two.sided = T)
-wilcox.test(pre_2018_data, post_2018_data)
-
-pre_2018_data <- filter(LTREB_data_forspike, year_t1<2018 & species == "POAL")$spike_count_t1
-post_2018_data <- filter(LTREB_data_forspike, year_t1>=2018 & species == "POAL")$spike_count_t1
-
-t.test(pre_2018_data, post_2018_data, two.sided = T)
-wilcox.test(pre_2018_data, post_2018_data)
-
-pre_2018_data <- filter(LTREB_data_forspike, year_t1<2018 & species == "FESU")$spike_count_t1
-post_2018_data <- filter(LTREB_data_forspike, year_t1>=2018 & species == "FESU")$spike_count_t1
-
-t.test(pre_2018_data, post_2018_data, two.sided = T)
-wilcox.test(pre_2018_data, post_2018_data)
-
-#Note to self, look at number of rows that have flower data but not spikelet data
-dim(LTREB_data_forfert) #There are 5072 rows that have flower status = 1 and have inflorescence counts
-
-flow_but_not_spike <- LTREB_full %>%
-  filter(FLW_STAT_T1 == 1 & is.na(SPIKE_A_T1) & is.na(SPIKE_AGPE_MEAN_T1)) # There are 330 rows that have that have flow status without spikelet counts.
-
-#Some of these are one off plants where the infloresce wasn't expanded (especially some of the AGPE in 2021), but others were potentially just forgotten. There are a few years and species that have signifiicant chunks missing, and so I'm going to look at the raw data for those years.
-table(data = flow_but_not_spike$species, flow_but_not_spike$year_t1) #Look at AGPE 2014, FESU 2012, LOAR 2011, POAL 2010, POSY 2010-2011
+# 
+# pre_2018_data <- filter(LTREB_data_forspike, year_t1<2018 & species == "AGPE")$spike_count_t1
+# post_2018_data <- filter(LTREB_data_forspike, year_t1>=2018 & species == "AGPE")$spike_count_t1
+# 
+# t.test(pre_2018_data, post_2018_data, two.sided = T)
+# wilcox.test(pre_2018_data, post_2018_data)
+# 
+# pre_2018_data <- filter(LTREB_data_forspike, year_t1<2018 & species == "ELVI")$spike_count_t1
+# post_2018_data <- filter(LTREB_data_forspike, year_t1>=2018 & species == "ELVI")$spike_count_t1
+# 
+# t.test(pre_2018_data, post_2018_data, two.sided = T)
+# wilcox.test(pre_2018_data, post_2018_data)
+# 
+# pre_2018_data <- filter(LTREB_data_forspike, year_t1<2018 & species == "ELRI")$spike_count_t1
+# post_2018_data <- filter(LTREB_data_forspike, year_t1>=2018 & species == "ELRI")$spike_count_t1
+# 
+# t.test(pre_2018_data, post_2018_data, two.sided = T)
+# wilcox.test(pre_2018_data, post_2018_data)
+# 
+# pre_2018_data <- filter(LTREB_data_forspike, year_t1<2018 & species == "POAL")$spike_count_t1
+# post_2018_data <- filter(LTREB_data_forspike, year_t1>=2018 & species == "POAL")$spike_count_t1
+# 
+# t.test(pre_2018_data, post_2018_data, two.sided = T)
+# wilcox.test(pre_2018_data, post_2018_data)
+# 
+# pre_2018_data <- filter(LTREB_data_forspike, year_t1<2018 & species == "FESU")$spike_count_t1
+# post_2018_data <- filter(LTREB_data_forspike, year_t1>=2018 & species == "FESU")$spike_count_t1
+# 
+# t.test(pre_2018_data, post_2018_data, two.sided = T)
+# wilcox.test(pre_2018_data, post_2018_data)
+# 
+# #Note to self, look at number of rows that have flower data but not spikelet data
+# dim(LTREB_data_forfert) #There are 5072 rows that have flower status = 1 and have inflorescence counts
+# 
+# flow_but_not_spike <- LTREB_full %>%
+#   filter(FLW_STAT_T1 == 1 & is.na(SPIKE_A_T1) & is.na(SPIKE_AGPE_MEAN_T1)) # There are 330 rows that have that have flow status without spikelet counts.
+# 
+# #Some of these are one off plants where the infloresce wasn't expanded (especially some of the AGPE in 2021), but others were potentially just forgotten. There are a few years and species that have signifiicant chunks missing, and so I'm going to look at the raw data for those years.
+# table(data = flow_but_not_spike$species, flow_but_not_spike$year_t1) #Look at AGPE 2014, FESU 2012, LOAR 2011, POAL 2010, POSY 2010-2011
 
 #And revisit the data merging for each species
 
@@ -335,8 +336,8 @@ set.seed(123)
 
 ## MCMC settings
 mcmc_pars <- list(
-  iter = 4000, 
-  warmup = 2000, 
+  iter = 5000, 
+  warmup = 2500, 
   thin = 1, 
   chains = 3
 )
@@ -347,27 +348,28 @@ sm_surv <- stan(file = "Analyses/endo_spp_surv_flw.stan", data = surv_data_list,
                 warmup = mcmc_pars$warmup,
                 chains = mcmc_pars$chains, 
                 thin = mcmc_pars$thin)
-# saveRDS(sm_surv, file = "~/Dropbox/EndodemogData/Model_Runs/endo_spp_surv_woseedling.rds")
+saveRDS(sm_surv, file = "~/Dropbox/EndodemogData/Model_Runs/endo_spp_surv_woseedling.rds")
 
 sm_seed_surv <- stan(file = "Analyses/seedling_surv.stan", data = seed_surv_data_list,
                      iter = mcmc_pars$iter,
                      warmup = mcmc_pars$warmup,
                      chains = mcmc_pars$chains, 
                      thin = mcmc_pars$thin)
-# saveRDS(sm_seed_surv, file = "~/Dropbox/EndodemogData/Model_Runs/endo_seedling_surv.rds")
+saveRDS(sm_seed_surv, file = "~/Dropbox/EndodemogData/Model_Runs/endo_seedling_surv.rds")
 
 sm_flw <- stan(file = "Analyses/endo_spp_surv_flw.stan", data = flw_data_list,
                iter = mcmc_pars$iter,
                warmup = mcmc_pars$warmup,
                chains = mcmc_pars$chains, 
                thin = mcmc_pars$thin)
-# saveRDS(sm_flw, file = "~/Dropbox/EndodemogData/Model_Runs/endo_spp_flw.rds")
+saveRDS(sm_flw, file = "~/Dropbox/EndodemogData/Model_Runs/endo_spp_flw.rds")
 
-sm_grow <- stan(file = "Analyses/endo_spp_grow_fert.stan", data = grow_data_list,
-                iter = mcmc_pars$iter,
-                warmup = mcmc_pars$warmup,
-                chains = mcmc_pars$chains, 
-                thin = mcmc_pars$thin)
+# Negative binomial growth model, we are using the pig for better fit
+# sm_grow <- stan(file = "Analyses/endo_spp_grow_fert.stan", data = grow_data_list,
+#                 iter = mcmc_pars$iter,
+#                 warmup = mcmc_pars$warmup,
+#                 chains = mcmc_pars$chains, 
+#                 thin = mcmc_pars$thin)
 # saveRDS(sm_grow, file = "~/Dropbox/EndodemogData/Model_Runs/endo_spp_grow.rds")
 
 sm_grow_pig <- stan(file = "Analyses/endo_spp_grow_fert_PIG.stan", data = grow_data_list,
@@ -375,65 +377,66 @@ sm_grow_pig <- stan(file = "Analyses/endo_spp_grow_fert_PIG.stan", data = grow_d
                     warmup = mcmc_pars$warmup,
                     chains = mcmc_pars$chains, 
                     thin = mcmc_pars$thin)
-# saveRDS(sm_grow_pig, file = "~/Dropbox/EndodemogData/Model_Runs/endo_spp_grow_PIG.rds")
+saveRDS(sm_grow_pig, file = "~/Dropbox/EndodemogData/Model_Runs/endo_spp_grow_PIG.rds")
 
-sm_seed_grow <- stan(file = "Analyses/seedling_grow.stan", data = seed_grow_data_list,
-                iter = mcmc_pars$iter,
-                warmup = mcmc_pars$warmup,
-                chains = mcmc_pars$chains, 
-                thin = mcmc_pars$thin,
-                control = list(max_treedepth = 15))
+# Negative binomial seedling growth model. We are going with the PIG cause it fits better and this model has some sampling issues
+# sm_seed_grow <- stan(file = "Analyses/seedling_grow.stan", data = seed_grow_data_list,
+#                 iter = mcmc_pars$iter,
+#                 warmup = mcmc_pars$warmup,
+#                 chains = mcmc_pars$chains, 
+#                 thin = mcmc_pars$thin,
+#                 control = list(max_treedepth = 15))
 # saveRDS(sm_seed_grow, file = "~/Dropbox/EndodemogData/Model_Runs/endo_seedling_grow.rds")
 
 #This fits well, but had to run for a longer time (10000 iterations) to get good effective sample size from Stan.
 sm_seed_grow_pig <- stan(file = "Analyses/seedling_grow_PIG.stan", data = seed_grow_data_list,
-                    iter = mcmc_pars$iter,
-                    warmup = mcmc_pars$warmup,
+                    iter = mcmc_pars$iter*2,
+                    warmup = mcmc_pars$warmup*2,
                     chains = mcmc_pars$chains, 
                     thin = mcmc_pars$thin)
 saveRDS(sm_seed_grow_pig, file = "~/Dropbox/EndodemogData/Model_Runs/endo_seedling_grow_PIG_10000iterations.rds")
 
 
-
-sm_fert <- stan(file = "Analyses/endo_spp_grow_fert.stan", data = fert_data_list,
-               iter = mcmc_pars$iter,
-               warmup = mcmc_pars$warmup,
-               chains = mcmc_pars$chains, 
-               thin = mcmc_pars$thin)
-# saveRDS(sm_fert, file = "~/Dropbox/EndodemogData/Model_Runs/endo_spp_fert.rds")
-
-sm_fert_nc <- stan(file = "Analyses/endo_spp_grow_fert_nc.stan", data = fert_data_list,
-                iter = mcmc_pars$iter,
-                warmup = mcmc_pars$warmup,
-                chains = mcmc_pars$chains, 
-                thin = mcmc_pars$thin)
-# saveRDS(sm_fert_nc, file = "~/Dropbox/EndodemogData/Model_Runs/endo_spp_fert_nc.rds")
+# 
+# sm_fert <- stan(file = "Analyses/endo_spp_grow_fert.stan", data = fert_data_list,
+#                iter = mcmc_pars$iter,
+#                warmup = mcmc_pars$warmup,
+#                chains = mcmc_pars$chains, 
+#                thin = mcmc_pars$thin)
+# # saveRDS(sm_fert, file = "~/Dropbox/EndodemogData/Model_Runs/endo_spp_fert.rds")
+# 
+# sm_fert_nc <- stan(file = "Analyses/endo_spp_grow_fert_nc.stan", data = fert_data_list,
+#                 iter = mcmc_pars$iter,
+#                 warmup = mcmc_pars$warmup,
+#                 chains = mcmc_pars$chains, 
+#                 thin = mcmc_pars$thin)
+# # saveRDS(sm_fert_nc, file = "~/Dropbox/EndodemogData/Model_Runs/endo_spp_fert_nc.rds")
+# 
+# 
+# sm_fert_noplot <- stan(file = "Analyses/endo_spp_grow_fert_noplot.stan", data = fert_data_list,
+#                 iter = mcmc_pars$iter,
+#                 warmup = mcmc_pars$warmup,
+#                 chains = mcmc_pars$chains, 
+#                 thin = mcmc_pars$thin,
+#                 control = list(adapt_delta = .99)) # run without this, there is a small number of divergent transitions
+# # saveRDS(sm_fert_noplot, file = "~/Dropbox/EndodemogData/Model_Runs/endo_spp_fert_noplot.rds")
 
 sm_fert_pig <- stan(file = "Analyses/endo_spp_grow_fert_PIG.stan", data = fert_data_list,
-                   iter = mcmc_pars$iter,
-                   warmup = mcmc_pars$warmup,
-                   chains = mcmc_pars$chains, 
-                   thin = mcmc_pars$thin)
-# saveRDS(sm_fert_pig, file = "~/Dropbox/EndodemogData/Model_Runs/endo_spp_fert_pig.rds")
-
-
-sm_fert_noplot <- stan(file = "Analyses/endo_spp_grow_fert_noplot.stan", data = fert_data_list,
-                iter = mcmc_pars$iter,
-                warmup = mcmc_pars$warmup,
-                chains = mcmc_pars$chains, 
-                thin = mcmc_pars$thin,
-                control = list(adapt_delta = .99)) # run without this, there is a small number of divergent transitions
-# saveRDS(sm_fert_noplot, file = "~/Dropbox/EndodemogData/Model_Runs/endo_spp_fert_noplot.rds")
+                    iter = mcmc_pars$iter,
+                    warmup = mcmc_pars$warmup,
+                    chains = mcmc_pars$chains, 
+                    thin = mcmc_pars$thin)
+saveRDS(sm_fert_pig, file = "~/Dropbox/EndodemogData/Model_Runs/endo_spp_fert_pig.rds")
 
 
 # Fitting spikelet data as a poisson, this converges without errors mostly sampling with the increased treedepth
-sm_spike_pois <- stan(file = "Analyses/endo_spp_spike_poisson.stan", data = spike_data_list,
-                 iter = mcmc_pars$iter,
-                 warmup = mcmc_pars$warmup,
-                 chains = mcmc_pars$chains, 
-                 thin = mcmc_pars$thin,
-                 control = list(max_treedepth = 15))
-# saveRDS(sm_spike_pois, file = "~/Dropbox/EndodemogData/Model_Runs/endo_spp_spike_year_plot_poisson.rds")
+# sm_spike_pois <- stan(file = "Analyses/endo_spp_spike_poisson.stan", data = spike_data_list,
+#                  iter = mcmc_pars$iter,
+#                  warmup = mcmc_pars$warmup,
+#                  chains = mcmc_pars$chains, 
+#                  thin = mcmc_pars$thin,
+#                  control = list(max_treedepth = 15))
+# # saveRDS(sm_spike_pois, file = "~/Dropbox/EndodemogData/Model_Runs/endo_spp_spike_year_plot_poisson.rds")
 
 #fitting the spike data as negative binomial because the poisson fits well for mean, but not sd
 sm_spike_nb <- stan(file = "Analyses/endo_spp_spike_nb.stan", data = spike_data_list,
@@ -449,6 +452,7 @@ saveRDS(sm_spike_nb, file = "~/Dropbox/EndodemogData/Model_Runs/endo_spp_spike_y
 # Function for looking at binned size_t fits, particularly important for the growth kernel as this determines the transitions through the matrix model
 size_moments_ppc <- function(data,y_name,sim, n_bins, title = NA){
   require(tidyverse)
+  require(patchwork)
   data$y_name <- data[[y_name]]
   bins <- data %>%
     ungroup() %>% 
@@ -496,7 +500,7 @@ size_moments_ppc <- function(data,y_name,sim, n_bins, title = NA){
     geom_point(data = sim_moments, aes(x = bin_mean, y = kurt_sim), color = "gray72") +
     geom_point(data = sim_medians, aes(x = bin_mean, y = median_kurt_sim),shape = 1, color = "black") +
     geom_point(aes(x = bin_mean, y = kurt_t1), shape = 1, color = "firebrick2") + theme_classic()
-  size_ppc_plot <- grid.arrange(meanplot, sdplot,skewplot, kurtplot, top = title)
+  size_ppc_plot <- meanplot+ sdplot+skewplot+ kurtplot+plot_annotation(title = title)
   return(size_ppc_plot)
 }
 
@@ -519,8 +523,8 @@ mean_s_plot <-   ppc_stat(surv_data_list$y, y_s_sim, stat = "mean")
 sd_s_plot <- ppc_stat(surv_data_list$y, y_s_sim, stat = "sd")
 skew_s_plot <- ppc_stat(surv_data_list$y, y_s_sim, stat = "skewness")
 kurt_s_plot <- ppc_stat(surv_data_list$y, y_s_sim, stat = "Lkurtosis")
-grid.arrange(mean_s_plot,sd_s_plot,skew_s_plot,kurt_s_plot,  top = "Survival")
-
+surv_moments <- mean_s_plot+sd_s_plot+skew_s_plot+kurt_s_plot + plot_annotation(title = "Survival")
+surv_moments
 
 # now we want to look at how the the model is fitting across sizes
 
@@ -529,29 +533,30 @@ surv_size_ppc <- size_moments_ppc(data = LTREB_data_forsurv,
                                          sim = y_s_sim, 
                                          n_bins = 4, 
                                          title = "Survival")
+surv_size_ppc
 
 #### seedling survival ppc ####
 surv_seed_fit <- read_rds("~/Dropbox/EndodemogData/Model_Runs/endo_seedling_surv.rds")
-predS <- rstan::extract(surv_seed_fit, pars = c("p"))$p
+predseedS <- rstan::extract(surv_seed_fit, pars = c("p"))$p
 n_post_draws <- 500
-post_draws <- sample.int(dim(predS)[1], n_post_draws)
-y_s_sim <- matrix(NA,n_post_draws,length(seed_surv_data_list$y))
+post_draws <- sample.int(dim(predseedS)[1], n_post_draws)
+y_seed_s_sim <- matrix(NA,n_post_draws,length(seed_surv_data_list$y))
 for(i in 1:n_post_draws){
-  y_s_sim[i,] <- rbinom(n=length(seed_surv_data_list$y), size=1, prob = invlogit(predS[post_draws[i],]))
+  y_seed_s_sim[i,] <- rbinom(n=length(seed_surv_data_list$y), size=1, prob = invlogit(predseedS[post_draws[i],]))
 }
 # ppc_dens_overlay(seed_surv_data_list$y, y_s_sim)
-seedsurv_densplot <- ppc_dens_overlay(seed_surv_data_list$y, y_s_sim) + theme_classic() + labs(title = "Seedling Survival", x = "Survival status", y = "Density")
+seedsurv_densplot <- ppc_dens_overlay(seed_surv_data_list$y, y_seed_s_sim) + theme_classic() + labs(title = "Seedling Survival", x = "Survival status", y = "Density")
 seedsurv_densplot
 ggsave(seedsurv_densplot, filename = "seedsurv_densplot.png", width = 4, height = 4)
 
 
 
-mean_s_plot <-   ppc_stat(seed_surv_data_list$y, y_s_sim, stat = "mean")
-sd_s_plot <- ppc_stat(seed_surv_data_list$y, y_s_sim, stat = "sd")
-skew_s_plot <- ppc_stat(seed_surv_data_list$y, y_s_sim, stat = "skewness")
-kurt_s_plot <- ppc_stat(seed_surv_data_list$y, y_s_sim, stat = "Lkurtosis")
-grid.arrange(mean_s_plot,sd_s_plot,skew_s_plot,kurt_s_plot,  top = "Seedling Survival")
-
+mean_s_plot <-   ppc_stat(seed_surv_data_list$y, y_seed_s_sim, stat = "mean")
+sd_s_plot <- ppc_stat(seed_surv_data_list$y, y_seed_s_sim, stat = "sd")
+skew_s_plot <- ppc_stat(seed_surv_data_list$y, y_seed_s_sim, stat = "skewness")
+kurt_s_plot <- ppc_stat(seed_surv_data_list$y, y_seed_s_sim, stat = "Lkurtosis")
+seedsurv_moments <- mean_s_plot+sd_s_plot+skew_s_plot+kurt_s_plot + plot_annotation(title = "Seedling Survival")
+seedsurv_moments
 
 #### flowering ppc ####
 flow_fit <- read_rds("~/Dropbox/EndodemogData/Model_Runs/endo_spp_flw.rds")
@@ -568,12 +573,12 @@ flw_densplot
 ggsave(flw_densplot, filename = "flw_densplot.png", width = 4, height = 4)
 
 
-
 mean_f_plot <-   ppc_stat(flw_data_list$y, y_f_sim, stat = "mean")
 sd_f_plot <- ppc_stat(flw_data_list$y, y_f_sim, stat = "sd")
 skew_f_plot <- ppc_stat(flw_data_list$y, y_f_sim, stat = "skewness")
 kurt_f_plot <- ppc_stat(flw_data_list$y, y_f_sim, stat = "Lkurtosis")
-grid.arrange(mean_f_plot,sd_f_plot,skew_f_plot,kurt_f_plot,  top = "Flowering")
+flw_moments <- mean_f_plot+sd_f_plot+skew_f_plot+kurt_f_plot +plot_annotation(title = "Flowering")
+flw_moments
 
 # now we want to look at how the the model is fitting across sizes
 flw_size_ppc <- size_moments_ppc(data = LTREB_data_forflw,
@@ -651,9 +656,9 @@ ppc_dens_overlay(grow_data_list$y, y_g_sim)
 ppc_dens_overlay(grow_data_list$y, y_g_sim) + xlim(0,60) + ggtitle("growth w/o seedling PIG")
 ppc_dens_overlay(grow_data_list$y, y_g_sim) + xlim(50,120)
 
-grow_densplot <- ppc_dens_overlay(grow_data_list$y, y_g_sim) + xlim(0,60) + theme_classic() + labs(title = "Growth", x = "No. of Tillers", y = "Density")
+grow_densplot <- ppc_dens_overlay(grow_data_list$y, y_g_sim) + xlim(0,60) + theme_classic() + labs(title = "Growth w/o seedling PIG", x = "No. of Tillers", y = "Density")
 grow_densplot
-# ggsave(grow_densplot, filename = "grow_densplot.png", width = 4, height = 4)
+ggsave(grow_densplot, filename = "grow_densplot.png", width = 4, height = 4)
 
 
 
@@ -661,8 +666,8 @@ mean_g_plot <-   ppc_stat(grow_data_list$y, y_g_sim, stat = "mean")
 sd_g_plot <- ppc_stat(grow_data_list$y, y_g_sim, stat = "sd")
 skew_g_plot <- ppc_stat(grow_data_list$y, y_g_sim, stat = "skewness")
 kurt_g_plot <- ppc_stat(grow_data_list$y, y_g_sim, stat = "Lkurtosis")
-grid.arrange(mean_g_plot,sd_g_plot,skew_g_plot,kurt_g_plot, top = "Growth PIG")
-
+grow_moments <- mean_g_plot+sd_g_plot+skew_g_plot+kurt_g_plot+ plot_annotation(title = "Growth PIG")
+grow_moments
 
 # now we want to look at how the the growth model is fitting especially across sizes, as this determines the transitions through the matrix model
 PIG_growth_size_ppc <- size_moments_ppc(data = LTREB_data_forgrow,
@@ -674,41 +679,41 @@ PIG_growth_size_ppc <- size_moments_ppc(data = LTREB_data_forgrow,
 
 
 #### seedling growth ppc ####
-
+# negative binomial
 s_grow_fit <- read_rds("~/Dropbox/EndodemogData/Model_Runs/endo_seedling_grow.rds")
 # pairs(grow_fit, pars = c("beta0"))
 s_grow_par <- rstan::extract(s_grow_fit, pars = c("lambda","beta0","betaendo","tau_year","tau_plot", "phi", "od"))
-predG <- s_grow_par$lambda
-phiG <- s_grow_par$phi
-odG <- s_grow_par$od
+predseedG <- s_grow_par$lambda
+phiseedG <- s_grow_par$phi
+odseedG <- s_grow_par$od
 
 n_post_draws <- 100
-post_draws <- sample.int(dim(predG)[1], n_post_draws)
-y_g_sim <- matrix(NA,n_post_draws,length(seed_grow_data_list$y))
+post_draws <- sample.int(dim(predseedG)[1], n_post_draws)
+y_seed_g_sim <- matrix(NA,n_post_draws,length(seed_grow_data_list$y))
 for(i in 1:n_post_draws){
   for(j in 1:length(seed_grow_data_list$y)){
-    y_g_sim[i,j] <- sample(x = 1:max(seed_grow_data_list$y), size = 1, replace = T, prob = dnbinom(1:max(seed_grow_data_list$y), mu = exp(predG[post_draws[i],j]), size = odG[post_draws[i],j])/(1-dnbinom(0, mu = exp(predG[post_draws[i],j]), size = odG[post_draws[i],j])))
+    y_seed_g_sim[i,j] <- sample(x = 1:max(seed_grow_data_list$y), size = 1, replace = T, prob = dnbinom(1:max(seed_grow_data_list$y), mu = exp(predseedG[post_draws[i],j]), size = odseedG[post_draws[i],j])/(1-dnbinom(0, mu = exp(predseedG[post_draws[i],j]), size = odseedG[post_draws[i],j])))
   }
 }
-ppc_dens_overlay(seed_grow_data_list$y, y_g_sim)
-ppc_dens_overlay(seed_grow_data_list$y, y_g_sim) + xlim(0,20) + ggtitle("seedling growth")
+ppc_dens_overlay(seed_grow_data_list$y, y_seed_g_sim)
+ppc_dens_overlay(seed_grow_data_list$y, y_seed_g_sim) + xlim(0,20) + ggtitle("seedling growth")
 
-mean_seed_g_plot <- ppc_stat(seed_grow_data_list$y, y_g_sim, stat = "mean") + ggtitle("mean")
-sd_seed_g_plot <- ppc_stat(seed_grow_data_list$y, y_g_sim, stat = "sd")+ ggtitle("sd")
-skew_seed_g_plot <- ppc_stat(seed_grow_data_list$y, y_g_sim, stat = "skewness")+ ggtitle("skew")
-kurt_seed_g_plot <- ppc_stat(seed_grow_data_list$y, y_g_sim, stat = "Lkurtosis")+ ggtitle("kurt")
+mean_seed_g_plot <- ppc_stat(seed_grow_data_list$y, y_seed_g_sim, stat = "mean") + ggtitle("mean")
+sd_seed_g_plot <- ppc_stat(seed_grow_data_list$y, y_seed_g_sim, stat = "sd")+ ggtitle("sd")
+skew_seed_g_plot <- ppc_stat(seed_grow_data_list$y, y_seed_g_sim, stat = "skewness")+ ggtitle("skew")
+kurt_seed_g_plot <- ppc_stat(seed_grow_data_list$y, y_seed_g_sim, stat = "Lkurtosis")+ ggtitle("kurt")
 grid.arrange(mean_seed_g_plot,sd_seed_g_plot,skew_seed_g_plot,kurt_seed_g_plot, top = "Seedling Growth")
 
 
 #seedling growth PIG distribution
-s_grow_fit <- read_rds("~/Dropbox/EndodemogData/Model_Runs/seedling_grow_PIG.rds")
+s_grow_fit <- read_rds("~/Dropbox/EndodemogData/Model_Runs/endo_seedling_grow_PIG_10000iterations.rds")
 # pairs(grow_fit, pars = c("beta0"))
 s_grow_par <- rstan::extract(s_grow_fit, pars = c("predG","beta0","betaendo","tau_year","tau_plot","theta", "sigma"))
-predG <- s_grow_par$predG
-theta <- s_grow_par$theta
+predseedG <- s_grow_par$predG
+seed_theta <- s_grow_par$theta
 n_post_draws <- 500
-post_draws <- sample.int(dim(predG)[1], n_post_draws)
-y_g_sim   <-  matrix(NA,n_post_draws,length(seed_grow_data_list$y))
+post_draws <- sample.int(dim(predseedG)[1], n_post_draws)
+y_seed_g_sim   <-  matrix(NA,n_post_draws,length(seed_grow_data_list$y))
 
 # simulate data
 for(i in 1:n_post_draws){
@@ -716,32 +721,33 @@ for(i in 1:n_post_draws){
   for(j in 1:length(seed_grow_data_list$y)){
     # probability without truncation
     prob_v <- dpois( 1:1000, 
-                     lambda = (predG[i,j] * theta[i,j]) )
+                     lambda = (predseedG[i,j] * seed_theta[i,j]) )
     # probability for trunctation (denominator)
-    prob_t <- (1 - dpois(0, lambda = (predG[i,j] * theta[i,j]) ) )
+    prob_t <- (1 - dpois(0, lambda = (predseedG[i,j] * seed_theta[i,j]) ) )
     
-    y_g_sim[i,j] <- sample( x=1:1000, 
+    y_seed_g_sim[i,j] <- sample( x=1:1000, 
                             size = 1, replace = T,
                             prob = prob_v / prob_t )
   }
 }
 
 # Posterior predictive check
-ppc_dens_overlay(seed_grow_data_list$y, y_g_sim)
-ppc_dens_overlay(seed_grow_data_list$y, y_g_sim) + xlim(0,60) + ggtitle("seedling growth w/ PIG")
-ppc_dens_overlay(seed_grow_data_list$y, y_g_sim) + xlim(50,120)
+ppc_dens_overlay(seed_grow_data_list$y, y_seed_g_sim)
+ppc_dens_overlay(seed_grow_data_list$y, y_seed_g_sim) + xlim(0,20) + ggtitle("seedling growth w/ PIG")
+ppc_dens_overlay(seed_grow_data_list$y, y_seed_g_sim) + xlim(50,120)
 
-seed_grow_densplot <- ppc_dens_overlay(seed_grow_data_list$y, y_g_sim) + xlim(0,60) + theme_classic() + labs(title = "Seedling Growth", x = "No. of Tillers", y = "Density")
-seed_grow_densplot
-# ggsave(seed_grow_densplot, filename = "seed_grow_densplot.png", width = 4, height = 4)
+seedgrow_densplot <- ppc_dens_overlay(seed_grow_data_list$y, y_seed_g_sim) + xlim(0,60) + theme_classic() + labs(title = "Seedling Growth with PIG", x = "No. of Tillers", y = "Density")
+seedgrow_densplot
+ggsave(seedgrow_densplot, filename = "seed_grow_densplot.png", width = 4, height = 4)
 
 
 
-mean_seed_g_plot <-   ppc_stat(seed_grow_data_list$y, y_g_sim, stat = "mean")
-sd_seed_g_plot <- ppc_stat(seed_grow_data_list$y, y_g_sim, stat = "sd")
-skew_seed_g_plot <- ppc_stat(seed_grow_data_list$y, y_g_sim, stat = "skewness")
-kurt_seed_g_plot <- ppc_stat(seed_grow_data_list$y, y_g_sim, stat = "Lkurtosis")
-grid.arrange(mean_seed_g_plot,sd_seed_g_plot,skew_seed_g_plot,kurt_seed_g_plot, top = "Seedling Growth PIG")
+mean_seed_g_plot <-   ppc_stat(seed_grow_data_list$y, y_seed_g_sim, stat = "mean")
+sd_seed_g_plot <- ppc_stat(seed_grow_data_list$y, y_seed_g_sim, stat = "sd")
+skew_seed_g_plot <- ppc_stat(seed_grow_data_list$y, y_seed_g_sim, stat = "skewness")
+kurt_seed_g_plot <- ppc_stat(seed_grow_data_list$y, y_seed_g_sim, stat = "Lkurtosis")
+seedgrow_moments <- mean_seed_g_plot+sd_seed_g_plot+skew_seed_g_plot+kurt_seed_g_plot+ plot_annotation(title = "Seedling Growth PIG")
+seedgrow_moments
 
 #### fertility ppc ####
 # This fit is maybe not super great, but it's good enough for now probably.
@@ -816,15 +822,18 @@ for(i in 1:n_post_draws){
 
 # Posterior predictive check
 ppc_dens_overlay(fert_data_list$y, y_fert_sim)
-ppc_dens_overlay(fert_data_list$y, y_fert_sim) + xlim(0,30) + ggtitle("fertility with PIG")
 ppc_dens_overlay(fert_data_list$y, y_fert_sim) + xlim(50,120)
+fert_densplot <- ppc_dens_overlay(fert_data_list$y, y_fert_sim) + xlim(0,40) + ggtitle("Fertility with PIG")
+fert_densplot
+ggsave(fert_densplot, filename = "fert_densplot_withPIG.png", width = 4, height = 4)
+
 
 mean_fert_plot <-   ppc_stat(fert_data_list$y, y_fert_sim, stat = "mean")
 sd_fert_plot <- ppc_stat(fert_data_list$y, y_fert_sim, stat = "sd")
 skew_fert_plot <- ppc_stat(fert_data_list$y, y_fert_sim, stat = "skewness")
 kurt_fert_plot <- ppc_stat(fert_data_list$y, y_fert_sim, stat = "Lkurtosis")
-grid.arrange(mean_fert_plot,sd_fert_plot,skew_fert_plot,kurt_fert_plot)
-
+fert_moments <- mean_fert_plot+sd_fert_plot+skew_fert_plot+kurt_fert_plot + plot_annotation(title = "Fertility with PIG")
+fert_moments
 
 # Now we can look at the binned size fit for fertility
 fert_size_ppc <- size_moments_ppc(data = LTREB_data_forfert,
@@ -863,6 +872,7 @@ grid.arrange(mean_spike_plot,sd_spike_plot,skew_spike_plot,kurt_spike_plot)
 mcmc_trace(spike_fit,pars=c("betaendo[1]","betaendo[2]","betaendo[3]"
                            ,"betaendo[4]","betaendo[5]","betaendo[6]"
                            ,"betaendo[7]"))
+
 # looking at the negative binomial fit, fits really nicely
 spike_fit <- read_rds("~/Dropbox/EndodemogData/Model_Runs/endo_spp_spike_year_plot_nb.rds")
 spike_par <- rstan::extract(spike_fit, pars = c("lambda","beta0","betasize","betaendo","betaorigin","tau_year","tau_plot", "phi", "od"))
@@ -870,7 +880,7 @@ predSpike <- spike_par$lambda
 phiSpike <- spike_par$phi
 odSpike <- spike_par$od
 
-n_post_draws <- 100
+n_post_draws <- 500
 post_draws <- sample.int(dim(predSpike)[1], n_post_draws)
 y_spike_sim <- matrix(NA,n_post_draws,length(spike_data_list$y))
 for(i in 1:n_post_draws){
@@ -879,13 +889,33 @@ for(i in 1:n_post_draws){
   }
 }
 ppc_dens_overlay(spike_data_list$y, y_spike_sim)
-ppc_dens_overlay(spike_data_list$y, y_spike_sim) + xlim(0,250) + ggtitle("spikelet count")
+ppc_dens_overlay(spike_data_list$y, y_spike_sim) + xlim(0,250) + ggtitle("Spikelet Count")
+spike_densplot <- ppc_dens_overlay(spike_data_list$y, y_spike_sim) + xlim(0,250) + ggtitle("Spikelet Count")
+spike_densplot
 
 mean_spike_plot <-   ppc_stat(spike_data_list$y, y_spike_sim, stat = "mean")
 sd_spike_plot <- ppc_stat(spike_data_list$y, y_spike_sim, stat = "sd")
 skew_spike_plot <- ppc_stat(spike_data_list$y, y_spike_sim, stat = "skewness")
 kurt_spike_plot <- ppc_stat(spike_data_list$y, y_spike_sim, stat = "Lkurtosis")
-grid.arrange(mean_spike_plot,sd_spike_plot,skew_spike_plot,kurt_spike_plot,  top = "Growth ZTNB")
+spike_moments <- mean_spike_plot+sd_spike_plot+skew_spike_plot+kurt_spike_plot+ plot_annotation(title = "Spikelets per Infl. ZTNB")
+spike_moments
+
+#########################################################################################################
+# Plots for all species all vital rates and model fits ------------------------------
+#########################################################################################################
+quote_bare <- function( ... ){
+  substitute( alist(...) ) %>% 
+    eval( ) %>% 
+    sapply( deparse )
+}
+## Plot for all models vital rate fits
 
 
-
+fits_plot <- surv_densplot + seedsurv_densplot+
+             grow_densplot + seedgrow_densplot+
+             flw_densplot+ plot_spacer()+
+             spike_densplot+plot_spacer() + 
+             plot_layout(ncol = 2) + plot_annotation(title = "Vital rate fits with 500 posteriors draws")
+  
+fits_plot
+ggsave(fits_plot, filename = "fits_plot.png", width = 18, height = 20)
