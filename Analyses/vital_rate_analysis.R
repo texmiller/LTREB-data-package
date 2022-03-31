@@ -504,7 +504,9 @@ size_moments_ppc <- function(data,y_name,sim, n_bins, title = NA){
   size_ppc_plot <- meanplot+ sdplot+skewplot+ kurtplot+plot_annotation(title = title)
   return(size_ppc_plot)
 }
-
+endophyte_color_scheme <- c("#fdedd3","#f3c8a8", "#5a727b", "#4986c7", "#181914",  "#163381")
+color_scheme_set(endophyte_color_scheme)
+color_scheme_view()
 
 #### survival ppc ####
 surv_fit <- read_rds("~/Dropbox/EndodemogData/Model_Runs/endo_spp_surv_woseedling.rds")
@@ -528,7 +530,7 @@ skew_s_plot <- ppc_stat(surv_data_list$y, y_s_sim, stat = "skewness")
 kurt_s_plot <- ppc_stat(surv_data_list$y, y_s_sim, stat = "Lkurtosis")
 surv_moments <- mean_s_plot+sd_s_plot+skew_s_plot+kurt_s_plot + plot_annotation(title = "Survival")
 surv_moments
-
+ggsave(surv_moments, filename = "surv_momentplot.png", width = 4, height = 4)
 # now we want to look at how the the model is fitting across sizes
 
 surv_size_ppc <- size_moments_ppc(data = LTREB_data_forsurv,
@@ -828,11 +830,14 @@ for(i in 1:n_post_draws){
     # probability for trunctation (denominator)
     prob_t <- (1 - dpois(0, lambda = (predG[i,j] * theta[i,j]) ) )
     
-    y_f_sim[i,j] <- sample( x=1:1000, 
+    y_fert_sim[i,j] <- sample( x=1:1000, 
                             size = 1, replace = T,
                             prob = prob_v / prob_t )
   }
 }
+saveRDS(y_fert_sim, file = "yrep_fertilityPIGmodel.rds")
+y_fert_sim <- readRDS(file = "yrep_fertilityPIGmodel.rds")
+
 
 # Posterior predictive check
 ppc_dens_overlay(fert_data_list$y, y_fert_sim)
@@ -870,9 +875,9 @@ for(i in 1:n_post_draws){
 ppc_dens_overlay(spike_data_list$y, y_spike_sim)
 ppc_dens_overlay(spike_data_list$y, y_spike_sim) + xlim(0,250)
 
-spike_densplot <- ppc_dens_overlay(spike_data_list$y, y_spike_sim) + xlim(0,30) + theme_classic() + labs(title = "Panicles", x = "No. of Panicles", y = "Density")
-spike_densplot
-ggsave(spike_densplot, filename = "spike_densplot.png", width = 4, height = 4)
+# spike_densplot <- ppc_dens_overlay(spike_data_list$y, y_spike_sim) + xlim(0,30) + theme_classic() + labs(title = "Panicles", x = "No. of Panicles", y = "Density")
+# spike_densplot
+# ggsave(spike_densplot, filename = "spike_densplot.png", width = 4, height = 4)
 
 # Fit isn't super great for the poisson, but probably close enough for the mean. (Also this is just fit as a poisson, but could look at neg binom and zero truncate)
 
@@ -920,11 +925,7 @@ spike_moments
 #########################################################################################################
 # Plots for all species all vital rates and model fits ------------------------------
 #########################################################################################################
-quote_bare <- function( ... ){
-  substitute( alist(...) ) %>% 
-    eval( ) %>% 
-    sapply( deparse )
-}
+
 ## Plot for all models vital rate fits
 
 
@@ -932,7 +933,7 @@ fits_plot <- surv_densplot + seedsurv_densplot+
              grow_densplot + seedgrow_densplot+
              flw_densplot+ plot_spacer()+
              spike_densplot+plot_spacer() + 
-             plot_layout(ncol = 2) + plot_annotation(title = "Vital rate fits with 500 posteriors draws")
+             plot_layout(ncol = 2) + plot_annotation(title = "Vital rate fits with 500 posterior draws")
   
 fits_plot
 ggsave(fits_plot, filename = "fits_plot.png", width = 18, height = 20)
@@ -944,9 +945,27 @@ moments_plot <- surv_moments + seedsurv_moments+
                 grow_moments + seedgrow_moments+
                 flw_moments+ plot_spacer()+
                 spike_moments+ plot_spacer()+
-        
-  
+                plot_layout(ncol = 2) + plot_annotation(title = "Vital rate moments with distribution of posterior draws")
+ggsave(moments_plot, filename = "moments_plot.png", width = 18, height = 20)
+
+
+## Plot for all models fits and moments
+fitsandmoments_plot <- (surv_densplot + surv_moments)/
+                      (seedsurv_densplot + seedsurv_moments)/
+                      (grow_densplot + grow_moments)/ 
+                      (seedgrow_densplot + seedgrow_moments)/
+                       (flw_densplot + flw_moments)/
+                       (spike_densplot + spike_moments)+ 
+                      plot_annotation(title = "Vital rate fits and moments with 500 posterior draws")
+ggsave(fitsandmoments_plot, filename = "fitsandmoments_plot.png", width = 18, height = 20)
 
 ## Plot for size-specific moments for all models except seedling models, which have only one size
+size_ppc_plot <- PIG_growth_size_ppc + surv_size_ppc + flw_size_ppc+
+                 plot_layout(ncol = 1) + plot_annotation(title = "Size specific vital rate moments")
+
+ggsave(size_ppc_plot, filename = "size_ppc_plot.png", width = 12, height = 20)
+
 
 ## Plot of traceplots select parameters for all models
+
+mcmc_trace(surv_fit, pars = c("beta0[1]", "betaendo[1]", "sigmaendo[1]"))
