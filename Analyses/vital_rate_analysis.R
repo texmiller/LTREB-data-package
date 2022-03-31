@@ -450,6 +450,7 @@ saveRDS(sm_spike_nb, file = "~/Dropbox/EndodemogData/Model_Runs/endo_spp_spike_y
 # Model Diagnostics ------------------------------
 #########################################################################################################
 # Function for looking at binned size_t fits, particularly important for the growth kernel as this determines the transitions through the matrix model
+# plots the mean, sd, skew and kertosis of the posteriors (grey) as well as the mean of the posteriors for each moment (black) and the data (red) for size bins
 size_moments_ppc <- function(data,y_name,sim, n_bins, title = NA){
   require(tidyverse)
   require(patchwork)
@@ -514,6 +515,8 @@ y_s_sim <- matrix(NA,n_post_draws,length(surv_data_list$y))
 for(i in 1:n_post_draws){
   y_s_sim[i,] <- rbinom(n=length(surv_data_list$y), size=1, prob = invlogit(predS[post_draws[i],]))
 }
+saveRDS(y_s_sim, file = "yrep_survivalmodel.rds")
+y_s_sim <- readRDS(file = "yrep_survivalmodel.rds")
 # ppc_dens_overlay(surv_data_list$y, y_s_sim)
 surv_densplot <- ppc_dens_overlay(surv_data_list$y, y_s_sim) + theme_classic() + labs(title = "Adult Survival", x = "Survival status", y = "Density")
 surv_densplot
@@ -544,6 +547,8 @@ y_seed_s_sim <- matrix(NA,n_post_draws,length(seed_surv_data_list$y))
 for(i in 1:n_post_draws){
   y_seed_s_sim[i,] <- rbinom(n=length(seed_surv_data_list$y), size=1, prob = invlogit(predseedS[post_draws[i],]))
 }
+saveRDS(y_seed_s_sim, file = "yrep_seedlingsurvivalmodel.rds")
+y_seed_s_sim <- readRDS(file = "yrep_seedlingsurvivalmodel.rds")
 # ppc_dens_overlay(seed_surv_data_list$y, y_s_sim)
 seedsurv_densplot <- ppc_dens_overlay(seed_surv_data_list$y, y_seed_s_sim) + theme_classic() + labs(title = "Seedling Survival", x = "Survival status", y = "Density")
 seedsurv_densplot
@@ -567,6 +572,9 @@ y_f_sim <- matrix(NA,n_post_draws,length(flw_data_list$y))
 for(i in 1:n_post_draws){
   y_f_sim[i,] <- rbinom(n=length(flw_data_list$y), size=1, prob = invlogit(predF[post_draws[i],]))
 }
+saveRDS(y_f_sim, file = "yrep_floweringmodel.rds")
+y_f_sim <- readRDS(file = "yrep_floweringmodel.rds")
+
 # ppc_dens_overlay(flw_data_list$y, y_f_sim)
 flw_densplot <- ppc_dens_overlay(flw_data_list$y, y_f_sim) + theme_classic() + labs(title = "Flowering", x = "Flowering status", y = "Density")
 flw_densplot
@@ -589,6 +597,7 @@ flw_size_ppc <- size_moments_ppc(data = LTREB_data_forflw,
 
 
 #### growth ppc ####
+#This is the ZTNB model, it doesn't fit the variance very well
 grow_fit <- read_rds("~/Dropbox/EndodemogData/Model_Runs/endo_spp_grow.rds")
 # pairs(grow_fit, pars = c("beta0"))
 grow_par <- rstan::extract(grow_fit, pars = c("lambda","beta0","betasize","betaendo","betaorigin","tau_year","tau_plot", "phi", "od"))
@@ -650,6 +659,8 @@ for(i in 1:n_post_draws){
                             prob = prob_v / prob_t )
   }
 }
+saveRDS(y_g_sim, file = "yrep_growthPIGmodel.rds")
+y_g_sim <- readRDS(file = "yrep_growthPIGmodel.rds")
 
 # Posterior predictive check
 ppc_dens_overlay(grow_data_list$y, y_g_sim)
@@ -730,6 +741,9 @@ for(i in 1:n_post_draws){
                             prob = prob_v / prob_t )
   }
 }
+
+saveRDS(y_seed_g_sim, file = "yrep_seedlinggrowthPIGmodel.rds")
+y_seed_g_sim <- readRDS(file = "yrep_seedlinggrowthPIGmodel.rds")
 
 # Posterior predictive check
 ppc_dens_overlay(seed_grow_data_list$y, y_seed_g_sim)
@@ -888,6 +902,9 @@ for(i in 1:n_post_draws){
     y_spike_sim[i,j] <- sample(x = 1:max(spike_data_list$y), size = 1, replace = T, prob = dnbinom(1:max(spike_data_list$y), mu = exp(predSpike[post_draws[i],j]), size = odSpike[post_draws[i],j]))
   }
 }
+saveRDS(y_spike_sim, file = "yrep_spikeletNBmodel.rds")
+y_spike_sim <- readRDS(file = "yrep_spikeletNBmodel.rds")
+
 ppc_dens_overlay(spike_data_list$y, y_spike_sim)
 ppc_dens_overlay(spike_data_list$y, y_spike_sim) + xlim(0,250) + ggtitle("Spikelet Count")
 spike_densplot <- ppc_dens_overlay(spike_data_list$y, y_spike_sim) + xlim(0,250) + ggtitle("Spikelet Count")
@@ -919,3 +936,17 @@ fits_plot <- surv_densplot + seedsurv_densplot+
   
 fits_plot
 ggsave(fits_plot, filename = "fits_plot.png", width = 18, height = 20)
+
+
+## Plot for all models moments
+
+moments_plot <- surv_moments + seedsurv_moments+
+                grow_moments + seedgrow_moments+
+                flw_moments+ plot_spacer()+
+                spike_moments+ plot_spacer()+
+        
+  
+
+## Plot for size-specific moments for all models except seedling models, which have only one size
+
+## Plot of traceplots select parameters for all models
