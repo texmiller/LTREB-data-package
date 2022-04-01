@@ -11,7 +11,7 @@ library(shinystan)
 library(bayesplot)
 library(devtools)
 library(moments)
-library(gridExtra)
+library(patchwork)
 
 invlogit<-function(x){exp(x)/(1+exp(x))}
 logit = function(x) { log(x/(1-x)) }
@@ -140,6 +140,8 @@ s_to_s_data_list <- list(tot_recruit_t1 = LTREB_s_to_s_data$tot_recruits_t1,
                          nEndo = length(unique(LTREB_s_to_s_data$endo_01)))
 str(s_to_s_data_list)
 
+saveRDS(s_to_s_data_list, file = "s_to_s_data_list.rds")
+
 #########################################################################################################
 # Stan model for seed to seedling recruitment rate ------------------------------
 #########################################################################################################
@@ -150,8 +152,8 @@ set.seed(123)
 
 ## MCMC settings
 mcmc_pars <- list(
-  warmup = 2000, 
-  iter =4000, 
+  warmup = 2500, 
+  iter =5000, 
   thin = 1, 
   chains = 3
 )
@@ -160,17 +162,17 @@ mcmc_pars <- list(
 
 ## Run the model by calling stan()
 ## Save the outputs as rds files
-sm_s_to_s <- stanc(file = "Analyses/endo_spp_s_to_s.stan")
+# sm_s_to_s <- stanc(file = "Analyses/endo_spp_s_to_s.stan")
 sm_s_to_s <- stan(file = "Analyses/endo_spp_s_to_s.stan", data = s_to_s_data_list,
                      iter = mcmc_pars$iter,
                      warmup = mcmc_pars$warmup,
                      chains = mcmc_pars$chains, 
                      thin = mcmc_pars$thin, 
                   control = list(max_treedepth = 15))
-# saveRDS(sm_s_to_s, file = "~/Dropbox/EndodemogData/Model_Runs/endo_spp_s_to_s.rds")
+saveRDS(sm_s_to_s, file = "~/Dropbox/EndodemogData/Model_Runs/endo_spp_s_to_s.rds")
 
-
-
+print(sm_s_to_s, pars = c("sigmaendo"))
+traceplot(sm_s_to_s, pars = c("beta0"))
 
 #########################################################################################################
 # Model Diagnostics ------------------------------
@@ -180,20 +182,26 @@ s_to_s_fit <- read_rds("~/Dropbox/EndodemogData/Model_Runs/endo_spp_s_to_s.rds")
 s_to_s_par <- rstan::extract(s_to_s_fit, pars = c("p"))$p
 predRecruit<- s_to_s_par
 
-n_post_draws <- 100
+n_post_draws <- 500
 post_draws <- sample.int(dim(predRecruit)[1], n_post_draws)
 y_recruit_sim <- matrix(NA,n_post_draws,length(s_to_s_data_list$tot_recruit_t1))
 
 for(i in 1:n_post_draws){
   y_recruit_sim[i,] <- rbinom(n = length(s_to_s_data_list$tot_recruit_t1), size = s_to_s_data_list$tot_seed_t, prob = invlogit(predRecruit[post_draws[i],]))
 }
-ppc_dens_overlay(s_to_s_data_list$tot_recruit_t1, y_recruit_sim)
-ppc_dens_overlay(s_to_s_data_list$tot_recruit_t1, y_recruit_sim) +xlim(0,100) # doesn't seem to fit super great for some of the lower values
-# I think I'm simulating the yrep correctly but I might need to check that
-# overall mean and sd look okay.
 
-mean_sm_plot <-   ppc_stat(s_to_s_data_list$tot_recruit_t1, y_recruit_sim, stat = "mean")
-sd_sm_plot <- ppc_stat(s_to_s_data_list$tot_recruit_t1, y_recruit_sim, stat = "sd")
-skew_sm_plot <- ppc_stat(s_to_s_data_list$tot_recruit_t1, y_recruit_sim, stat = "skewness")
-kurt_sm_plot <- ppc_stat(s_to_s_data_list$tot_recruit_t1, y_recruit_sim, stat = "Lkurtosis")
-grid.arrange(mean_sm_plot,sd_sm_plot,skew_sm_plot,kurt_sm_plot)
+ppc_dens_overlay(s_to_s_data_list$tot_recruit_t1, y_recruit_sim)
+ppc_dens_overlay(s_to_s_data_list$tot_recruit_t1, y_recruit_sim) +xlim(0,75) # seems to be fitting okay
+stos_densplot <- ppc_dens_overlay(s_to_s_data_list$tot_recruit_t1, y_recruit_sim) +xlim(0,75) + labs(title = "Recruitment", x = "Successful Germination", y = "Density") 
+ggsave(stos_densplot, filename = "stos_densplot.png", width = 4, height = 4)
+
+# overall mean looks okay.
+
+mean_stos_plot <-   ppc_stat(s_to_s_data_list$tot_recruit_t1, y_recruit_sim, stat = "mean")
+sd_stos_plot <- ppc_stat(s_to_s_data_list$tot_recruit_t1, y_recruit_sim, stat = "sd")
+skew_stos_plot <- ppc_stat(s_to_s_data_list$tot_recruit_t1, y_recruit_sim, stat = "skewness")
+kurt_stos_plot <- ppc_stat(s_to_s_data_list$tot_recruit_t1, y_recruit_sim, stat = "Lkurtosis")
+stos_moments <- mean_stos_plot+sd_stos_plot+skew_stos_plot+kurt_stos_plot
+# stos_moments
+ggsave(stos_moments, filename = "stos_moments.png", width = 4, height = 4)
+

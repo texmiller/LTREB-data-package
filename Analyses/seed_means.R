@@ -11,7 +11,7 @@ library(shinystan)
 library(bayesplot)
 library(devtools)
 library(moments)
-library(gridExtra)
+library(patchwork)
 
 invlogit<-function(x){exp(x)/(1+exp(x))}
 logit = function(x) { log(x/(1-x)) }
@@ -68,8 +68,8 @@ set.seed(123)
 
 ## MCMC settings
 mcmc_pars <- list(
-  warmup =2000, 
-  iter = 4000, 
+  warmup =2500, 
+  iter = 5000, 
   thin = 1, 
   chains = 3
 )
@@ -98,20 +98,27 @@ seedmean_fit <- read_rds("~/Dropbox/EndodemogData/Model_Runs/endo_spp_seed_mean.
 
 predSeedmean <- rstan::extract(seedmean_fit, pars = c("mu_seed"))$mu_seed
 sdSeedmean <- rstan::extract(seedmean_fit, pars = c("sigma0"))$sigma0
-n_post_draws <- 100
+n_post_draws <- 500
 post_draws <- sample.int(dim(predSeedmean)[1], n_post_draws)
 y_seedmean_sim <- matrix(NA,n_post_draws,length(seed_mean_data_list$seed))
 for(i in 1:n_post_draws){
   y_seedmean_sim[i,] <- rnorm(n=length(seed_mean_data_list$seed), mean = predSeedmean[post_draws[i],], sd = sdSeedmean[post_draws[i]])
 }
+saveRDS(y_seedmean_sim, file = "yrep_seedmeanmodel.rds")
+y_seedmean_sim <- readRDS(file = "yrep_seedmeanmodel.rds")
+
 ppc_dens_overlay(seed_mean_data_list$seed, y_seedmean_sim)
- 
+
+seedmean_densplot <-ppc_dens_overlay(seed_mean_data_list$seed, y_seedmean_sim)+ theme_classic() + labs(title = "Seed Means", x = "Seeds per Infl.", y = "Density") 
+ggsave(seedmean_densplot, filename = "seedmean_densplot.png", width = 4, height = 4)
+
 mean_sm_plot <-   ppc_stat(seed_mean_data_list$seed, y_seedmean_sim, stat = "mean")
 sd_sm_plot <- ppc_stat(seed_mean_data_list$seed, y_seedmean_sim, stat = "sd")
 skew_sm_plot <- ppc_stat(seed_mean_data_list$seed, y_seedmean_sim, stat = "skewness")
 kurt_sm_plot <- ppc_stat(seed_mean_data_list$seed, y_seedmean_sim, stat = "Lkurtosis")
-grid.arrange(mean_sm_plot,sd_sm_plot,skew_sm_plot,kurt_sm_plot)
-
+seedmean_moments <- mean_sm_plot + sd_sm_plot + skew_sm_plot + kurt_sm_plot
+seedmean_moments
+ggsave(seedmean_moments, filename = "seedmean_moments.png", width = 4, height = 4)
 
 
 
