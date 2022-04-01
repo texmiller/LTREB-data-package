@@ -189,6 +189,8 @@ y_recruit_sim <- matrix(NA,n_post_draws,length(s_to_s_data_list$tot_recruit_t1))
 for(i in 1:n_post_draws){
   y_recruit_sim[i,] <- rbinom(n = length(s_to_s_data_list$tot_recruit_t1), size = s_to_s_data_list$tot_seed_t, prob = invlogit(predRecruit[post_draws[i],]))
 }
+saveRDS(y_recruit_sim, file = "yrep_stosmodel.rds")
+y_recruit_sim <- read_rds(file = "yrep_stosmodel")
 
 ppc_dens_overlay(s_to_s_data_list$tot_recruit_t1, y_recruit_sim)
 ppc_dens_overlay(s_to_s_data_list$tot_recruit_t1, y_recruit_sim) +xlim(0,75) # seems to be fitting okay
