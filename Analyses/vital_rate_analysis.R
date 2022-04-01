@@ -506,7 +506,7 @@ size_moments_ppc <- function(data,y_name,sim, n_bins, title = NA){
 }
 endophyte_color_scheme <- c("#fdedd3","#f3c8a8", "#5a727b", "#4986c7", "#181914",  "#163381")
 color_scheme_set(endophyte_color_scheme)
-color_scheme_view()
+# color_scheme_view()
 
 #### survival ppc ####
 surv_fit <- read_rds("~/Dropbox/EndodemogData/Model_Runs/endo_spp_surv_woseedling.rds")
@@ -530,7 +530,7 @@ skew_s_plot <- ppc_stat(surv_data_list$y, y_s_sim, stat = "skewness")
 kurt_s_plot <- ppc_stat(surv_data_list$y, y_s_sim, stat = "Lkurtosis")
 surv_moments <- mean_s_plot+sd_s_plot+skew_s_plot+kurt_s_plot + plot_annotation(title = "Survival")
 surv_moments
-ggsave(surv_moments, filename = "surv_momentplot.png", width = 4, height = 4)
+# ggsave(surv_moments, filename = "surv_momentplot.png", width = 4, height = 4)
 # now we want to look at how the the model is fitting across sizes
 
 surv_size_ppc <- size_moments_ppc(data = LTREB_data_forsurv,
@@ -539,6 +539,7 @@ surv_size_ppc <- size_moments_ppc(data = LTREB_data_forsurv,
                                          n_bins = 4, 
                                          title = "Survival")
 surv_size_ppc
+# ggsave(surv_size_ppc, filename = "surv_size_ppc.png", width = 4, height = 4)
 
 #### seedling survival ppc ####
 surv_seed_fit <- read_rds("~/Dropbox/EndodemogData/Model_Runs/endo_seedling_surv.rds")
@@ -554,9 +555,7 @@ y_seed_s_sim <- readRDS(file = "yrep_seedlingsurvivalmodel.rds")
 # ppc_dens_overlay(seed_surv_data_list$y, y_s_sim)
 seedsurv_densplot <- ppc_dens_overlay(seed_surv_data_list$y, y_seed_s_sim) + theme_classic() + labs(title = "Seedling Survival", x = "Survival status", y = "Density")
 seedsurv_densplot
-ggsave(seedsurv_densplot, filename = "seedsurv_densplot.png", width = 4, height = 4)
-
-
+# ggsave(seedsurv_densplot, filename = "seedsurv_densplot.png", width = 4, height = 4)
 
 mean_s_plot <-   ppc_stat(seed_surv_data_list$y, y_seed_s_sim, stat = "mean")
 sd_s_plot <- ppc_stat(seed_surv_data_list$y, y_seed_s_sim, stat = "sd")
@@ -564,6 +563,7 @@ skew_s_plot <- ppc_stat(seed_surv_data_list$y, y_seed_s_sim, stat = "skewness")
 kurt_s_plot <- ppc_stat(seed_surv_data_list$y, y_seed_s_sim, stat = "Lkurtosis")
 seedsurv_moments <- mean_s_plot+sd_s_plot+skew_s_plot+kurt_s_plot + plot_annotation(title = "Seedling Survival")
 seedsurv_moments
+# ggsave(seedsurv_moments, filename = "seedsurv_momentsplot.png", width = 4, height = 4)
 
 #### flowering ppc ####
 flow_fit <- read_rds("~/Dropbox/EndodemogData/Model_Runs/endo_spp_flw.rds")
@@ -589,6 +589,7 @@ skew_f_plot <- ppc_stat(flw_data_list$y, y_f_sim, stat = "skewness")
 kurt_f_plot <- ppc_stat(flw_data_list$y, y_f_sim, stat = "Lkurtosis")
 flw_moments <- mean_f_plot+sd_f_plot+skew_f_plot+kurt_f_plot +plot_annotation(title = "Flowering")
 flw_moments
+ggsave(flw_moments, filename = "flw_momentsplot.png", width = 4, height = 4)
 
 # now we want to look at how the the model is fitting across sizes
 flw_size_ppc <- size_moments_ppc(data = LTREB_data_forflw,
@@ -596,6 +597,7 @@ flw_size_ppc <- size_moments_ppc(data = LTREB_data_forflw,
                                   sim = y_f_sim, 
                                   n_bins = 2, 
                                   title = "Flowering")
+ggsave(flw_size_ppc, filename = "flw_size_ppc.png", width = 4, height = 4)
 
 
 #### growth ppc ####
@@ -681,6 +683,8 @@ skew_g_plot <- ppc_stat(grow_data_list$y, y_g_sim, stat = "skewness")
 kurt_g_plot <- ppc_stat(grow_data_list$y, y_g_sim, stat = "Lkurtosis")
 grow_moments <- mean_g_plot+sd_g_plot+skew_g_plot+kurt_g_plot+ plot_annotation(title = "Growth PIG")
 grow_moments
+ggsave(grow_moments, filename = "grow_momentsplot.png", width = 4, height = 4)
+
 
 # now we want to look at how the the growth model is fitting especially across sizes, as this determines the transitions through the matrix model
 PIG_growth_size_ppc <- size_moments_ppc(data = LTREB_data_forgrow,
@@ -688,7 +692,7 @@ PIG_growth_size_ppc <- size_moments_ppc(data = LTREB_data_forgrow,
                                          sim = y_g_sim, 
                                          n_bins = 6, 
                                          title = "Growth PIG")
-# ggsave(PIG_growth_size_ppc, filename = "PIG_growth_size_pcc.png", width = 4, height = 4)
+ggsave(PIG_growth_size_ppc, filename = "PIG_growth_size_pcc.png", width = 4, height = 4)
 
 
 #### seedling growth ppc ####
@@ -764,6 +768,7 @@ skew_seed_g_plot <- ppc_stat(seed_grow_data_list$y, y_seed_g_sim, stat = "skewne
 kurt_seed_g_plot <- ppc_stat(seed_grow_data_list$y, y_seed_g_sim, stat = "Lkurtosis")
 seedgrow_moments <- mean_seed_g_plot+sd_seed_g_plot+skew_seed_g_plot+kurt_seed_g_plot+ plot_annotation(title = "Seedling Growth PIG")
 seedgrow_moments
+ggsave(seedgrow_moments, filename = "seedgrow_momentsplot.png", width = 4, height = 4)
 
 #### fertility ppc ####
 # This fit is maybe not super great, but it's good enough for now probably.
@@ -846,13 +851,14 @@ fert_densplot <- ppc_dens_overlay(fert_data_list$y, y_fert_sim) + xlim(0,40) + g
 fert_densplot
 ggsave(fert_densplot, filename = "fert_densplot_withPIG.png", width = 4, height = 4)
 
-
+# This doesn't fit all the moments quite as well, but it's likely good enough
 mean_fert_plot <-   ppc_stat(fert_data_list$y, y_fert_sim, stat = "mean")
 sd_fert_plot <- ppc_stat(fert_data_list$y, y_fert_sim, stat = "sd")
 skew_fert_plot <- ppc_stat(fert_data_list$y, y_fert_sim, stat = "skewness")
 kurt_fert_plot <- ppc_stat(fert_data_list$y, y_fert_sim, stat = "Lkurtosis")
 fert_moments <- mean_fert_plot+sd_fert_plot+skew_fert_plot+kurt_fert_plot + plot_annotation(title = "Fertility with PIG")
 fert_moments
+ggsave(fert_moments, filename = "fert_momentsplot_withPIG.png", width = 4, height = 4)
 
 # Now we can look at the binned size fit for fertility
 fert_size_ppc <- size_moments_ppc(data = LTREB_data_forfert,
@@ -860,6 +866,8 @@ fert_size_ppc <- size_moments_ppc(data = LTREB_data_forfert,
                                   sim = y_fert_sim, 
                                   n_bins = 3, 
                                   title = "Inflorescence Count")
+ggsave(fert_size_ppc, filename = "fert_size_ppc.png", width = 4, height = 4)
+
 
 #### spikelet ppc ####
 # Looking at the poisson fit
@@ -872,12 +880,12 @@ y_spike_sim <- matrix(NA,n_post_draws,length(spike_data_list$y))
 for(i in 1:n_post_draws){
   y_spike_sim[i,] <- rpois(n=length(spike_data_list$y), lambda = exp(predSpike[post_draws[i],]))
 }
-ppc_dens_overlay(spike_data_list$y, y_spike_sim)
-ppc_dens_overlay(spike_data_list$y, y_spike_sim) + xlim(0,250)
+# ppc_dens_overlay(spike_data_list$y, y_spike_sim)
+# ppc_dens_overlay(spike_data_list$y, y_spike_sim) + xlim(0,250)
 
-# spike_densplot <- ppc_dens_overlay(spike_data_list$y, y_spike_sim) + xlim(0,30) + theme_classic() + labs(title = "Panicles", x = "No. of Panicles", y = "Density")
-# spike_densplot
-# ggsave(spike_densplot, filename = "spike_densplot.png", width = 4, height = 4)
+spike_densplot <- ppc_dens_overlay(spike_data_list$y, y_spike_sim) + xlim(0,30) + theme_classic() + labs(title = "Panicles", x = "No. of Panicles", y = "Density")
+spike_densplot
+ggsave(spike_densplot, filename = "spike_densplot.png", width = 4, height = 4)
 
 # Fit isn't super great for the poisson, but probably close enough for the mean. (Also this is just fit as a poisson, but could look at neg binom and zero truncate)
 
@@ -914,6 +922,7 @@ ppc_dens_overlay(spike_data_list$y, y_spike_sim)
 ppc_dens_overlay(spike_data_list$y, y_spike_sim) + xlim(0,250) + ggtitle("Spikelet Count")
 spike_densplot <- ppc_dens_overlay(spike_data_list$y, y_spike_sim) + xlim(0,250) + ggtitle("Spikelet Count")
 spike_densplot
+ggsave(spike_densplot, filename = "spike_densplot.png", width = 4, height = 4)
 
 mean_spike_plot <-   ppc_stat(spike_data_list$y, y_spike_sim, stat = "mean")
 sd_spike_plot <- ppc_stat(spike_data_list$y, y_spike_sim, stat = "sd")
@@ -921,6 +930,7 @@ skew_spike_plot <- ppc_stat(spike_data_list$y, y_spike_sim, stat = "skewness")
 kurt_spike_plot <- ppc_stat(spike_data_list$y, y_spike_sim, stat = "Lkurtosis")
 spike_moments <- mean_spike_plot+sd_spike_plot+skew_spike_plot+kurt_spike_plot+ plot_annotation(title = "Spikelets per Infl. ZTNB")
 spike_moments
+ggsave(spike_moments, filename = "spike_momentsplot.png", width = 4, height = 4)
 
 #########################################################################################################
 # Plots for all species all vital rates and model fits ------------------------------
@@ -931,7 +941,7 @@ spike_moments
 
 fits_plot <- surv_densplot + seedsurv_densplot+
              grow_densplot + seedgrow_densplot+
-             flw_densplot+ plot_spacer()+
+             flw_densplot+ fert_densplot+
              spike_densplot+plot_spacer() + 
              plot_layout(ncol = 2) + plot_annotation(title = "Vital rate fits with 500 posterior draws")
   
@@ -943,7 +953,7 @@ ggsave(fits_plot, filename = "fits_plot.png", width = 18, height = 20)
 
 moments_plot <- surv_moments + seedsurv_moments+
                 grow_moments + seedgrow_moments+
-                flw_moments+ plot_spacer()+
+                flw_moments+ fert_moments+
                 spike_moments+ plot_spacer()+
                 plot_layout(ncol = 2) + plot_annotation(title = "Vital rate moments with distribution of posterior draws")
 ggsave(moments_plot, filename = "moments_plot.png", width = 18, height = 20)
@@ -955,17 +965,37 @@ fitsandmoments_plot <- (surv_densplot + surv_moments)/
                       (grow_densplot + grow_moments)/ 
                       (seedgrow_densplot + seedgrow_moments)/
                        (flw_densplot + flw_moments)/
+                        (fert_densplot + fert_moments)/
                        (spike_densplot + spike_moments)+ 
                       plot_annotation(title = "Vital rate fits and moments with 500 posterior draws")
 ggsave(fitsandmoments_plot, filename = "fitsandmoments_plot.png", width = 18, height = 20)
 
-## Plot for size-specific moments for all models except seedling models, which have only one size
-size_ppc_plot <- PIG_growth_size_ppc + surv_size_ppc + flw_size_ppc+
-                 plot_layout(ncol = 1) + plot_annotation(title = "Size specific vital rate moments")
-
+## Plot for size-specific moments for growth model minus seedlings, which have only one size
+## could plot these for other vital rates if desired
+size_ppc_plot <- (PIG_growth_size_ppc+ plot_annotation(title = 'Growth'))+
+                  plot_annotation(title = "Size specific vital rate moments")
+size_ppc_plot
 ggsave(size_ppc_plot, filename = "size_ppc_plot.png", width = 12, height = 20)
 
 
 ## Plot of traceplots select parameters for all models
 
-mcmc_trace(surv_fit, pars = c("beta0[1]", "betaendo[1]", "sigmaendo[1]"))
+surv_trace <- mcmc_trace(surv_fit, pars = c("beta0[1]", "betaendo[1]", "sigmaendo[1]"))+ggtitle("Survival")
+seedsurv_trace <- mcmc_trace(surv_seed_fit, pars = c("beta0[1]", "betaendo[1]", "sigmaendo[1]"))+ggtitle("Seedling Survival")
+flw_trace <- mcmc_trace(flow_fit, pars = c("beta0[1]", "betaendo[1]", "sigmaendo[1]"))+ggtitle("Flowering")
+grow_trace <- mcmc_trace(grow_fit, pars = c("beta0[1]", "betaendo[1]", "sigmaendo[1]"))+ggtitle("Growth")
+seedgrow_trace <- mcmc_trace(s_grow_fit, pars = c("beta0[1]", "betaendo[1]", "sigmaendo[1]"))+ggtitle("Seedling Growth")
+fert_trace <- mcmc_trace(fert_fit, pars = c("beta0[1]", "betaendo[1]", "sigmaendo[1]"))+ggtitle("Fertility")
+spike_trace <- mcmc_trace(spike_fit, pars = c("beta0[1]", "betaendo[1]", "sigmaendo[1]"))+ggtitle("Spikelets per inflorescence")
+
+vr_traceplots <- (surv_trace)/
+                  (seedsurv_trace)/
+                  (grow_trace)/
+                  (seedgrow_trace)/
+                  (flw_trace)/
+                  (fert_trace)/
+                  (spike_trace) + plot_annotation(title = "Traceplots for select parameters from all vital rates")
+ggsave(vr_traceplots, filename = "vr_traceplots.png", width = 25, height = 20)
+
+
+
