@@ -531,9 +531,11 @@ vr_traceplots <- (surv_trace)/
 ggsave(vr_traceplots, filename = "vr_traceplots.png", width = 25, height = 20)
 
 
-## Plots for mean and variance endophyte effects on all vital rates, all species
+## Plots for mean and year variance endophyte effects on all vital rates, all species
 mean_species_key <- c("betaendo[1]" = "AGPE", "betaendo[2]" = "ELRI", "betaendo[3]" = "ELVI", "betaendo[4]" = "FESU", "betaendo[5]" = "LOAR", "betaendo[6]" = "POAL", "betaendo[7]" = "POSY")
+sd_species_key <- c("sigmaendo[1]" = "AGPE", "sigmaendo[2]" = "ELRI", "sigmaendo[3]" = "ELVI", "sigmaendo[4]" = "FESU", "sigmaendo[5]" = "LOAR", "sigmaendo[6]" = "POAL", "sigmaendo[7]" = "POSY")
 
+# effect of endophytte on mean (betaendo)
 surv_endomean_posteriors <-  mcmc_areas(surv_fit, prob = 0.8, regex_pars = c("betaendo"))+labs(title = "Adult Survival", subtitle = "Endophyte effect on mean with 80% credible intervals") + scale_y_discrete(labels = mean_species_key)
 seedsurv_endomean_posteriors <-  mcmc_areas(surv_fit_seedling, prob = 0.8, regex_pars = c("betaendo"))+labs(title = "Adult Survival", subtitle = "Endophyte effect on mean with 80% credible intervals") + scale_y_discrete(labels = mean_species_key)
 grow_endomean_posteriors <- mcmc_areas(grow_fit, prob = 0.8, regex_pars = c("betaendo"))+labs(title = "Adult Growth", subtitle = "Endophyte effect on mean with 80% credible intervals") + scale_y_discrete(labels = mean_species_key)
@@ -543,6 +545,19 @@ fert_endomean_posteriors <- mcmc_areas(fert_fit, prob = 0.8, regex_pars = c("bet
 spike_endomean_posteriors <- mcmc_areas(spike_fit, prob = 0.8, regex_pars = c("betaendo"))+labs(title = "Spikelets per infl.", subtitle = "Endophyte effect on mean with 80% credible intervals") + scale_y_discrete(labels = mean_species_key)
 seedmean_endomean_posteriors <- mcmc_areas(seedmean_fit, prob = 0.8, regex_pars = c("betaendo"))+labs(title = "Mean seeds per spikelet", subtitle = "Endophyte effect on mean with 80% credible intervals") + scale_y_discrete(labels = mean_species_key)
 stos_endomean_posteriors <- mcmc_areas(stos_fit, prob = 0.8, regex_pars = c("betaendo"))+labs(title = "Germination", subtitle = "Endophyte effect on mean with 80% credible intervals") + scale_y_discrete(labels = mean_species_key)
+
+# effect of endophyte on year standard deviation
+surv_endosd_posteriors <-  mcmc_areas(surv_fit, prob = 0.8, regex_pars = c("sigmaendo"))+labs(title = "Adult Survival", subtitle = "Endophyte effect on SD with 80% credible intervals") + scale_y_discrete(labels = sd_species_key)
+seedsurv_endosd_posteriors <-  mcmc_areas(surv_fit_seedling, prob = 0.8, regex_pars = c("sigmaendo"))+labs(title = "Adult Survival", subtitle = "Endophyte effect on SD with 80% credible intervals") + scale_y_discrete(labels = sd_species_key)
+grow_endosd_posteriors <- mcmc_areas(grow_fit, prob = 0.8, regex_pars = c("sigmaendo"))+labs(title = "Adult Growth", subtitle = "Endophyte effect on SD with 80% credible intervals") + scale_y_discrete(labels = sd_species_key)
+seedgrow_endosd_posteriors <- mcmc_areas(grow_fit_seedling, prob = 0.8, regex_pars = c("sigmaendo"))+labs(title = "Seedling Growth", subtitle = "Endophyte effect on SD with 80% credible intervals") + scale_y_discrete(labels = sd_species_key)
+flw_endosd_posteriors <- mcmc_areas(flw_fit, prob = 0.8, regex_pars = c("sigmaendo"))+labs(title = "Flowering", subtitle = "Endophyte effect on SD with 80% credible intervals") + scale_y_discrete(labels = sd_species_key)
+fert_endosd_posteriors <- mcmc_areas(fert_fit, prob = 0.8, regex_pars = c("sigmaendo"))+labs(title = "Fertility", subtitle = "Endophyte effect on SD with 80% credible intervals") + scale_y_discrete(labels = sd_species_key)
+spike_endosd_posteriors <- mcmc_areas(spike_fit, prob = 0.8, regex_pars = c("sigmaendo"))+labs(title = "Spikelets per infl.", subtitle = "Endophyte effect on SD with 80% credible intervals") + scale_y_discrete(labels = sd_species_key)
+seedmean_endosd_posteriors <- mcmc_areas(seedmean_fit, prob = 0.8, regex_pars = c("sigmaendo"))+labs(title = "Mean seeds per spikelet", subtitle = "Endophyte effect on SD with 80% credible intervals") + scale_y_discrete(labels = sd_species_key)
+stos_endosd_posteriors <- mcmc_areas(stos_fit, prob = 0.8, regex_pars = c("sigmaendo"))+labs(title = "Germination", subtitle = "Endophyte effect on SD with 80% credible intervals") + scale_y_discrete(labels = sd_species_key)
+
+
 
 endomean_posteriors <- (surv_endomean_posteriors)/
                        (seedsurv_endomean_posteriors)/
