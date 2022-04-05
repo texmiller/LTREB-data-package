@@ -997,5 +997,74 @@ vr_traceplots <- (surv_trace)/
                   (spike_trace) + plot_annotation(title = "Traceplots for select parameters from all vital rates")
 ggsave(vr_traceplots, filename = "vr_traceplots.png", width = 25, height = 20)
 
+######## Plots of endophyte mean and variance effects for all vital rates ####
+# max size for each species to create a sequence of size values
+max_size <- LTREB_full %>% 
+  dplyr::select(species,size_t) %>% 
+  filter(!is.na(size_t)) %>% 
+  group_by(species) %>% 
+  summarise(actual_max_size = max(size_t),
+            max_size = quantile(size_t,probs=0.975))
+
+# Our parameter estimates are in the _fit stan objects for each vital rate
+surv_fit
+surv_par <- rstan::extract(surv_fit, pars = quote_bare(beta0,betasize,betaendo,betaorigin,
+                                                      tau_year, tau_plot))
+n_post_draws <- 100
+post_draws <- sample.int(dim(surv_par[[1]])[1], n_post_draws)
+source("Analyses/MPM_functions.R")
+surv_fit_seedling <- read_rds("~/Dropbox/EndodemogData/Model_Runs/endo_seedling_surv.rds")
+surv_fit <- read_rds("~/Dropbox/EndodemogData/Model_Runs/endo_spp_surv_woseedling.rds")
+grow_fit_seedling <- read_rds("~/Dropbox/EndodemogData/Model_Runs/endo_seedling_grow_PIG_10000iterations.rds")
+grow_fit <- read_rds("~/Dropbox/EndodemogData/Model_Runs/endo_spp_grow_PIG.rds")
+flw_fit <- read_rds("~/Dropbox/EndodemogData/Model_Runs/endo_spp_flw.rds")
+fert_fit <- read_rds("~/Dropbox/EndodemogData/Model_Runs/endo_spp_fert_PIG.rds")
+spike_fit <- read_rds("~/Dropbox/EndodemogData/Model_Runs/endo_spp_spike_year_plot_nb.rds")
+seedmean_fit <- read_rds("~/Dropbox/EndodemogData/Model_Runs/seed_mean.rds")
+stos_fit <- read_rds("~/Dropbox/EndodemogData/Model_Runs/endo_spp_s_to_s.rds") 
+
+surv_par <- rstan::extract(surv_fit, pars =quote_bare(beta0,betasize,betaendo,betaorigin,
+                                                      tau_year, tau_plot))
+surv_sdlg_par <- rstan::extract(surv_fit_seedling, pars =quote_bare(beta0,betaendo,
+                                                                    tau_year, tau_plot))
+grow_par <- rstan::extract(grow_fit, pars = quote_bare(beta0,betasize,betaendo,betaorigin,
+                                                       tau_year, tau_plot,
+                                                       sigma))
+grow_sdlg_par <- rstan::extract(grow_fit_seedling, pars = quote_bare(beta0,betaendo,
+                                                                     tau_year, tau_plot,
+                                                                     sigma))
+flow_par <- rstan::extract(flw_fit, pars = quote_bare(beta0,betasize,betaendo,betaorigin,
+                                                      tau_year, tau_plot))
+fert_par <- rstan::extract(fert_fit, pars = quote_bare(beta0,betasize,betaendo,betaorigin,
+                                                       tau_year, tau_plot))
+spike_par <- rstan::extract(spike_fit, pars = quote_bare(beta0,betasize,betaendo,betaorigin,
+                                                         tau_year, tau_plot,
+                                                         phi))
+seed_par <- rstan::extract(seedmean_fit, pars = quote_bare(beta0,betaendo)) #no plot or year effect
+recruit_par <- rstan::extract(stos_fit, pars = quote_bare(beta0,betaendo,
+                                                          tau_year, tau_plot))
+
+params <- make_params(species=1,
+                     endo_mean=(2-1),
+                     endo_var=(2-1),
+                     original = 1, # should be =1 to represent recruit
+                     draw=post_draws[1],
+                     max_size=max_size,
+                     rfx=F,
+                     surv_par=surv_par,
+                     surv_sdlg_par = surv_sdlg_par,
+                     grow_par=grow_par,
+                     grow_sdlg_par = grow_sdlg_par,
+                     flow_par=flow_par,
+                     fert_par=fert_par,
+                     spike_par=spike_par,
+                     seed_par=seed_par,
+                     recruit_par=recruit_par)
+for(s in 1:7)
+surv_int <- surv_par$beta0[,1] + beta_endo
+
+
+
+
 
 
