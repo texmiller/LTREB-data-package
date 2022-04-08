@@ -4,6 +4,7 @@
 
 
 library(tidyverse)
+library(RColorBrewer)
 library(rstan)
 library(StanHeaders)
 library(bayesplot)
@@ -302,6 +303,10 @@ y_recruit_sim <- readRDS(file = "yrep_stosmodel.rds")
 endophyte_color_scheme <- c("#fdedd3","#f3c8a8", "#5a727b", "#4986c7", "#181914",  "#163381")
 color_scheme_set(endophyte_color_scheme)
 # color_scheme_view()
+# And creating a color palette for each year
+yearcount = length(unique(LTREB_full$year_t))
+yearcolors<- colorRampPalette(brewer.pal(8,"Dark2"))(yearcount)
+# scales::show_col(yearcolors)
 
 ## Plot for all models vital rate fits #####
 # survival
@@ -531,7 +536,7 @@ vr_traceplots <- (surv_trace)/
 ggsave(vr_traceplots, filename = "vr_traceplots.png", width = 25, height = 20)
 
 
-## Plots for mean and year variance endophyte effects on all vital rates, all species
+## Plots for mean and year variance endophyte effects on all vital rates, all species ####
 mean_species_key <- c("betaendo[1]" = "AGPE", "betaendo[2]" = "ELRI", "betaendo[3]" = "ELVI", "betaendo[4]" = "FESU", "betaendo[5]" = "LOAR", "betaendo[6]" = "POAL", "betaendo[7]" = "POSY")
 sd_species_key <- c("sigmaendo[1]" = "AGPE", "sigmaendo[2]" = "ELRI", "sigmaendo[3]" = "ELVI", "sigmaendo[4]" = "FESU", "sigmaendo[5]" = "LOAR", "sigmaendo[6]" = "POAL", "sigmaendo[7]" = "POSY")
 
@@ -570,7 +575,7 @@ endomeanandvar_posteriors <- (surv_endomean_posteriors + surv_endosd_posteriors)
   
 ggsave(endomeanandvar_posteriors, filename = "endomeanandvar_posteriors.png", width = 12, height = 30)
 
-## Plots for all vital rates, all species by size with data 
+## Plots for all vital rates, all species by size with data #####
 max_size <- LTREB_full %>% 
   dplyr::select(species,species_index, size_t) %>% 
   filter(!is.na(size_t)) %>% 
@@ -587,17 +592,12 @@ for(s in 1:7){
  x_seq[,s] <-  seq(from = 1, to = filter(max_size, species_index == s)$actual_max_size, length.out = 100)
 }
 
-surv_iter <- array(dim = c(length(x_seq[,1]),2,7, n_post_draws))
-surv_mean <- array(dim = c(length(x_seq[,1]),2,7,3))
+surv_iter <- grow_iter <- flw_iter <- fert_iter <-array(dim = c(length(x_seq[,1]),2,7, n_post_draws))
+surv_mean <- grow_mean <- flw_mean <- fert_mean <-array(dim = c(length(x_seq[,1]),2,7,3))
 
-grow_iter <- array(dim = c(length(x_seq[,1]),2,7, n_post_draws))
-grow_mean <- array(dim = c(length(x_seq[,1]),2,7,3))
+survyear_iter <- growyear_iter <- flwyear_iter <- fertyear_iter <-array(dim = c(length(x_seq[,1]),2,7, (length(unique(LTREB_full$year_t_index))),n_post_draws))
+survyear_mean <- growyear_mean <- flwyear_mean <- fertyear_mean <-array(dim = c(length(x_seq[,1]),2,7,(length(unique(LTREB_full$year_t_index))),3))
 
-flw_iter <- array(dim = c(length(x_seq[,1]),2,7, n_post_draws))
-flw_mean <- array(dim = c(length(x_seq[,1]),2,7,3))
-
-fert_iter <- array(dim = c(length(x_seq[,1]),2,7, n_post_draws))
-fert_mean <- array(dim = c(length(x_seq[,1]),2,7,3))
 
 sx<-function(x,params){
   invlogit(params$surv_int + params$surv_slope*log(x))
@@ -684,6 +684,7 @@ fert_iter[,e,s,i] <- fertx(make_params(species=s,
     }
   }
 }
+
 for(x in 1:length(x_seq[,1])){
   for(e in 1:2){
     for(s in 1:7){
@@ -702,15 +703,120 @@ fert_mean[x,e,s,2:3] <- quantile(fert_iter[x,e,s,], probs = c(.1,.9), na.rm = T)
   }
 }
 
+species_list <- c("AGPE", "ELRI", "ELVI", "FESU", "LOAR", "POAL", "POSY")
+
 dimnames(surv_mean) <- list(paste0("size", 1:length(x_seq[,1])), c("Eminus","Eplus"), species_list, c("mean","twenty","eighty"))
 dimnames(grow_mean) <- list(paste0("size", 1:length(x_seq[,1])), c("Eminus","Eplus"), species_list, c("mean","twenty","eighty"))
 dimnames(flw_mean) <- list(paste0("size", 1:length(x_seq[,1])), c("Eminus","Eplus"), species_list, c("mean","twenty","eighty"))
 dimnames(fert_mean) <- list(paste0("size", 1:length(x_seq[,1])), c("Eminus","Eplus"), species_list, c("mean","twenty","eighty"))
 
+# Now the same thing for each year specific vital rate
+for(i in 1:length(post_draws)){
+  for(e in 1:2){
+    for(s in 1:7){
+      for(y in 1:(length(unique(LTREB_full$year_t_index)))){
+      
+      survyear_iter[,e,s,y,i] <- sx(make_params(species=s,
+                                          endo_mean=(e-1),
+                                          endo_var=(e-1),
+                                          original = mean(LTREB_full$origin_01), # should be =1 to represent recruit
+                                          draw=post_draws[i],
+                                          max_size=max_size,
+                                          rfx=T,
+                                          year = y,
+                                          surv_par=surv_par,
+                                          surv_sdlg_par = surv_sdlg_par,
+                                          grow_par=grow_par,
+                                          grow_sdlg_par = grow_sdlg_par,
+                                          flow_par=flow_par,
+                                          fert_par=fert_par,
+                                          spike_par=spike_par,
+                                          seed_par=seed_par,
+                                          recruit_par=recruit_par), x = x_seq[,s])
+      growyear_iter[,e,s,y,i] <- gx(make_params(species=s,
+                                          endo_mean=(e-1),
+                                          endo_var=(e-1),
+                                          original = mean(LTREB_full$origin_01), # should be =1 to represent recruit
+                                          draw=post_draws[i],
+                                          max_size=max_size,
+                                          rfx=T,
+                                          year = y,
+                                          surv_par=surv_par,
+                                          surv_sdlg_par = surv_sdlg_par,
+                                          grow_par=grow_par,
+                                          grow_sdlg_par = grow_sdlg_par,
+                                          flow_par=flow_par,
+                                          fert_par=fert_par,
+                                          spike_par=spike_par,
+                                          seed_par=seed_par,
+                                          recruit_par=recruit_par), x = x_seq[,s])
+      flwyear_iter[,e,s,y,i] <- flwx(make_params(species=s,
+                                           endo_mean=(e-1),
+                                           endo_var=(e-1),
+                                           original = mean(LTREB_full$origin_01), # should be =1 to represent recruit
+                                           draw=post_draws[i],
+                                           max_size=max_size,
+                                           rfx=T,
+                                           year = y,
+                                           surv_par=surv_par,
+                                           surv_sdlg_par = surv_sdlg_par,
+                                           grow_par=grow_par,
+                                           grow_sdlg_par = grow_sdlg_par,
+                                           flow_par=flow_par,
+                                           fert_par=fert_par,
+                                           spike_par=spike_par,
+                                           seed_par=seed_par,
+                                           recruit_par=recruit_par), x = x_seq[,s])
+      fertyear_iter[,e,s,y,i] <- fertx(make_params(species=s,
+                                             endo_mean=(e-1),
+                                             endo_var=(e-1),
+                                             original = mean(LTREB_full$origin_01), # should be =1 to represent recruit
+                                             draw=post_draws[i],
+                                             max_size=max_size,
+                                             rfx=T,
+                                             year = y,
+                                             surv_par=surv_par,
+                                             surv_sdlg_par = surv_sdlg_par,
+                                             grow_par=grow_par,
+                                             grow_sdlg_par = grow_sdlg_par,
+                                             flow_par=flow_par,
+                                             fert_par=fert_par,
+                                             spike_par=spike_par,
+                                             seed_par=seed_par,
+                                             recruit_par=recruit_par), x = x_seq[,s])
+
+      }
+    }
+  }
+}
+        
+for(x in 1:length(x_seq[,1])){
+  for(e in 1:2){
+    for(s in 1:7){
+      for(y in 1:(length(unique(LTREB_full$year_t_index)))){
+      survyear_mean[x,e,s,y,1] <- mean(survyear_iter[x,e,s,y,], na.rm = T)
+      survyear_mean[x,e,s,y,2:3] <- quantile(survyear_iter[x,e,s,y,], probs = c(.1,.9), na.rm = T)
+
+      growyear_mean[x,e,s,y,1] <- mean(growyear_iter[x,e,s,y,], na.rm = T)
+      growyear_mean[x,e,s,y,2:3] <- quantile(growyear_iter[x,e,s,y,], probs = c(.1,.9), na.rm = T)
+
+      flwyear_mean[x,e,s,y,1] <- mean(flwyear_iter[x,e,s,y,], na.rm = T)
+      flwyear_mean[x,e,s,y,2:3] <- quantile(flwyear_iter[x,e,s,y,], probs = c(.1,.9), na.rm = T)
+
+      fertyear_mean[x,e,s,y,1] <- mean(fertyear_iter[x,e,s,y,], na.rm = T)
+      fertyear_mean[x,e,s,y,2:3] <- quantile(fertyear_iter[x,e,s,y,], probs = c(.1,.9), na.rm = T)
+      }
+    }
+  }
+}
+
+dimnames(survyear_mean) <- list(paste0("size", 1:length(x_seq[,1])), c("Eminus","Eplus"), species_list,c(2007:2020), c("mean","twenty","eighty"))
+dimnames(growyear_mean) <- list(paste0("size", 1:length(x_seq[,1])), c("Eminus","Eplus"), species_list,c(2007:2020), c("mean","twenty","eighty"))
+dimnames(flwyear_mean) <- list(paste0("size", 1:length(x_seq[,1])), c("Eminus","Eplus"), species_list,c(2007:2020), c("mean","twenty","eighty"))
+dimnames(fertyear_mean) <- list(paste0("size", 1:length(x_seq[,1])), c("Eminus","Eplus"), species_list,c(2007:2020), c("mean","twenty","eighty"))
 
 
-#Now I'm gonna make these into one tidy dataframe for plotting
-species_list <- c("AGPE", "ELRI", "ELVI", "FESU", "LOAR", "POAL", "POSY")
+#Now I'm gonna make these into  tidy dataframes for plotting
 
 dimnames(x_seq) <- list(paste0("x_size", 1:length(x_seq[,1])), paste0(species_list))
 
@@ -730,12 +836,28 @@ surv_mean_df <- as_tibble(surv_mean) %>%
   pivot_wider(id_cols = c("no_row", "Endo", "Species"), names_from = "quantile", values_from = "surv") %>% 
   left_join(x_seq_df)
 
+survyear_mean_df <- as_tibble(survyear_mean) %>%    
+  mutate(no_row = row_number()) %>% 
+  pivot_longer(cols = -no_row,
+               values_to = c("surv")) %>% 
+  separate(name, c("Endo", "Species", "Year", "quantile")) %>% 
+  pivot_wider(id_cols = c("no_row", "Endo", "Species", "Year"), names_from = "quantile", values_from = "surv") %>% 
+  left_join(x_seq_df)
+
 grow_mean_df <- as_tibble(grow_mean) %>%    
   mutate(no_row = row_number()) %>% 
   pivot_longer(cols = starts_with("E"),
                values_to = c("size_t1") ) %>% 
   separate(name, c("Endo", "Species","quantile")) %>% 
   pivot_wider(id_cols = c("no_row", "Endo", "Species"), names_from = "quantile", values_from = "size_t1") %>% 
+  left_join(x_seq_df)
+
+growyear_mean_df <- as_tibble(growyear_mean) %>%    
+  mutate(no_row = row_number()) %>% 
+  pivot_longer(cols = starts_with("E"),
+               values_to = c("size_t1") ) %>% 
+  separate(name, c("Endo", "Species", "Year", "quantile")) %>% 
+  pivot_wider(id_cols = c("no_row", "Endo", "Species", "Year"), names_from = "quantile", values_from = "size_t1") %>% 
   left_join(x_seq_df)
 
 flw_mean_df <- as_tibble(flw_mean) %>%    
@@ -746,6 +868,14 @@ flw_mean_df <- as_tibble(flw_mean) %>%
   pivot_wider(id_cols = c("no_row", "Endo", "Species"), names_from = "quantile", values_from = "flw_t1") %>% 
   left_join(x_seq_df)
 
+flwyear_mean_df <- as_tibble(flwyear_mean) %>%    
+  mutate(no_row = row_number()) %>% 
+  pivot_longer(cols = starts_with("E"),
+               values_to = c("flw_t1") ) %>% 
+  separate(name, c("Endo", "Species", "Year", "quantile")) %>% 
+  pivot_wider(id_cols = c("no_row", "Endo", "Species", "Year"), names_from = "quantile", values_from = "flw_t1") %>% 
+  left_join(x_seq_df)
+
 fert_mean_df <- as_tibble(fert_mean) %>%    
   mutate(no_row = row_number()) %>% 
   pivot_longer(cols = starts_with("E"),
@@ -753,6 +883,15 @@ fert_mean_df <- as_tibble(fert_mean) %>%
   separate(name, c("Endo", "Species","quantile")) %>% 
   pivot_wider(id_cols = c("no_row", "Endo", "Species"), names_from = "quantile", values_from = "fert_t1") %>% 
   left_join(x_seq_df)
+
+fertyear_mean_df <- as_tibble(fertyear_mean) %>%    
+  mutate(no_row = row_number()) %>% 
+  pivot_longer(cols = starts_with("E"),
+               values_to = c("fert_t1") ) %>% 
+  separate(name, c("Endo", "Species", "Year", "quantile")) %>% 
+  pivot_wider(id_cols = c("no_row", "Endo", "Species", "Year"), names_from = "quantile", values_from = "fert_t1") %>% 
+  left_join(x_seq_df)
+
 # Bin Data by size and then by year for plotting
 
 bin_by_size_t <- function(df_raw, vr, nbins){
@@ -786,6 +925,38 @@ bin_by_size_t1 <- function(df_raw, vr, nbins){
   return(size_bin_df)
 }
 
+bin_by_year_size_t <- function(df_raw, vr, nbins){
+  require(tidyverse)
+  df_raw <- ungroup(df_raw)
+  size_bin_df <- df_raw %>% 
+    rename(Endo = endo_01, Year = year_t, Species = species) %>%
+    mutate(size_bin = cut(logsize_t, breaks = nbins)) %>%
+    group_by(size_bin, Year, Endo, Species) %>%
+    summarise(mean_size = mean((logsize_t),na.rm=T),
+              mean_vr = mean({{vr}},na.rm=T),
+              samplesize = n()) %>% 
+    mutate(Endo = case_when(Endo == 0 ~ "Eminus", 
+                            Endo == 1 ~ "Eplus"))
+  
+  return(size_bin_df)
+}
+bin_by_year_size_t1 <- function(df_raw, vr, nbins){
+  require(tidyverse)
+  df_raw <- ungroup(df_raw)
+  size_bin_df <- df_raw %>% 
+    rename(Endo = endo_01, Year = year_t, Species = species) %>%
+    mutate(size_bin = cut(logsize_t1, breaks = nbins)) %>%
+    group_by(size_bin, Year, Endo, Species) %>%
+    summarise(mean_size = mean((logsize_t1),na.rm=T),
+              mean_vr = mean({{vr}},na.rm=T),
+              samplesize = n()) %>% 
+    mutate(Endo = case_when(Endo == 0 ~ "Eminus", 
+                            Endo == 1 ~ "Eplus"))
+  
+  return(size_bin_df)
+}
+
+
 surv_sizebin <- bin_by_size_t(LTREB_data_forsurv,vr = surv_t1, nbins = 20)
 seedsurv_sizebin <- bin_by_size_t(LTREB_surv_seedling,vr = surv_t1, nbins = 20)
 grow_sizebin <- bin_by_size_t(LTREB_data_forgrow,vr = size_t1, nbins = 20)
@@ -794,6 +965,16 @@ flw_sizebin <- bin_by_size_t1(LTREB_data_forflw, vr = FLW_STAT_T1,nbins = 20)
 fert_sizebin <- bin_by_size_t1(LTREB_data_forfert,vr = FLW_COUNT_T1, nbins = 20)
 spike_sizebin <- bin_by_size_t1(LTREB_data_forspike, vr = spike_count_t1, nbins = 20)
 
+surv_yearsizebin <- bin_by_year_size_t(LTREB_data_forsurv,vr = surv_t1, nbins = 20)
+seedsurv_yearsizebin <- bin_by_year_size_t(LTREB_surv_seedling,vr = surv_t1, nbins = 20)
+grow_yearsizebin <- bin_by_year_size_t(LTREB_data_forgrow,vr = size_t1, nbins = 20)
+seedgrow_yearsizebin <- bin_by_year_size_t(LTREB_grow_seedling, vr = size_t1, nbins = 20)
+flw_yearsizebin <- bin_by_year_size_t1(LTREB_data_forflw, vr = FLW_STAT_T1,nbins = 20)
+fert_yearsizebin <- bin_by_year_size_t1(LTREB_data_forfert,vr = FLW_COUNT_T1, nbins = 20)
+spike_yearsizebin <- bin_by_year_size_t1(LTREB_data_forspike, vr = spike_count_t1, nbins = 20)
+
+
+#The plots
 surv_meanplot <- ggplot()+
   geom_point(data = surv_sizebin, aes(x = mean_size, y = mean_vr, size = samplesize, shape = Endo), alpha = .5) +
   geom_ribbon(data = surv_mean_df, aes(x = log_x_seq, ymin = twenty, ymax = eighty, fill = Endo), alpha = .3)+
@@ -801,7 +982,17 @@ surv_meanplot <- ggplot()+
   scale_shape_manual(values = c(19,1))+ scale_fill_manual(values = c( endophyte_color_scheme[5], endophyte_color_scheme[3]))+
   facet_wrap(~Species, scales = "free", ncol = 1) + 
   theme_classic() + theme(strip.background = element_blank()) + labs(title = "Adult Survival", subtitle = "Mean endophyte effect with 80% credible intervals")
-surv_meanplot
+# surv_meanplot
+
+surv_yearplot <- ggplot()+
+  geom_point(data = surv_yearsizebin, aes(x = mean_size, y = mean_vr, size = samplesize, col = as.factor(Year), shape = Endo), alpha = .5) +
+  # geom_ribbon(data = survyear_mean_df, aes(x = log_x_seq, ymin = twenty, ymax = eighty, fill = Endo), alpha = .3)+
+  geom_line(data = survyear_mean_df, aes(x = log_x_seq, y = mean, linetype = Endo, col = Year)) +
+  scale_shape_manual(values = c(19,1))+ 
+  scale_color_manual(values = yearcolors)+
+  facet_wrap(~Species + Endo, scales = "free", ncol = 2) + 
+  theme_classic() + theme(strip.background = element_blank()) + labs(title = "Adult Survival", subtitle = "Endophyte effect on interannual variation")
+# surv_yearplot
 
 grow_meanplot <- ggplot()+
   geom_point(data = grow_sizebin, aes(x = mean_size, y = mean_vr, size = samplesize, shape = Endo), alpha = .5) +
@@ -810,7 +1001,17 @@ grow_meanplot <- ggplot()+
   scale_shape_manual(values = c(19,1))+ scale_fill_manual(values = c( endophyte_color_scheme[5], endophyte_color_scheme[3]))+
   facet_wrap(~Species, scales = "free", ncol = 1) +
   theme_classic() + theme(strip.background = element_blank()) + labs(title = "Adult Growth", subtitle = "Mean endophyte effect with 80% credible intervals")
-grow_meanplot
+# grow_meanplot
+
+grow_yearplot <- ggplot()+
+  geom_point(data = grow_yearsizebin, aes(x = mean_size, y = mean_vr, size = samplesize, col = as.factor(Year), shape = Endo), alpha = .5) +
+  # geom_ribbon(data = growyear_mean_df, aes(x = log_x_seq, ymin = twenty, ymax = eighty, fill = Endo), alpha = .3)+
+  geom_line(data = growyear_mean_df, aes(x = log_x_seq, y = mean, linetype = Endo, col = Year)) +
+  scale_shape_manual(values = c(19,1))+ 
+  scale_color_manual(values = yearcolors)+
+  facet_wrap(~Species + Endo, scales = "free", ncol = 2) + 
+  theme_classic() + theme(strip.background = element_blank()) + labs(title = "Adult Growth", subtitle = "Endophyte effect on interannual variation")
+# grow_yearplot
 
 flw_meanplot <- ggplot()+
   geom_point(data = flw_sizebin, aes(x = mean_size, y = mean_vr, size = samplesize, shape = Endo), alpha = .5) +
@@ -819,7 +1020,17 @@ flw_meanplot <- ggplot()+
   scale_shape_manual(values = c(19,1))+ scale_fill_manual(values = c( endophyte_color_scheme[5], endophyte_color_scheme[3]))+
   facet_wrap(~Species, scales = "free", ncol = 1) + 
   theme_classic() + theme(strip.background = element_blank())+ labs(title = "Flowering", subtitle = "Mean endophyte effect with 80% credible intervals")
-flw_meanplot
+# flw_meanplot
+
+flw_yearplot <- ggplot()+
+  geom_point(data = flw_yearsizebin, aes(x = mean_size, y = mean_vr, size = samplesize, col = as.factor(Year), shape = Endo), alpha = .5) +
+  # geom_ribbon(data = flwyear_mean_df, aes(x = log_x_seq, ymin = twenty, ymax = eighty, fill = Endo), alpha = .3)+
+  geom_line(data = flwyear_mean_df, aes(x = log_x_seq, y = mean, linetype = Endo, col = Year)) +
+  scale_shape_manual(values = c(19,1))+ 
+  scale_color_manual(values = yearcolors)+
+  facet_wrap(~Species + Endo, scales = "free", ncol = 2) + 
+  theme_classic() + theme(strip.background = element_blank()) + labs(title = "Flowering", subtitle = "Endophyte effect on interannual variation")
+# flw_yearplot
 
 fert_meanplot <- ggplot()+
   geom_point(data = fert_sizebin, aes(x = mean_size, y = mean_vr, size = samplesize, shape = Endo), alpha = .5) +
@@ -828,7 +1039,27 @@ fert_meanplot <- ggplot()+
   scale_shape_manual(values = c(19,1))+ scale_fill_manual(values = c( endophyte_color_scheme[5], endophyte_color_scheme[3]))+
   facet_wrap(~Species, scales = "free", ncol = 1) + 
   theme_classic() + theme(strip.background = element_blank())+ labs(title = "Fertility", subtitle = "Mean endophyte effect with 80% credible intervals")
-fert_meanplot
+# fert_meanplot
+
+fert_yearplot <- ggplot()+
+  geom_point(data = fert_yearsizebin, aes(x = mean_size, y = mean_vr, size = samplesize, col = as.factor(Year), shape = Endo), alpha = .5) +
+  # geom_ribbon(data = fertyear_mean_df, aes(x = log_x_seq, ymin = twenty, ymax = eighty, fill = Endo), alpha = .3)+
+  geom_line(data = fertyear_mean_df, aes(x = log_x_seq, y = mean, linetype = Endo, col = Year)) +
+  scale_shape_manual(values = c(19,1))+ 
+  scale_color_manual(values = yearcolors)+
+  facet_wrap(~Species + Endo, scales = "free", ncol = 2) + 
+  theme_classic() + theme(strip.background = element_blank()) + labs(title = "Fertility", subtitle = "Endophyte effect on interannual variation")
+# fert_yearplot
 
 meaneffect_fitplot <- surv_meanplot+grow_meanplot+flw_meanplot+fert_meanplot + plot_layout( nrow  = 1)
 ggsave(meaneffect_fitplot, filename = "meaneffect_fitplot.png", width = 20, height = 25 )  
+
+
+vareffect_fitplot <- surv_yearplot+grow_yearplot+flw_yearplot+fert_yearplot + plot_layout( nrow  = 1)
+ggsave(vareffect_fitplot, filename = "vareffect_fitplot.png", width = 30, height = 25 )  
+
+meanvareffect_fitplot <-  surv_meanplot + surv_yearplot+grow_meanplot +grow_yearplot +flw_meanplot+flw_yearplot+fert_meanplot +fert_yearplot + plot_layout( nrow  = 1,
+                                                                                                                                                            widths = c(1,2,1,2,1,2,1,2),
+                                                                                                                                                            guides = "collect",
+                                                                                                                                                            )
+ggsave(meanvareffect_fitplot, filename = "meanvareffect_fitplot.png", width = 40, height = 25 )  
