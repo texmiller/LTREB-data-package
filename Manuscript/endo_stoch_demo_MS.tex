@@ -1,54 +1,4 @@
-\documentclass[9pt,twocolumn,twoside,lineno]{pnas-new}\usepackage[]{graphicx}\usepackage[]{color}
-% maxwidth is the original width if it is less than linewidth
-% otherwise use linewidth (to make sure the graphics do not exceed the margin)
-\makeatletter
-\def\maxwidth{ %
-  \ifdim\Gin@nat@width>\linewidth
-    \linewidth
-  \else
-    \Gin@nat@width
-  \fi
-}
-\makeatother
-
-\definecolor{fgcolor}{rgb}{0.345, 0.345, 0.345}
-\newcommand{\hlnum}[1]{\textcolor[rgb]{0.686,0.059,0.569}{#1}}%
-\newcommand{\hlstr}[1]{\textcolor[rgb]{0.192,0.494,0.8}{#1}}%
-\newcommand{\hlcom}[1]{\textcolor[rgb]{0.678,0.584,0.686}{\textit{#1}}}%
-\newcommand{\hlopt}[1]{\textcolor[rgb]{0,0,0}{#1}}%
-\newcommand{\hlstd}[1]{\textcolor[rgb]{0.345,0.345,0.345}{#1}}%
-\newcommand{\hlkwa}[1]{\textcolor[rgb]{0.161,0.373,0.58}{\textbf{#1}}}%
-\newcommand{\hlkwb}[1]{\textcolor[rgb]{0.69,0.353,0.396}{#1}}%
-\newcommand{\hlkwc}[1]{\textcolor[rgb]{0.333,0.667,0.333}{#1}}%
-\newcommand{\hlkwd}[1]{\textcolor[rgb]{0.737,0.353,0.396}{\textbf{#1}}}%
-\let\hlipl\hlkwb
-
-\usepackage{framed}
-\makeatletter
-\newenvironment{kframe}{%
- \def\at@end@of@kframe{}%
- \ifinner\ifhmode%
-  \def\at@end@of@kframe{\end{minipage}}%
-  \begin{minipage}{\columnwidth}%
- \fi\fi%
- \def\FrameCommand##1{\hskip\@totalleftmargin \hskip-\fboxsep
- \colorbox{shadecolor}{##1}\hskip-\fboxsep
-     % There is no \\@totalrightmargin, so:
-     \hskip-\linewidth \hskip-\@totalleftmargin \hskip\columnwidth}%
- \MakeFramed {\advance\hsize-\width
-   \@totalleftmargin\z@ \linewidth\hsize
-   \@setminipage}}%
- {\par\unskip\endMakeFramed%
- \at@end@of@kframe}
-\makeatother
-
-\definecolor{shadecolor}{rgb}{.97, .97, .97}
-\definecolor{messagecolor}{rgb}{0, 0, 0}
-\definecolor{warningcolor}{rgb}{1, 0, 1}
-\definecolor{errorcolor}{rgb}{1, 0, 0}
-\newenvironment{knitrout}{}{} % an empty environment to be redefined in TeX
-
-\usepackage{alltt}
+\documentclass[9pt,twocolumn,twoside,lineno]{pnas-new}
 % Use the lineno option to display guide line numbers if required.
 
 \newcommand{\tom}[2]{{\color{red}{#1}}\footnote{\textit{\color{red}{#2}}}}
@@ -90,9 +40,10 @@ Please provide an abstract of no more than 250 words in a single paragraph. Abst
 
 \dates{This manuscript was compiled on \today}
 \doi{\url{www.pnas.org/cgi/doi/10.1073/pnas.XXXXXXXXXX}}
-\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+
+\usepackage{Sweave}
 \begin{document}
-\SweaveOpts{concordance=TRUE}
+\input{endo_stoch_demo_MS-concordance}
 
 \maketitle
 \thispagestyle{firststyle}
@@ -100,20 +51,20 @@ Please provide an abstract of no more than 250 words in a single paragraph. Abst
 
 % If your first paragraph (i.e. with the \dropcap) contains a list environment (quote, quotation, theorem, definition, enumerate, itemize...), the line after the list may have some extra indentation. If this is the case, add \parshape=0 to the end of the list environment.
 %Introduction
+\dropcap{A}long with increases in average temperatures, global climate change is driving increases in the variability of precipitation events, temperature extremes, and droughts \cite{IPCC2012managing, seneviratne2012changes, stocker2013technical}. Thus discerning the effects of variability on population dynamics and interactions between species is pivotal to forecasting the future of ecological systems. Classic ecological theory predicts that long-term population growth rates will be reduced by environmental variability \cite{lewontin_population_1969,tuljapurkar_population_1982}. This stochastic variability means that populations can expect to experience good years and bad years. The long-term stochastic growth rate ($\lambda_s$), which is the long-run geometric mean of annual growth rates, captures this varability; the geometric mean will always be less than expected from the mean growth rate alone. 
 
-\dropcap{C}lassic ecological theory predicts that long-term population growth rates will be reduced by environmental variability \cite{lewontin_population_1969,tuljapurkar_population_1982}. \tom{Along with increases in average temperatures, global climate change is driving increases in the variability of precipitation events, temperature extremes, and droughts \cite{IPCC2012managing, seneviratne2012changes, stocker2013technical}.}{This sentence is important, but it is awkwardly embedded in this paragraph, with sentences about theoretical population biology before and after. I recommend starting with the idea of increasing variability under climate change, and then transitioning to stochastic population dynamics.} In stochastic environments, populations can expect to experience good years and bad years. The long-term stochastic growth rate ($\lambda_s$), which is the long-run geometric mean of annual growth rates, captures this varability; This geometric mean will always be less than expected from the mean growth rate alone. 
+Following Lewontin and Cohen \citep{lewontin_population_1969}, $\lambda_s$ can be approximated as: 
+\begin{align}
+ log(\lambda_s)  \approx log(\overline{\lambda}) - \frac{\sigma^2}{2\overline{\lambda}^2}
+\end{align}
 
-\tom{$\lambda_s$ can be approximated as}{If you are going to include this equation in the Intro (the merits of which are debatable) then you should provide a citation for where this comes from.}: 
+Where $\overline{\lambda} $ is the mean of annual population growth rates ($\lambda_t$) and $\sigma^2$ is the variance \citep{lewontin_population_1969}. Populations will increase over time if $\lambda_s$ is greater than 1, and can be expected to decrease if $\lambda_s$ is less than 1. Here, there are two pathways to increase $\lambda_s$:  (1) increasing the mean growth rate, and/or (2) reducing the variance in growth rates. That both mean and variance can determine fitness underlies understanding of which aspects of a species' life history influence its success   \cite{pfister1998patterns} and has important implications for population viability analysis \cite{menges1990population}. \tom{Anything that limits the negative effects of bad years, while being neutral or costly in good years has the potential to decrease the impact of interannual environmental variability on population dynamics because it would limit variance. }{Not sure this is helpful. Obviously, ``Anything'' is mutualism, but if you don't know that yet then ``Anything'' will be confusing. But I do think you need some bridge to symbiosis.} Whether species interactions contribute to \tom{variance buffering}{This should be defined.} is an underexplored question \cite{hilde_demographic_2020}.
 
- $log(\lambda_s)  \approx log(\overline{\lambda}) - \frac{\sigma^2}{2\overline{\lambda}^2}$ 
+Host-associated microbes are ubiquitous in nature. \tom{Across a broad range of taxa}{You only cite one paper on plant-fungal interactions -- so not very convincing as a broad range of taxa}, microbial symbionts provide their hosts with protection from environmental stresses including drought, \tom{temperature}{Temperature \emph{per se} is not a stress.}, and enemies \cite{kivlin2013fungal}. Commonly, the benefits from these symbioses are context-dependent where the magnitude of interaction benefit depends on environmental conditions \cite{chamberlain2014context}. This can make it difficult to quantify the net effect of a given interaction, but it also allows for the possibility that interaction strength can vary through time (cite). Symbionts may provide benefits under harsh conditions when they are needed by their hosts, but be neutral or even costly under benign conditions (cite). Over time, this may lead symbiont-associated organisms to experience a reduction in variation in vital rates by reducing the frequency of extreme years (conceptual figure). Embracing context-dependence in this way, we reveal a novel mechanism by which symbionts can act as mutualists that may come to be of increasing importance in a more variable future.
 
-Where $\overline{\lambda} $ is the mean of annual population growth rates ($\lambda_t$) and $\sigma^2$ is the variance \citep{lewontin_population_1969}. Populations will increase over time if $\lambda_s$ is greater than 1, and can be expected to decrease if $\lambda_s$ is less than 1. Here, there are two pathways to increase $\lambda_s$:  (1) increasing the mean growth rate, and/or (2) reducing the variance in growth rates. The \tom{demographic tradeoff}{I don't know what you mean by this. Why expect a tradeoff?} between mean and variance has been important in \tom{shaping life-history theory}{vague}  \cite{pfister1998patterns} and population viability analysis \cite{menges1990population}. \tom{Anything that limits the negative effects of bad years, while being neutral or costly in good years has the potential to decrease the impact of interannual environmental variability on population dynamics because it would limit variance. }{Not sure this is helpful. Obviously, ``Anything'' is mutualism, but if you don't know that yet then ``Anything'' will be confusing. But I do think you need some bridge to symbiosis.}
+Using long-term data from experimental \tom{grass-fungal endophyte plots}{This needs context. No one will know what this means.}, we test the hypothesis that context-dependent benefits of microbial symbionts buffer hosts from the fitness consequences of environmental variability. Specifically, we ask first how fungal endophytes influence the mean and interannual variance of their hosts' vital rates; next, we ask if these vital rate effects buffer variance in fitness and, if so, what is the relative importance of variance buffering vs. mean effects in the overall fitness impact of the symbiosis.  With 14 years of demographic data, we employ structured, stochastic population models for \tom{seven species of cool-season grass hosts that are commonly infected with fungal endophytes}{I think we need a more thorough description of the experiment here - it's a novel experiment, at least in temporal scale, so we will want to sell it.} (\textit{Lolium arundinaceum}, \textit{Festuca subverticillata}, \textit{Elymus virginicus}, and \textit{Elymus villosus}, \textit{Poa alsodes} and \textit{Poa sylvestris}). These long-term data, in which each annual census is a sample of weather variation, allow us to construct a climate-explicit population models, which we use to evaluate the importance of buffering under forecasted changes in the mean and variance of climate drivers. 
 
-Host-associated microbes are uniquitous in nature. \tom{Across a broad range of taxa}{You only cite one paper on plant-fungal interactions -- so not very convincing as a broad range of taxa}, microbial symbionts provide their hosts with protection from environmental stresses including drought, \tom{temperature}{Temperature \emph{per se} is not a stress.}, and enemies \cite{kivlin2013fungal}. Commonly, the benefits from these symbioses are context-dependent where the magnitude of interaction benefit depends on environmental conditions \cite{chamberlain2014context}. This can make it difficult to quantify the net effect of a given interaction, but it also allows for the possibility that interaction strength can vary through time (cite). Symbionts may provide benefits under harsh conditions when they are needed by their hosts, but be neutral or even costly under benign conditions (cite). Over time, this may lead symbiont-associated organisms to experience a reduction in variation in vital rates by reducing the frequency of extreme years (conceptual figure). \tom{Whether species interactions contribute to \tom{variance buffering}{This should be defined.} is an underexplored question}{This might be better at the end of the previous paragraph, as a bridge between stochastic demography and symbiosis.} \cite{hilde_demographic_2020}, and a novel mechanism by which symbionts can act as mutualists that may come to be of increasing importance in a more variable future.
-
-Using long-term data from experimental grass-fungal endophyte plots, we test the hypothesis that symbionts buffer hosts from the fitness consequences of environmental variability. Specifically, we ask first how fungal endophytes influence the mean and interannual variance of their hosts' vital rates; next, we ask if these vital rate effects buffer demographic variance, and, if so, what is the relative importance of demographic buffering vs. mean effects in the overall fitness impact of the symbiosis.  With 13 years of demographic data, we employ structured, stochastic population models for seven species of cool-season grass hosts that are commonly infected with fungal endophytes (\textit{Lolium arundinaceum}, \textit{Festuca subverticillata}, \textit{Elymus virginicus}, and \textit{Elymus villosus}, \textit{Poa alsodes} and \textit{Poa sylvestris}). These long-term data, iin which each annual census is a sample of environmental variation, allow us to construct a climate-explicit population models, which we use to evaluate the importance of buffering under simulated increases in mean and variance of climate drivers. 
-
-\textcolor{red}{This paragraph is mostly talking off my head about results, but my idea is to include a brief statement of our results.}
+\textcolor{red}{This paragraph is mostly talking off my head about results, but my idea is to include a brief statement of our results.\tom{}{Agree we will want a punchy summary that leaves readers wanting to continue into the Results.}}
 Across species, we find that variance buffering by endophytes contributes (percentage) to population growth rates. While the effect is generally weaker than effects on the mean, we found that buffering was common in the most sensitive vital rates, and was most important for xxx species with xxx life history.
 
 
@@ -220,21 +171,74 @@ Supply a composable U3D or PRC file so that it may be edited and composed. Autho
 
 
 \matmethods{
+\subsection*{Natural history of grass-endophyte symbiosis}
+\tom{}{I think we need a brief section like this.}
+
 \subsection*{Plant propagation and endophyte removal}
-Seeds from naturally infected populations of seven species of cool-season grasses (Agrostis perennans, Elymus villosus, Elymus virginicus, Festuca subverticillata, Lolium arundinaceum, Poa alsodes, and Poa sylvestris) were collected in the Spring of 2006?????? from Lilly Dickie Woods (Lat,Lon) and Bayles Road (Lat,Lon) in Brown. Co. IN. Seeds with shared maternal ancestry were either experimentally disinfected by heat treatments or left naturally infected to reduce confounding genotype effects. Seeds were surface sterilized with XXXX and cold stratified for XXXX weeks, then germinated in a growth chamber for XXXX weeks. Seedlings were then transferred to the greenhouse at Indiana University and allowed to grow for XXXX weeks. We confirmed the endophyte status of these plants using leaf peels (cite), and vegetatively propogated clones of similar sizes from the plants. These clones were used to establish the experimental plots, and cloning reduces the potential for negative effects of heat treatments (cite).
+Seeds from naturally infected populations of seven species of cool-season grasses (Agrostis perennans, Elymus villosus, Elymus virginicus, Festuca subverticillata, Lolium arundinaceum, Poa alsodes, and Poa sylvestris\tom{}{Italicize species names.}) were collected in the Spring of \tom{2006??????}{check with Jenn} from Lilly Dickie Woods (Lat,Lon) and Bayles Road (Lat,Lon) in Brown Co. IN. Seeds with shared maternal ancestry were either experimentally disinfected by \tom{heat treatments}{need methods for temp, duration, etc.} or left naturally infected to reduce confounding genotype effects. Seeds were surface sterilized with XXXX and cold stratified for XXXX weeks, then germinated in a growth chamber for XXXX weeks. Seedlings were then transferred to the greenhouse at Indiana University and allowed to grow for XXXX weeks. We confirmed the endophyte status of these plants using \tom{leaf peels}{need to be described} (cite), and \tom{vegetatively propogated clones of similar sizes from the plants}{not sure this happened}. These clones were used to establish the experimental plots, and cloning reduces the potential for negative effects of heat treatments (cite).
 
 \subsection*{Experimental design and data collection}
-In 2007, we established 10 3x3 plots for \textit{Lolium arundinaceum}, \textit{Festuca subverticillata}, \textit{Elymus virginicus}, and \textit{Elymus villosus} and 18 plots for \textit{Poa alsodes} and \textit{Poa sylvestris}. For each species, an equal number of plots were randomly assigned to each endophyte status, E+ or E-, and was planted with only symbiotic or symbiont-free plants respectively. Each plot was planted with 25? evenly spaced individuals and each plant marked with aluminum tags. 
+In \tom{2007}{dates?}, we established 10 3x3 plots for \textit{Lolium arundinaceum}, \textit{Festuca subverticillata}, \textit{Elymus virginicus}, and \textit{Elymus villosus} and 18 plots for \textit{Poa alsodes} and \textit{Poa sylvestris}. For each species, an equal number of plots were randomly assigned to each endophyte status, E+ or E-, and was planted with only symbiotic or symbiont-free plants respectively. Each plot was planted with \tom{25?}{I think 20, check data.} evenly spaced individuals and each plant marked with aluminum tags. 
 
 In each Summer starting in 2007, we censused all original transplants and any recruits for survival, growth and reproduction. After clearing out leaf litter, for each plant alive in the previous year, we marked its survival. We measured the size of each plant as a count of the number of tillers. Further, we collected reproductive data by counting the number of reproductive tillers, and then counting the number of seed-bearing spikelets on up to three of those reproductive tillers. In XXXX year, we took additional counts of seeds per inflorescence (list of species) or seeds per spikelet (list of species). Together, we use these measurements to estimate seed production. In each plot, we also survey for and mark any unmarked individuals. New recruits are typically a size of one tiller and non-reproductive, but we also find and mark any individuals who may have been missed in previous censuses.
 
-We typically expect plots of each endophyte status to maintain their status as the fungus is almost entirely vertically transmitted, and plots are spaced at least XX m apart, limiting the possibility for unwanted dispersal between plots or horizontal transmission of the fungus. Seeds from repoductive individuals are opportunistically taken and scored for their endophyte status. These scores reflect a XXXX\%  faithfullness of recruits to their expected endophyte status (Supplement data)
+We typically expect plots of each endophyte status to maintain their status as the fungus is almost entirely vertically transmitted, and plots are spaced at least XX m apart, limiting the possibility for unwanted dispersal between plots or horizontal transmission of the fungus. Seeds from reproductive individuals are opportunistically taken and scored for their endophyte status. \tom{These scores reflect a XXXX\%  faithfullness of recruits to their expected endophyte status (Supplement data)}{We had these data in the original LTREB proposal.}
 
-In sum, this individual-level demographic dataset covers 14 years and contains 30,XXXX individual transition-years.
+\tom{In sum, this individual-level demographic dataset covers 14 years and contains 30,XXXX individual transition-years.}{Move this earlier and also mention at the end of intro. The total number of plant-years is impressive.}
 
 \subsection*{Demographic modeling}
-Armed with this demographic data, we next constructed size-structured, stochastic population models. For each species
+Armed with this demographic data, we next constructed size-structured, stochastic population models. This demographic model describes transitions between sizes (measured as a count of tillers) from one year to the next.
+
+\begin{equation}\mathbf{n}_{t+1} = \mathbf{A}\mathbf{n}_{t}\end{equation}
+
 \subsubsection*{Model description and estimation}
+We modeled the mean and variance effects on each vital rate by fitting generalized linear mixed models (GLMM) to the long-term data with year and plot random effects. We fit all vital rate models in a Bayesian framework using Rstan, allowing us to propagate uncertainty from the vital rate estimates to our population model \citep{elderd2016quantifying}. 
+
+For all species, the population model includes a 1 year reproductive delay. We account for this by modeling seedling growth and survival separately from adult growth and survival. Seedlings are those plants that are recruited into the plot in a given year, and typically have only one tiller. 
+
+The probability of survival and flowering are recorded as successes or failures and consequently are modeled as Bernoulli processes. We modeled growth (measured as the number of tillers in year t+1), the number of flowering tillers, and the number of spikelets per inflorescence with the zero-truncated Poisson-Inverse Gaussian distribution. Where possible, each of these size dependent vital rates are modeled with the same structure of linear predictor ($\mu$)
+
+For example, growth of a given individual in year t+1 is modeled as:
+\begin{equation} 
+\label{eq:growth}
+\begin{aligned}
+G_{i,t1} \sim P(IG(\mu_{s,e},\lambda_{s,e} )) \\
+\mu_{s,e} = \beta^1_{s} + \beta^2_{s}log(size_{t}) + \beta^3_{s,e} + \beta^4_{r} \\
++ \tau + \rho \\
+\tau \sim N(0,\sigma_{s,e,t}) \\
+\rho \sim N(0,\sigma_{p})
+\end{aligned}
+\end{equation}
+
+Similarly, survival in year t+1 is modeled as:
+\begin{equation} 
+\label{eq:survival}
+\begin{aligned}
+S_{i,t1} \sim Bernoulli(\mu_{s,e})) \\
+\mu_{s,e} = \beta^1_{s} + \beta^2_{s}log(size_{t}) + \beta^3_{s,e} + \beta^4_{r} \\
++ \tau + \rho \\
+\tau \sim N(0,\sigma_{s,e}) \\
+\rho \sim N(0,\sigma_{p})
+\end{aligned}
+\end{equation}
+
+Where $\mu$, for each species (s), is a linear function of the logarithm of plant size in year t(t), the plot level endophyte status (e), the status as an initial experimental transplant plant(r), along with random effects to account for plot(p), and year random effects specific to each species and endophyte status. Thus mu can be written:
+\begin{equation}
+\label{eq:linearpredictor}
+\begin{aligned}
+\mu_{s,e} = \beta^1_{s} + \beta^2_{s}log(size_{t}) + \beta^3_{s,e} + \beta^4_{r} \\
++ \tau + \rho \\
+\tau \sim N(0,\sigma_{s,e}) \\
+\rho \sim N(0,\sigma_{p})
+\end{aligned}
+\end{equation}
+
+
+% beta0[spp[n]] + betasize[spp[n]]*logsize[n] + betaendo[spp[n]]*endo_01[n] +
+%      betaorigin*origin_01[n]
+%%    + tau_year[spp[n],(endo_01[n]+1),year_t[n]] + tau_plot[plot[n]])
+
+For survival
 \subsubsection*{Model assessment}
 \subsubsection*{Life table response experiment}
 
