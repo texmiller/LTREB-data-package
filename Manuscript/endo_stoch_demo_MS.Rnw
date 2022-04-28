@@ -191,37 +191,27 @@ Armed with this demographic data, we next constructed size-structured, stochasti
 \begin{equation}\mathbf{n}_{t+1} = \mathbf{A}\mathbf{n}_{t}\end{equation}
 
 \subsubsection*{Model description and estimation}
-We modeled the mean and variance effects on each vital rate by fitting generalized linear mixed models (GLMM) to the long-term data with year and plot random effects. We fit all vital rate models in a Bayesian framework using Rstan, allowing us to propagate uncertainty from the vital rate estimates to our population model \citep{elderd2016quantifying}. 
-
-For all species, the population model includes a 1 year reproductive delay. We account for this by modeling seedling growth and survival separately from adult growth and survival. Seedlings are those plants that are recruited into the plot in a given year, and typically have only one tiller. 
+We modeled the effect of endophyte symbiosis on mean and variance of vital rates by fitting generalized linear mixed models (GLMM) to the long-term data with year and plot random effects. We fit all vital rate models in a hierarchical Bayesian framework using Rstan \citep{Stan2022}, allowing us to propagate uncertainty from the vital rate estimates to our population model \citep{elderd2016quantifying}. 
 
 The probability of survival and flowering are recorded as successes or failures and consequently are modeled as Bernoulli processes. We modeled growth (measured as the number of tillers in year t+1), the number of flowering tillers, and the number of spikelets per inflorescence with the zero-truncated Poisson-Inverse Gaussian distribution. Where possible, each of these size dependent vital rates are modeled with the same structure of linear predictor ($\mu$)
 
-For example, growth of a given individual in year t+1 is modeled as:
+For example, growth ($G_{i,t1})$ of a given individual (i) in year t+1 is modeled as:
 \begin{equation} 
 \label{eq:growth}
 \begin{aligned}
 G_{i,t1} \sim P(IG(\mu_{s,e},\lambda_{s,e} )) \\
-\mu_{s,e} = \beta^1_{s} + \beta^2_{s}log(size_{t}) + \beta^3_{s,e} + \beta^4_{r} \\
-+ \tau + \rho \\
-\tau \sim N(0,\sigma_{s,e,t}) \\
-\rho \sim N(0,\sigma_{p})
 \end{aligned}
 \end{equation}
 
-Similarly, survival in year t+1 is modeled as:
+Similarly, survival {$S_{i,t1}$} in year t+1 is modeled as:
 \begin{equation} 
 \label{eq:survival}
 \begin{aligned}
-S_{i,t1} \sim Bernoulli(\mu_{s,e})) \\
-\mu_{s,e} = \beta^1_{s} + \beta^2_{s}log(size_{t}) + \beta^3_{s,e} + \beta^4_{r} \\
-+ \tau + \rho \\
-\tau \sim N(0,\sigma_{s,e}) \\
-\rho \sim N(0,\sigma_{p})
+S_{i,t1} \sim Bernoulli(\mu_{s,e}) \\
 \end{aligned}
 \end{equation}
 
-Where $\mu$, for each species (s), is a linear function of the logarithm of plant size in year t(t), the plot level endophyte status (e), the status as an initial experimental transplant plant(r), along with random effects to account for plot(p), and year random effects specific to each species and endophyte status. Thus mu can be written:
+Where $\mu$, for each species (s), is a linear function of the logarithm of plant size in year t(t), the plot level endophyte status (e), the status as an initial experimental transplant plant(r), along with random effects to account for plot(p), and year random effects specific to each species and endophyte status. Thus $\mu$ can be written:
 \begin{equation}
 \label{eq:linearpredictor}
 \begin{aligned}
@@ -232,6 +222,34 @@ Where $\mu$, for each species (s), is a linear function of the logarithm of plan
 \end{aligned}
 \end{equation}
 
+For all species, we include a 1 year reproductive delay in the population model following the observation that these newly recruited plants are rarely observed flowering in their first year. We account for this by modeling seedling growth and survival separately from adult growth and survival. Seedlings are those plants that are recruited into the plot in a given year, and typically have only one tiller. This means that they do not have size dependence. So, for seedlings, growth ($G^{sdlg}_{1,t1}$) is modelled as:
+
+\begin{equation} 
+\label{eq:sdlg_growth}
+\begin{aligned}
+G^{sdlg}_{1,t1} \sim P(IG(\mu^{sdlg}_{s,e},\lambda_{s,e} )) \\
+\end{aligned}
+\end{equation}
+
+Similarly, survival ($S^{sdlg}_{i,t1}$) in year t+1 is modeled as:
+\begin{equation} 
+\label{eq:sdlg_survival}
+\begin{aligned}
+S^{sdlg}_{i,t1} \sim Bernoulli(\mu^{sdlg}_{s,e}) \\
+\end{aligned}
+\end{equation}
+
+Here, $\mu^{sdlg}_{s,e}$ is the linear function for these seedling specific vital rates. It does not include size-dependence or an effect to account for the initial benefit to transplant. 
+
+\begin{equation}
+\label{eq:linearpredictor}
+\begin{aligned}
+\mu^{sdlg}_{s,e} = \beta^1_{s} + \beta^3_{s,e} \\
++ \tau + \rho \\
+\tau \sim N(0,\sigma_{s,e}) \\
+\rho \sim N(0,\sigma_{p})
+\end{aligned}
+\end{equation}
 
 % beta0[spp[n]] + betasize[spp[n]]*logsize[n] + betaendo[spp[n]]*endo_01[n] +
 %      betaorigin*origin_01[n]
