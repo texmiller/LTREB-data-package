@@ -174,6 +174,13 @@ saveRDS(sm_s_to_s, file = "~/Dropbox/EndodemogData/Model_Runs/endo_spp_s_to_s.rd
 print(sm_s_to_s, pars = c("sigmaendo"))
 traceplot(sm_s_to_s, pars = c("beta0"))
 
+
+sm_s_to_s <- stan(file = "Analyses/endo_spp_s_to_s_novarianceeffect.stan", data = s_to_s_data_list,
+                  iter = mcmc_pars$iter,
+                  warmup = mcmc_pars$warmup,
+                  chains = mcmc_pars$chains, 
+                  thin = mcmc_pars$thin)
+stanc(file = "Analyses/endo_spp_s_to_s_novarianceeffect.stan")
 #########################################################################################################
 # Model Diagnostics ------------------------------
 #########################################################################################################
@@ -194,7 +201,7 @@ y_recruit_sim <- read_rds(file = "yrep_stosmodel")
 
 ppc_dens_overlay(s_to_s_data_list$tot_recruit_t1, y_recruit_sim)
 ppc_dens_overlay(s_to_s_data_list$tot_recruit_t1, y_recruit_sim) +xlim(0,75) # seems to be fitting okay
-stos_densplot <- ppc_dens_overlay(s_to_s_data_list$tot_recruit_t1, y_recruit_sim) +xlim(0,75) + labs(title = "Recruitment", x = "Successful Germination", y = "Density") 
+stos_densplot <- ppc_dens_overlay(s_to_s_data_list$tot_recruit_t1, y_recruit_sim) +xlim(0,40) + labs(title = "Recruitment", x = "Successful Germination", y = "Density") 
 ggsave(stos_densplot, filename = "stos_densplot.png", width = 4, height = 4)
 
 # overall mean looks okay.
