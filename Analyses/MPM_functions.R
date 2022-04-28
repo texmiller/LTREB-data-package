@@ -12,10 +12,10 @@ make_params <- function(species,endo_mean,endo_var,original=0,draw,rfx=F,year=NU
   if(rfx==F){rfx_surv <- rfx_surv_sdlg <- rfx_grow <- rfx_grow_sdlg <- rfx_flow <- rfx_fert <- rfx_spike <- rfx_rct <-  0}
   if(rfx==T){
     ## timing and survival and growth (size_t / y_t1) is meant to line up with reproduction (size_t1 / y_t1)
-    rfx_surv <- surv_par$tau_year[draw,species,(endo_var+1),(year+1)]; 
-    rfx_surv_sdlg <-surv_sdlg_par$tau_year[draw,species,(endo_var+1),(year+1)];
-    rfx_grow <- grow_par$tau_year[draw,species,(endo_var+1),(year+1)];
-    rfx_grow_sdlg <- grow_sdlg_par$tau_year[draw,species,(endo_var+1),(year+1)];
+    rfx_surv <- surv_par$tau_year[draw,species,(endo_var+1),(year)]; 
+    rfx_surv_sdlg <-surv_sdlg_par$tau_year[draw,species,(endo_var+1),(year)];
+    rfx_grow <- grow_par$tau_year[draw,species,(endo_var+1),(year)];
+    rfx_grow_sdlg <- grow_sdlg_par$tau_year[draw,species,(endo_var+1),(year)];
     rfx_flow <- flow_par$tau_year[draw,species,(endo_var+1),year];
     rfx_fert <- fert_par$tau_year[draw,species,(endo_var+1),year]; 
     rfx_spike <- spike_par$tau_year[draw,species,(endo_var+1),year];
@@ -116,7 +116,7 @@ fx<-function(x, params){
   flw <- invlogit(params$flow_int + params$flow_slope*log(x))
   fert <- exp(params$fert_int + params$fert_slope*log(x))
   spike <- exp(params$spike_int + params$spike_slope*log(x))
-  seeds_per_spike <- exp(params$seeds_per_spike)
+  seeds_per_spike <- params$seeds_per_spike
   recruits_per_seed <- invlogit(params$recruits_per_seed)
   seedlings <- flw * fert * spike * seeds_per_spike * recruits_per_seed
   return(seedlings)
@@ -127,7 +127,7 @@ fx<-function(x, params){
 bigmatrix<-function(params){   
   matdim<-params$max_size
   y <- 1:matdim 
-  #fertilitty transition
+  #fertility transition
   Fmat <- matrix(0,matdim+1,matdim+1)
   Fmat[1,2:(matdim+1)]<-fx(x = y, params)
   
