@@ -2035,20 +2035,20 @@ climate <-
   left_join(station_data) # merging the station name, the distance to Lilly-Dickey Woods, and the lat long for each weather station
 
 #Some graphs to look at how the different stations's values compare 
-# climate %>% 
-#   dplyr::select(id, date, prcp, tmax) %>% 
-#   distinct() %>% 
-#   pivot_wider(id_cols = c(id,date), names_from = c(id), values_from = c(prcp, tmax)) %>% 
+# climate %>%
+#   dplyr::select(id, date, prcp, tmax) %>%
+#   distinct() %>%
+#   pivot_wider(id_cols = c(id,date), names_from = c(id), values_from = c(prcp, tmax)) %>%
 # ggplot()+
 #   geom_point(aes(x = prcp_USC00126056, y = tmax_USC00126056), col = "red")+
 #   geom_point(aes(x = prcp_USC00120784, y = tmax_USC00120784), col = "blue")+ #bloomington
 #   geom_point(aes(x = prcp_USC00121747, y = tmax_USC00121747), col = "green") #columbus
 # 
 # 
-# climate %>% 
-#   dplyr::select(id, date, prcp, tmax) %>% 
-#   distinct() %>% 
-#   pivot_wider(id_cols = c(id,date), names_from = c(id), values_from = c(prcp, tmax)) %>% 
+# climate %>%
+#   dplyr::select(id, date, prcp, tmax) %>%
+#   distinct() %>%
+#   pivot_wider(id_cols = c(id,date), names_from = c(id), values_from = c(prcp, tmax)) %>%
 #   ggplot()+
 #   geom_point(aes(x = prcp_USC00126056, y = prcp_USC00120784), col = "red")+ #nashville vs bloomington
 #   geom_point(aes(x = prcp_USC00126056, y = prcp_USC00121747), col = "blue")+ #nashville vs columbus
@@ -2069,11 +2069,11 @@ climate <-
 
 # Looking at how many years for each of the stations have the full 12 months of data
 # This is not very elegant, but Bloomington has the best recent data, while Columbus has the best historic data, but they are fairly similar
-# month_count <- climate %>% 
-#   mutate(year = year(date), month = month(date)) %>% 
-#   group_by(id, year, month) %>% 
-#   summarize(prcp = sum(prcp)) %>% 
-#   group_by(id, year) %>% 
+# month_count <- climate %>%
+#   mutate(year = year(date), month = month(date)) %>%
+#   group_by(id, year, month) %>%
+#   summarize(prcp = sum(prcp)) %>%
+#   group_by(id, year) %>%
 #   summarize(n())
 # 
 # ggplot(data = month_count)+
@@ -2081,11 +2081,11 @@ climate <-
 # 
 # ggplot(data = filter(month_count, year >2005))+
 #   geom_histogram(aes(x = as.integer(`n()`))) + facet_wrap(~id)
-
+# 
 
 # census months for each species to define climate year
 census_months <- data.frame(species = c("AGPE", "ELRI", "ELVI", "FESU", "LOAR", "POAL", "POSY"),
-                            census_month = c(8,7,7,5,7,5,5)) #using august for now for AGPE because 2019 is missing data for temps for september 
+                            census_month = c(9,7,7,5,7,5,5)) # 2021 climate data is missing months 6,7
 
 LTREB_full_3 <- LTREB_full_2 %>% 
   left_join(census_months)
@@ -2099,7 +2099,9 @@ climate_census_month <- climate %>%
   mutate(year = year(date), month = month(date), day = day(date)) %>% 
   filter(year >1895) %>% 
   mutate(tmax = tmax/10, tmin = tmin/10, prcp = prcp/10) %>%  # Converting temp. to Celsius, and precip. to mm (from 10ths of units)
-  mutate(tmean = (tmax + tmin)/2) %>%  # there are some NA's in the Max or Min temp at various times, and so that gives us NA's in the mean temp too, but I filter those out
+  mutate(tmean = case_when(!is.na(tmax) & !is.na(tmin) ~ (tmax + tmin)/2,
+                           !is.na(tmax) & is.na(tmin) ~ tmax,
+                           is.na(tmax) & !is.na(tmin) ~ tmin)) %>%# there are some NA's in the Max or Min temp at various times, and so that gives us NA's in the mean temp too, but I filter those out
   mutate(tmean_forthorthwaite = case_when(tmean <= 0 ~ 0,
                                           TRUE ~ tmean)) %>% 
   # mutate(PET = thornthwaite(tmean, unique(latitude)), #PET is Potential Evapotranspiration
@@ -2122,7 +2124,11 @@ climate_census_month$spei1 <- spei(climate_census_month$monthly_BAL, 1, na.rm = 
 spei_census_month_spp <- climate_census_month %>% 
   crossing(census_months) %>% 
   mutate(climate_year = as.numeric(ifelse(month > census_month, year+1, year))) %>%  
-  filter(month == census_month) %>% # Here we are taking just the spei starting from the census month, which should cover the climate  year  preceding the census
+  # filter(month == census_month) %>% 
+  filter(case_when(year == 2021 & species == "ELVI" | year == 2021 & species  == "ELRI" | year == 2021 & species == "LOAR" ~ month == census_month+1,
+                   TRUE ~ month == census_month)) %>% # Here we are taking just the spei starting from the census month, which should cover the climate  year  preceding the census (For 2021, there is no climate data from june, july, so for ELVI, ELRI, and LOAR, I am taking august data for this year)
+  mutate(climate_year = case_when(year == 2021 & species == "ELVI" | year == 2021 & species  == "ELRI" | year == 2021 & species == "LOAR" ~ 2021,
+                                  TRUE ~ climate_year)) %>% # this is fixinig the label for the climate year for that month fix
   dplyr::select(species, year, climate_year, census_month, spei1, spei12, spei24)
 
 # Making a dataframe with annual precipitation and temperature for the census year
@@ -2135,8 +2141,8 @@ ppt_temp_census_annual_spp <- climate_census_month %>%
 
 # Now merging the climate data to the year for each species
 LTREB_full_climate <- LTREB_full_3 %>% 
-  left_join(ppt_temp_census_annual_spp, by = c("species" = "species",  "year_t1" = "climate_year", "census_month" = "census_month")) %>% 
-  left_join(spei_census_month_spp, by = c("species" = "species",  "year_t1" = "climate_year", "census_month" = "census_month"))
+  left_join(spei_census_month_spp, by = c("species" = "species",  "year_t1" = "climate_year", "census_month" = "census_month")) %>% 
+  left_join(ppt_temp_census_annual_spp, by = c("species" = "species",  "year_t1" = "climate_year", "census_month" = "census_month")) 
 
 
 ##############################################################################
