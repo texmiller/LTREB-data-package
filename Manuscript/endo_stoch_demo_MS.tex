@@ -172,7 +172,7 @@ Supply a composable U3D or PRC file so that it may be edited and composed. Autho
 
 \matmethods{
 \subsection*{Natural history of grass-endophyte symbiosis}
-\tom{}{I think we need a brief section like this.}
+To study the effects of context-dependent microbial symbiosis, we focused on \emph{Epichloë} fungal endophytes, which live in the aboveground tissue of many species of cool-season grasses and grow into their hosts' seeds where they can be transmitted to the next generation. This vertical transmission predicts that the interaction is mutualistic, else the fungi cause their host to be selected out of the population \citep{fine1975vectors, douglas1998host, rudgers2009fungus}. While there are demonstrated benefits against herbivory\citep{brem2001epichloe} and under drought stress \citep{hamilton2012new} in some species, these interactions are commonly context-dependent \citep{cheplick2004recovery, kannadan2008endophyte, wu2016endophytic}.
 
 \subsection*{Plant propagation and endophyte removal}
 Seeds from naturally infected populations of seven species of cool-season grasses (Agrostis perennans, Elymus villosus, Elymus virginicus, Festuca subverticillata, Lolium arundinaceum, Poa alsodes, and Poa sylvestris\tom{}{Italicize species names.}) were collected in the Spring of \tom{2006??????}{check with Jenn} from Lilly Dickie Woods (Lat,Lon) and Bayles Road (Lat,Lon) in Brown Co. IN. Seeds with shared maternal ancestry were either experimentally disinfected by \tom{heat treatments}{need methods for temp, duration, etc.} or left naturally infected to reduce confounding genotype effects. Seeds were surface sterilized with XXXX and cold stratified for XXXX weeks, then germinated in a growth chamber for XXXX weeks. Seedlings were then transferred to the greenhouse at Indiana University and allowed to grow for XXXX weeks. We confirmed the endophyte status of these plants using \tom{leaf peels}{need to be described} (cite), and \tom{vegetatively propogated clones of similar sizes from the plants}{not sure this happened}. These clones were used to establish the experimental plots, and cloning reduces the potential for negative effects of heat treatments (cite).
@@ -240,7 +240,7 @@ S^{sdlg}_{i,t1} \sim Bernoulli(\mu^{sdlg}_{s,e}) \\
 \end{aligned}
 \end{equation}
 
-Here, $\mu^{sdlg}_{s,e}$ is the linear function for these seedling specific vital rates. It does not include size-dependence or an effect to account for the initial benefit to transplant. 
+Here, $\mu^{sdlg}_{s,e}$ is the linear function for these seedling specific vital rates. It does not include size-dependence or an effect to account for the initial benefits of greenhouse rearing. 
 
 \begin{equation}
 \label{eq:linearpredictor}
@@ -252,13 +252,12 @@ Here, $\mu^{sdlg}_{s,e}$ is the linear function for these seedling specific vita
 \end{aligned}
 \end{equation}
 
-% beta0[spp[n]] + betasize[spp[n]]*logsize[n] + betaendo[spp[n]]*endo_01[n] +
-%      betaorigin*origin_01[n]
-%%    + tau_year[spp[n],(endo_01[n]+1),year_t[n]] + tau_plot[plot[n]])
+As a default, we ran each vital rate model for 2500 warm-up and 2500 MCMC sampling iterations with three chains using rStan. We assessed model convergence with trace plots of posterior chains and  and other model diagnostic statistics \citep{}. For those models that show poor convergence, we extend the MCMC sampling to include 5000 warm-up and 5000 sampliing iterations; this was only necessary for seedling growth in our climate-implicit analysis. For each of these vital rate models, we graphically check model fit with posterior predictive checks using simulated data from 500 posterior draws and comparing with the observed data (See supplement?). These checks provide evidence that our models are accurately recreating size-specific growth, survival, and reproduction patterns in our data across endophyte treatments.
 
-For survival
 \subsubsection*{Model assessment}
-\subsubsection*{Life table response experiment}
+We assessed the fit 
+
+\subsubsection*{Stochastic growth rate simulation experiment}
 
 \subsection*{Estimating climate drivers of environmental context-dependence}
 \subsubsection*{Climate data}
