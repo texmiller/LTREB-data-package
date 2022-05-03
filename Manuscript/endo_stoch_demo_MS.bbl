@@ -1,4 +1,4 @@
-\begin{thebibliography}{11}
+\begin{thebibliography}{19}
 \providecommand{\natexlab}[1]{#1}
 \providecommand{\url}[1]{\texttt{#1}}
 \expandafter\ifx\csname urlstyle\endcsname\relax
@@ -90,6 +90,56 @@ Stephanie~N Kivlin, Sarah~M Emery, and Jennifer~A Rudgers.
 Scott~A Chamberlain, Judith~L Bronstein, and Jennifer~A Rudgers.
 \newblock How context dependent are species interactions?
 \newblock \emph{Ecology letters}, 17\penalty0 (7):\penalty0 881--890, 2014.
+
+\bibitem[Fine(1975)]{fine1975vectors}
+Paul~EM Fine.
+\newblock Vectors and vertical transmission: an epidemiologic perspective.
+\newblock \emph{Annals of the New York Academy of Sciences}, 266\penalty0
+  (1):\penalty0 173--194, 1975.
+
+\bibitem[Douglas(1998)]{douglas1998host}
+AE~Douglas.
+\newblock Host benefit and the evolution of specialization in symbiosis.
+\newblock \emph{Heredity}, 81\penalty0 (6):\penalty0 599--603, 1998.
+
+\bibitem[Rudgers et~al.(2009)Rudgers, Afkhami, R{\'u}a, Davitt, Hammer, and
+  Huguet]{rudgers2009fungus}
+Jennifer~A Rudgers, Michelle~E Afkhami, Megan~A R{\'u}a, Andrew~J Davitt,
+  Samantha Hammer, and Val{\'e}rie~M Huguet.
+\newblock A fungus among us: broad patterns of endophyte distribution in the
+  grasses.
+\newblock \emph{Ecology}, 90\penalty0 (6):\penalty0 1531--1539, 2009.
+
+\bibitem[Brem and Leuchtmann(2001)]{brem2001epichloe}
+D~Brem and A~Leuchtmann.
+\newblock Epichlo{\"e} grass endophytes increase herbivore resistance in the
+  woodland grass brachypodium sylvaticum.
+\newblock \emph{Oecologia}, 126\penalty0 (4):\penalty0 522--530, 2001.
+
+\bibitem[Hamilton and Bauerle(2012)]{hamilton2012new}
+Cyd~E Hamilton and Taryn~L Bauerle.
+\newblock A new currency for mutualism? fungal endophytes alter antioxidant
+  activity in hosts responding to drought.
+\newblock \emph{Fungal Diversity}, 54\penalty0 (1):\penalty0 39--49, 2012.
+
+\bibitem[Cheplick(2004)]{cheplick2004recovery}
+Gregory~P Cheplick.
+\newblock Recovery from drought stress in lolium perenne (poaceae): are fungal
+  endophytes detrimental?
+\newblock \emph{American Journal of Botany}, 91\penalty0 (12):\penalty0
+  1960--1968, 2004.
+
+\bibitem[Kannadan and Rudgers(2008)]{kannadan2008endophyte}
+S~Kannadan and JA~Rudgers.
+\newblock Endophyte symbiosis benefits a rare grass under low water
+  availability.
+\newblock \emph{Functional Ecology}, 22\penalty0 (4):\penalty0 706--713, 2008.
+
+\bibitem[Bacon and White(2018)]{bacon2018stains}
+Charles~W Bacon and James~F White.
+\newblock Stains, media, and procedures for analyzing endophytes.
+\newblock In \emph{Biotechnology of endophytic fungi of grasses}, pages 47--56.
+  CRC Press, 2018.
 
 \bibitem[Elderd and Miller(2016)]{elderd2016quantifying}
 Bret~D Elderd and Tom~EX Miller.

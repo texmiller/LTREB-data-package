@@ -171,10 +171,10 @@ Supply a composable U3D or PRC file so that it may be edited and composed. Autho
 
 \matmethods{
 \subsection*{Natural history of grass-endophyte symbiosis}
-To study the effects of context-dependent microbial symbiosis, we focused on \emph{Epichloë} fungal endophytes, which live in the aboveground tissue of many species of cool-season grasses and grow into their hosts' seeds where they can be transmitted to the next generation. This vertical transmission predicts that the interaction is mutualistic, else the fungi cause their host to be selected out of the population \citep{fine1975vectors, douglas1998host, rudgers2009fungus}. While there are demonstrated benefits against herbivory\citep{brem2001epichloe} and under drought stress \citep{hamilton2012new} in some species, these interactions are commonly context-dependent \citep{cheplick2004recovery, kannadan2008endophyte, wu2016endophytic}.
+To study the effects of context-dependent microbial symbiosis, we focused on \emph{Epichloë} fungal endophytes, which live in the aboveground tissue of many species of cool-season grasses and grow into their hosts' seeds where they can be transmitted to the next generation. This vertical transmission couples host and symbiont fitness and leads to the expectation that the interaction be mutualistic, else the fungi cause their host to be selected out of the population \citep{fine1975vectors, douglas1998host, rudgers2009fungus}. While there are demonstrated benefits against herbivory\citep{brem2001epichloe} and under drought stress \citep{hamilton2012new} in some species, these interactions are commonly context-dependent \citep{cheplick2004recovery, kannadan2008endophyte}.
 
 \subsection*{Plant propagation and endophyte removal}
-Seeds from naturally infected populations of seven species of cool-season grasses (Agrostis perennans, Elymus villosus, Elymus virginicus, Festuca subverticillata, Lolium arundinaceum, Poa alsodes, and Poa sylvestris\tom{}{Italicize species names.}) were collected in the Spring of \tom{2006??????}{check with Jenn} from Lilly Dickie Woods (Lat,Lon) and Bayles Road (Lat,Lon) in Brown Co. IN. Seeds with shared maternal ancestry were either experimentally disinfected by \tom{heat treatments}{need methods for temp, duration, etc.} or left naturally infected to reduce confounding genotype effects. Seeds were surface sterilized with XXXX and cold stratified for XXXX weeks, then germinated in a growth chamber for XXXX weeks. Seedlings were then transferred to the greenhouse at Indiana University and allowed to grow for XXXX weeks. We confirmed the endophyte status of these plants using \tom{leaf peels}{need to be described} (cite), and \tom{vegetatively propogated clones of similar sizes from the plants}{not sure this happened}. These clones were used to establish the experimental plots, and cloning reduces the potential for negative effects of heat treatments (cite).
+Seeds from naturally infected populations of seven species of cool-season grasses (Agrostis perennans, Elymus villosus, Elymus virginicus, Festuca subverticillata, Lolium arundinaceum, Poa alsodes, and Poa sylvestris\tom{}{Italicize species names.}) were collected in the Spring of \tom{2006??????}{check with Jenn} from Lilly Dickie Woods (Lat,Lon) and Bayles Road (Lat,Lon) in Brown Co. IN. Seeds with shared maternal ancestry were either experimentally disinfected by \tom{heat treatments}{need methods for temp, duration, etc.} or left naturally infected to reduce confounding genotype effects. Seeds were surface sterilized with XXXX and cold stratified for XXXX weeks, then germinated in a growth chamber for XXXX weeks. Seedlings were then transferred to the greenhouse at Indiana University and allowed to grow for XXXX weeks. We confirmed the endophyte status of these plants using leaf peels, where tissue from the leaf sheet is stained with aniline blue lactic acid and examined for the presence of fungal hyphae \citep{bacon2018stains}, and \tom{vegetatively propogated clones of similar sizes from the plants}{not sure this happened}. These clones were used to establish the experimental plots, and cloning reduces the potential for negative effects of heat treatments (cite).
 
 \subsection*{Experimental design and data collection}
 In \tom{2007}{dates?}, we established 10 3x3 plots for \textit{Lolium arundinaceum}, \textit{Festuca subverticillata}, \textit{Elymus virginicus}, and \textit{Elymus villosus} and 18 plots for \textit{Poa alsodes} and \textit{Poa sylvestris}. For each species, an equal number of plots were randomly assigned to each endophyte status, E+ or E-, and was planted with only symbiotic or symbiont-free plants respectively. Each plot was planted with \tom{25?}{I think 20, check data.} evenly spaced individuals and each plant marked with aluminum tags. 
@@ -188,7 +188,28 @@ We typically expect plots of each endophyte status to maintain their status as t
 \subsection*{Demographic modeling}
 Armed with this demographic data, we next constructed size-structured, stochastic population models. This demographic model describes transitions between sizes (measured as a count of tillers) from one year to the next.
 
-\begin{equation}\mathbf{n}_{t+1} = \mathbf{A}\mathbf{n}_{t}\end{equation}
+\begin{equation}
+\label{eq:matrixmodel}
+\mathbf{n}_{t+1} = \mathbf{A}\mathbf{n}_{t}
+\end{equation}
+
+where $\mathbf{n}_{t+1}$ is a vector distributed across plant size in year t+1 for each species and endophyte status.
+
+\begin{equation}
+\label{eq:nvector}
+\mathbf{n}_{t+1} = \begin{bmatrix} size_{i} \\ . \\ .\\ . \\ size_{N} \end{bmatrix} 
+\end{equation}
+
+and $\mathbf{A}$ is expressed as a N+1 x N+1 matrix:
+\begin{equation}
+\label{eq:Amatrix}
+\mathbf{A} = \begin{bmatrix} size_{sldg} & .  & . & . & size_{sldg_N} \\
+                            . & .  & . & . & .\\
+                            . & .  & . & . & .\\
+                            . & .  & . & . & .\\
+                            . & .  & . & . & size_{N} \end{bmatrix}
+\end{equation}
+
 
 \subsubsection*{Model description and estimation}
 We modeled the effect of endophyte symbiosis on mean and variance of vital rates by fitting generalized linear mixed models (GLMM) to the long-term data with year and plot random effects. We fit all vital rate models in a hierarchical Bayesian framework using Rstan \citep{Stan2022}, allowing us to propagate uncertainty from the vital rate estimates to our population model \citep{elderd2016quantifying}. 
@@ -242,7 +263,7 @@ S^{sdlg}_{i,t1} \sim Bernoulli(\mu^{sdlg}_{s,e}) \\
 Here, $\mu^{sdlg}_{s,e}$ is the linear function for these seedling specific vital rates. It does not include size-dependence or an effect to account for the initial benefits of greenhouse rearing. 
 
 \begin{equation}
-\label{eq:linearpredictor}
+\label{eq:sdlg_linearpredictor}
 \begin{aligned}
 \mu^{sdlg}_{s,e} = \beta^1_{s} + \beta^3_{s,e} \\
 + \tau + \rho \\
@@ -253,8 +274,6 @@ Here, $\mu^{sdlg}_{s,e}$ is the linear function for these seedling specific vita
 
 As a default, we ran each vital rate model for 2500 warm-up and 2500 MCMC sampling iterations with three chains using rStan. We assessed model convergence with trace plots of posterior chains and  and other model diagnostic statistics \citep{}. For those models that show poor convergence, we extend the MCMC sampling to include 5000 warm-up and 5000 sampliing iterations; this was only necessary for seedling growth in our climate-implicit analysis. For each of these vital rate models, we graphically check model fit with posterior predictive checks using simulated data from 500 posterior draws and comparing with the observed data (See supplement?). These checks provide evidence that our models are accurately recreating size-specific growth, survival, and reproduction patterns in our data across endophyte treatments.
 
-\subsubsection*{Model assessment}
-We assessed the fit 
 
 \subsubsection*{Stochastic growth rate simulation experiment}
 
