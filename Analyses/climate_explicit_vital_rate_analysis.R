@@ -36,7 +36,7 @@ LTREB_data_forsurv <- LTREB_full %>%
   filter(!is.na(surv_t1)) %>% 
   filter(!is.na(logsize_t)) %>% 
   filter(!is.na(endo_01)) %>%   # There are a few LOAR that don't have a plot level endo assigned
-  filter(origin_01 == 1 & year_t != birth | origin_01 == 0) %>%   # filtering out first year germinants (including those that are bigger than 1 tiller)
+  filter(origin_01 == 1 & year_t != birth | origin_01 == 0) %>%    # filtering out first year germinants (including those that are bigger than 1 tiller)
   filter(!is.na(spei12)) # I think I can try to get more recent climate data, but there are NA's for the 2020 and 2019 AGPE data right now
 dim(LTREB_data_forsurv)
 
@@ -51,13 +51,13 @@ LTREB_surv_means <- LTREB_data_forsurv %>%
 # ggplot(data = LTREB_surv_means)+
 #   geom_point(aes(x = year_t1, y = mean_surv, color = as.factor(endo_01), size = count))+ facet_wrap(~species)+
 #   theme_classic()
-# 
+# # 
 # ggplot(data = LTREB_surv_means)+
 #   geom_point(aes(x = year_t1, y = spei12, color = endo_01, size = count))+ facet_wrap(~species)
 # 
 # ggplot(data = LTREB_surv_means)+
 #   geom_point(aes(x = year_t1, y = annual_precip, color = endo_01, size = count))+ facet_wrap(~species)
-# 
+
 # ggplot(data = LTREB_surv_means)+
 #   geom_point(aes(x = year_t1, y = annual_temp, color = endo_01, size = count))+ facet_wrap(~species)
 # 
@@ -230,11 +230,11 @@ LTREB_flw_means <- LTREB_data_forflw %>%
 
 surv_data_list <- list(y = LTREB_data_forsurv$surv_t1,
                        spei = as.numeric(LTREB_data_forsurv$spei12),
-                       logsize_t = LTREB_data_forsurv$logsize_t,
+                       spei_nl = as.numeric(LTREB_data_forsurv$spei12^2),
+                       logsize = LTREB_data_forsurv$logsize_t,
                        origin_01 = LTREB_data_forsurv$origin_01,
                        endo_01 = as.integer(LTREB_data_forsurv$endo_01),
                        endo_index = as.integer(LTREB_data_forsurv$endo_index),
-                       spp = as.integer(rep(1,nrow(LTREB_data_forsurv))),
                        spp = as.integer(LTREB_data_forsurv$species_index),
                        year_t = as.integer(LTREB_data_forsurv$year_t_index),
                        plot = as.integer(as.factor(LTREB_data_forsurv$plot_index)),
@@ -350,8 +350,8 @@ set.seed(123)
 
 ## MCMC settings
 mcmc_pars <- list(
-  warmup = 2000, 
-  iter = 4000, 
+  warmup = 2500, 
+  iter = 5000, 
   thin = 1, 
   chains = 3
 )
@@ -361,9 +361,17 @@ sm_surv <- stan(file = "Analyses/climate_endo_spp_surv_flw.stan", data = surv_da
                 warmup = mcmc_pars$warmup,
                 chains = mcmc_pars$chains, 
                 thin = mcmc_pars$thin)
+# The model with squared climate terrms gives max_treedepth warnings but without does not.
+
+
+
 # saveRDS(sm_surv, file = "~/Dropbox/EndodemogData/Model_Runs/climate_endo_spp_surv_woseedling.rds")
-
-
+# There's an issue with tthe daata. The below model (with no climate runs fine with the full data, but here, where I dropped some rows because of NA's in climaate causes iissues.
+sm_surv <- stan(file = "Analyses/endo_spp_surv_flw.stan", data = surv_data_list,
+                iter = mcmc_pars$iter,
+                warmup = mcmc_pars$warmup,
+                chains = mcmc_pars$chains, 
+                thin = mcmc_pars$thin)
 
 
 
