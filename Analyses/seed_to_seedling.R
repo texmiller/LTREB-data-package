@@ -178,7 +178,7 @@ traceplot(sm_s_to_s, pars = c("beta0"))
 sm_s_to_s <- stan(file = "Analyses/endo_spp_s_to_s_novarianceeffect.stan", data = s_to_s_data_list,
                   iter = mcmc_pars$iter,
                   warmup = mcmc_pars$warmup,
-                  chains = mcmc_pars$chains, 
+                  chains = mcmc_pars$chains,
                   thin = mcmc_pars$thin)
 stanc(file = "Analyses/endo_spp_s_to_s_novarianceeffect.stan")
 #########################################################################################################
@@ -197,7 +197,7 @@ for(i in 1:n_post_draws){
   y_recruit_sim[i,] <- rbinom(n = length(s_to_s_data_list$tot_recruit_t1), size = s_to_s_data_list$tot_seed_t, prob = invlogit(predRecruit[post_draws[i],]))
 }
 saveRDS(y_recruit_sim, file = "yrep_stosmodel.rds")
-y_recruit_sim <- read_rds(file = "yrep_stosmodel")
+y_recruit_sim <- read_rds(file = "yrep_stosmodel.rds")
 
 ppc_dens_overlay(s_to_s_data_list$tot_recruit_t1, y_recruit_sim)
 ppc_dens_overlay(s_to_s_data_list$tot_recruit_t1, y_recruit_sim) +xlim(0,75) # seems to be fitting okay
