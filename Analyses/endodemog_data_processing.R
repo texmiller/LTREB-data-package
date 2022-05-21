@@ -1835,7 +1835,7 @@ LTREB_update <- LTREB_update_cleaned_tnf %>%
                 surv_t1, size_t1, logsize_t1,
                 FLW_COUNT_T1, FLW_STAT_T1,
                 SPIKE_A_T1, SPIKE_B_T1, SPIKE_C_T1,
-                year_t, year_t_index)
+                year_t, year_t_index, dist_a, dist_b)
 # Assigning plot endo status to the 2019 data
 LTREB_plot_endo_status <- LTREB_full_to2018 %>% 
   group_by(plot_fixed, plot_index) %>% 
@@ -1895,7 +1895,8 @@ LTREB_full_update_lag <- LTREB_full_update %>%
                 SPIKE_A_T1, SPIKE_B_T1, SPIKE_C_T1, SPIKE_D_T1, SPIKE_AGPE_MEAN_T1,
                 year_t, year_t_index, size_t, logsize_t, 
                 FLW_COUNT_T, FLW_STAT_T,
-                SPIKE_A_T, SPIKE_B_T, SPIKE_C_T, SPIKE_D_T, SPIKE_AGPE_MEAN_T)
+                SPIKE_A_T, SPIKE_B_T, SPIKE_C_T, SPIKE_D_T, SPIKE_AGPE_MEAN_T,
+                dist_a, dist_b)
 
 dim(LTREB_full_update_lag)
 
@@ -2151,8 +2152,12 @@ LTREB_full_climate <- LTREB_full_3 %>%
 
 LTREB_full <- LTREB_full_climate %>% 
   left_join(LTREB_distances, by = c("species" = "species","pos" = "pos", "plot_fixed" = "plot", "origin_01" = "origin_01", "id" = "id")) %>% 
+  mutate(dist_a = case_when(!is.na(dist_a.x) ~ dist_a.x,
+                            TRUE ~ dist_a.y),
+         dist_b = case_when(!is.na(dist_b.x) ~ dist_b.x,
+                            TRUE ~ dist_b.y)) %>% 
   mutate(spei1 = as.numeric(spei1), spei12 = as.numeric(spei12), spei24 = as.numeric(spei24)) %>% # I don't know why but this was giving an error when trying to write the file cause it was saving the column as a list
-  dplyr::select(-duplicate, -origin_from_check, -origin_from_distance, -date_status, -date_dist ) # I'm removing some of the extraneous variable. We also have distance data in the new field data that needs to be merged in.
+  dplyr::select(-duplicate, -origin_from_check, -origin_from_distance, -date_status, -date_dist, -contains(".x"), -contains(".y")) # I'm removing some of the extraneous variable. We also have distance data in the new field data that needs to be merged in.
 # write_csv(LTREB_full,file = "~/Dropbox/EndodemogData/Fulldataplusmetadata/LTREB_full.csv")
 
 ## Tom is loading this in, bypassing above code
