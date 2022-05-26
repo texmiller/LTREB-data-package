@@ -79,33 +79,33 @@ sx_sdlg <- function(params){
   invlogit(params$surv_sdlg_int)
 }
 
+#gxy <- function(x,y,params){
+#  grow_mean <- params$grow_int + params$grow_slope*log(x)
+#  
+#  grow<-dpoisinvgauss(x=y,mean=exp(grow_mean),shape=(exp(grow_mean)*params$grow_sigma))
+#  grow<-ifelse(is.nan(grow) | is.infinite(grow),0,grow)
+#  
+#  truncLower<-dpoisinvgauss(x=0,mean=exp(grow_mean), shape=(exp(grow_mean)*params$grow_sigma))
+#  # truncLower<-sum(ifelse(is.nan(truncLower) | is.infinite(truncLower),0,truncLower))
+#  
+#  truncUpper<-sum(dpoisinvgauss(x=params$max_size:10000,mean=exp(grow_mean),shape=(exp(grow_mean)*params$grow_sigma)))
+#  # truncUpper<-sum(ifelse(is.nan(truncUpper) | is.infinite(truncUpper),0,truncUpper))
+#  return(grow/(1-(truncLower+truncUpper)))
+#}
+
 gxy <- function(x,y,params){
-  grow_mean <- params$grow_int + params$grow_slope*log(x)
-  
+  xb<-pmin(x,params$max_size)
+  grow_mean <- params$grow_int + params$grow_slope*log(xb)
   grow<-dpoisinvgauss(x=y,mean=exp(grow_mean),shape=(exp(grow_mean)*params$grow_sigma))
-  grow<-ifelse(is.nan(grow) | is.infinite(grow),0,grow)
-  
-  truncLower<-dpoisinvgauss(x=0,mean=exp(grow_mean), shape=(exp(grow_mean)*params$grow_sigma))
-  # truncLower<-sum(ifelse(is.nan(truncLower) | is.infinite(truncLower),0,truncLower))
-  
-  truncUpper<-sum(dpoisinvgauss(x=params$max_size:10000,mean=exp(grow_mean),shape=(exp(grow_mean)*params$grow_sigma)))
-  # truncUpper<-sum(ifelse(is.nan(truncUpper) | is.infinite(truncUpper),0,truncUpper))
-  return(grow/(1-(truncLower+truncUpper)))
+  truncZero<-dpoisinvgauss(x=0,mean=exp(grow_mean),shape=(exp(grow_mean)*params$grow_sigma))
+  return(grow/(1-truncZero))
 }
 
-gxy_sdlg <- function(x,y,params){
+gxy_sdlg <- function(y,params){
   grow_mean <- params$grow_sdlg_int
-  
-  grow<-dpoisinvgauss(x=y,mean=exp(grow_mean),shape=(exp(grow_mean)*params$grow_sdlg_sigma))
-  grow<-ifelse(is.nan(grow) | is.infinite(grow),0,grow)
-  
-  truncLower<-dpoisinvgauss(x=0,mean=exp(grow_mean), shape=(exp(grow_mean)*params$grow_sdlg_sigma))
-  # truncLower<-sum(ifelse(is.nan(truncLower) | is.infinite(truncLower),0,truncLower))
-  
-  truncUpper<-sum(dpoisinvgauss(x=params$max_size:10000,mean=exp(grow_mean),shape=(exp(grow_mean)*params$grow_sdlg_sigma)))
-  # truncUpper<-sum(ifelse(is.nan(truncUpper) | is.infinite(truncUpper),0,truncUpper))
-
-  return(grow/(1-(truncLower+truncUpper)))
+  grow<-dpoisinvgauss(x=y,mean=exp(grow_mean),shape=(exp(grow_mean)*params$grow_sigma))
+  truncZero<-dpoisinvgauss(x=0,mean=exp(grow_mean),shape=(exp(grow_mean)*params$grow_sigma))
+  return(grow/(1-truncZero))
 }
 
 pxy<-function(x,y,params){
@@ -124,8 +124,8 @@ fx<-function(x, params){
 
 # Bigmatrix function ------------------------------------------------------
 # This includes a reproductive delay till the first tiller
-bigmatrix<-function(params){   
-  matdim<-params$max_size
+bigmatrix<-function(params,extension=0){   
+  matdim<-params$max_size+extension
   y <- 1:matdim 
   #fertility transition
   Fmat <- matrix(0,matdim+1,matdim+1)
