@@ -134,8 +134,8 @@ LTREB_surv_means <- LTREB_data_forsurv %>%
 # table(LTREB_surv_big_seedling$year_t,LTREB_surv_big_seedling$size_t, LTREB_surv_big_seedling$species)
 # 
 LTREB_data_forflw <- LTREB_full %>%
-  filter(!is.na(FLW_STAT_T)) %>%
-  filter(!is.na(logsize_t)) %>%
+  filter(!is.na(FLW_STAT_T1)) %>%
+  filter(!is.na(logsize_t1)) %>%
   filter(!is.na(endo_01))
 dim(LTREB_data_forflw)
 
@@ -263,20 +263,23 @@ str(surv_data_list)
 # str(seed_surv_data_list)
 # 
 # 
-# flw_data_list <- list(y = LTREB_data_forflw$FLW_STAT_T,
-#                       logsize_t = LTREB_data_forflw$logsize_t,
-#                       origin_01 = LTREB_data_forflw$origin_01,
-#                       endo_01 = as.integer(LTREB_data_forflw$endo_01),
-#                       endo_index = as.integer(LTREB_data_forflw$endo_index),
-#                       spp = as.integer(LTREB_data_forflw$species_index),
-#                       year_t = as.integer(LTREB_data_forflw$year_t_index),
-#                       plot = as.integer(LTREB_data_forflw$plot_index),
-#                       N = nrow(LTREB_data_forflw),
-#                       nSpp = length(unique(LTREB_data_forflw$species_index)),
-#                       nYear = max(unique(LTREB_data_forflw$year_t_index)),
-#                       nPlot = length(unique(LTREB_data_forflw$plot_index)),
-#                       nEndo =   length(unique(LTREB_data_forflw$endo_01)))
-# str(flw_data_list)
+
+flw_data_list <- list(y = LTREB_data_forflw$FLW_STAT_T1,
+                      spei = as.numeric(LTREB_data_forflw$spei12),
+                      spei_nl = as.numeric(LTREB_data_forflw$spei12^2),
+                      logsize = LTREB_data_forflw$logsize_t1,
+                      origin_01 = LTREB_data_forflw$origin_01,
+                      endo_01 = as.integer(LTREB_data_forflw$endo_01),
+                      endo_index = as.integer(LTREB_data_forflw$endo_index),
+                      spp = as.integer(LTREB_data_forflw$species_index),
+                      year_t = as.integer(LTREB_data_forflw$year_t_index),
+                      plot = as.integer(LTREB_data_forflw$plot_index),
+                      N = nrow(LTREB_data_forflw),
+                      nSpp = length(unique(LTREB_data_forflw$species_index)),
+                      nYear = max(unique(LTREB_data_forflw$year_t_index)),
+                      nPlot = length(unique(LTREB_data_forflw$plot_index)),
+                      nEndo =   length(unique(LTREB_data_forflw$endo_01)))
+str(flw_data_list)
 # 
 # grow_data_list <- list(y = as.integer(LTREB_data_forgrow$size_t1),
 #                        logsize_t = LTREB_data_forgrow$logsize_t,
@@ -361,18 +364,17 @@ sm_surv <- stan(file = "Analyses/climate_endo_spp_surv_flw.stan", data = surv_da
                 warmup = mcmc_pars$warmup,
                 chains = mcmc_pars$chains, 
                 thin = mcmc_pars$thin)
-# The model with squared climate terrms gives max_treedepth warnings but without does not.
-
-
-
 # saveRDS(sm_surv, file = "~/Dropbox/EndodemogData/Model_Runs/climate_endo_spp_surv_woseedling.rds")
-# There's an issue with tthe daata. The below model (with no climate runs fine with the full data, but here, where I dropped some rows because of NA's in climaate causes iissues.
-sm_surv <- stan(file = "Analyses/endo_spp_surv_flw.stan", data = surv_data_list,
+# The model with squared climate terrms gives max_treedepth warnings but otherwise converges okay but without non-linear terms does not have wraning.
+
+
+sm_flw <- stan(file = "Analyses/climate_endo_spp_surv_flw.stan", data = flw_data_list,
                 iter = mcmc_pars$iter,
                 warmup = mcmc_pars$warmup,
                 chains = mcmc_pars$chains, 
                 thin = mcmc_pars$thin)
-
+# saveRDS(sm_flw, file = "~/Dropbox/EndodemogData/Model_Runs/climate_endo_spp_flw.rds")
+# gave the same max_treedepth warning, but otherwise ran okay
 
 
 #########################################################################################################
