@@ -73,8 +73,8 @@ make_params <- function(species,endo_mean,endo_var,original=0,draw,rfx=F,year=NU
 }
 # Vital rate functions ----------------------------------------------------
 sx<-function(x,params){
-  # invlogit(params$surv_int + params$surv_slope*log(x))
-  return(1)
+  xb<-pmin(x,params$max_size) # any predicted plants larger than max size will set to be max size
+  invlogit(params$surv_int + params$surv_slope*log(xb))
 }
 sx_sdlg <- function(params){
   invlogit(params$surv_sdlg_int)
@@ -114,6 +114,7 @@ pxy<-function(x,y,params){
 }
 
 fx<-function(x, params){
+  xb<-pmin(x,params$max_size) # any predicted plants larger than max size will set to be max size
   flw <- invlogit(params$flow_int + params$flow_slope*log(x))
   fert <- exp(params$fert_int + params$fert_slope*log(x))
   spike <- exp(params$spike_int + params$spike_slope*log(x))
@@ -126,7 +127,7 @@ fx<-function(x, params){
 # Bigmatrix function ------------------------------------------------------
 # This includes a reproductive delay till the first tiller
 bigmatrix<-function(params,extension=0){   
-  matdim<-params$max_size+extension
+  matdim<-params$max_size+extension #extension here adds sizes larger than max size which accounts for probability density lost at predicted sizes larger than our upper bound
   y <- 1:matdim 
   #fertility transition
   Fmat <- matrix(0,matdim+1,matdim+1)
