@@ -102,7 +102,7 @@ gxy <- function(x,y,params){
   return(grow/(1-truncZero))
 }
 
-gxy_sdlg <- function(y,params){
+gxy_sdlg <- function(x,y,params){
   grow_mean <- params$grow_sdlg_int
   grow<-dpoisinvgauss(x=y,mean=exp(grow_mean),shape=(exp(grow_mean)*params$grow_sigma))
   truncZero<-dpoisinvgauss(x=0,mean=exp(grow_mean),shape=(exp(grow_mean)*params$grow_sigma))
