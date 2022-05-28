@@ -51,7 +51,7 @@ LTREB_xy <- LTREB_ab_distances %>%
          x = sqrt(dist_a^2-y^2))
 
 
-maps_aorigin <- ggplot(data = subset(LTREB_xy, plot_fixed == 1))+
+maps_aorigin <- ggplot(data = subset(LTREB_xy, plot_fixed == 6))+
   geom_text(aes(x = x, y = y, label = id)) +
   geom_text(aes(x = 0, y = 0, label = "A"), lwd = 4)+
   geom_text(aes(x = AB_distance, y = 0, label = "B"), lwd = 4) +
@@ -81,7 +81,7 @@ maps_aleft
 # Saving the left and right plots to pdf.
 #Just printing the Elymus maps for now
 pdf("2022_Indiana_Maps.pdf")
-for (i in sort(unique(subset(LTREB_xy, species == "ELVI" | species == "ELRI")$plot_index))){
+for (i in sort(unique(subset(LTREB_xy, species == "ELVI" | species == "ELRI" | species == "FESU")$plot_index))){
   maps_aright <- ggplot(data = subset(LTREB_xy,plot_index == i))+
     geom_text(aes(x = AB_distance-x, y = AB_distance-y, label = id)) +
     geom_text(aes(x = AB_distance, y = AB_distance, label = "A"), lwd = 4)+
