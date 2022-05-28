@@ -107,7 +107,7 @@ recruit_par <- rstan::extract(stos_fit, pars = quote_bare(beta0,betaendo,
 #############################################################################################
 
 # make the list of parameters and calculate mean lambdas
-n_draws <- 100
+n_draws <- 1
 post_draws <- sample.int(7500,size=n_draws) # The models except for seedling growth have 7500 iterations. That one has more (15000 iterations) to help it converge.
 
 lambda_mean <- array(dim = c(8,2,n_draws))
@@ -129,13 +129,14 @@ for(i in 1:length(post_draws)){
                                                          fert_par=fert_par,
                                                          spike_par=spike_par,
                                                          seed_par=seed_par,
-                                                         recruit_par=recruit_par))$MPMmat)
+                                                         recruit_par=recruit_par), 
+                                             extension = 100)$MPMmat) # the extension parameter is used to fit the growth kernel to larger sizes
     }
     lambda_mean[8,e,i] <- mean(lambda_mean[1:7,e,i])
   }
 }
-
-saveRDS(lambda_mean, file = "~/Documents/lambda_mean.rds")
+lambda_mean
+# saveRDS(lambda_mean, file = "~/Documents/lambda_mean.rds")
 # lambda_mean <- read_rds(file = "~/Documents/lambda_mean.rds")
 
 # Mean endophyte difference and quantiles
