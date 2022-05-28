@@ -58,7 +58,9 @@ Following Lewontin and Cohen \citep{lewontin_population_1969}, $\lambda_s$ can b
  log(\lambda_s)  \approx log(\overline{\lambda}) - \frac{\sigma^2}{2\overline{\lambda}^2}
 \end{align}
 
-Where $\overline{\lambda} $ is the mean of annual population growth rates ($\lambda_t$) and $\sigma^2$ is the variance \citep{lewontin_population_1969}. Populations will increase over time if $\lambda_s$ is greater than 1, and can be expected to decrease if $\lambda_s$ is less than 1. Here, there are two pathways to increase $\lambda_s$:  (1) increasing the mean growth rate, and/or (2) reducing the variance in growth rates. That both mean and variance can determine fitness underlies understanding of which aspects of a species' life history influence its success   \cite{pfister1998patterns} and has important implications for population viability analysis \cite{menges1990population}. \tom{Anything that limits the negative effects of bad years, while being neutral or costly in good years has the potential to decrease the impact of interannual environmental variability on population dynamics because it would limit variance. }{Not sure this is helpful. Obviously, ``Anything'' is mutualism, but if you don't know that yet then ``Anything'' will be confusing. But I do think you need some bridge to symbiosis.} Whether species interactions contribute to \tom{variance buffering}{This should be defined.} is an underexplored question \cite{hilde_demographic_2020}.
+Where $\overline{\lambda} $ is the mean of annual population growth rates ($\lambda_t$) and $\sigma^2$ is the variance \citep{lewontin_population_1969}. Populations will increase over time if $\lambda_s$ is greater than 1, and can be expected to decrease if $\lambda_s$ is less than 1. Here, there are two pathways to increase $\lambda_s$:  (1) increasing the mean growth rate, and/or (2) reducing the variance in growth rates. That both mean and variance can determine fitness underlies understanding of which aspects of a species' life history influence its success   \cite{pfister1998patterns} and has important implications for population viability analysis \cite{menges1990population}. Variance buffering is 
+
+\tom{Anything that limits the negative effects of bad years, while being neutral or costly in good years has the potential to decrease the impact of interannual environmental variability on population dynamics because it would limit variance. }{Not sure this is helpful. Obviously, ``Anything'' is mutualism, but if you don't know that yet then ``Anything'' will be confusing. But I do think you need some bridge to symbiosis.} Whether species interactions contribute to \tom{variance buffering}{This should be defined.} is an underexplored question \cite{hilde_demographic_2020}.
 
 Host-associated microbes are ubiquitous in nature. \tom{Across a broad range of taxa}{You only cite one paper on plant-fungal interactions -- so not very convincing as a broad range of taxa}, microbial symbionts provide their hosts with protection from environmental stresses including drought, \tom{temperature}{Temperature \emph{per se} is not a stress.}, and enemies \cite{kivlin2013fungal}. Commonly, the benefits from these symbioses are context-dependent where the magnitude of interaction benefit depends on environmental conditions \cite{chamberlain2014context}. This can make it difficult to quantify the net effect of a given interaction, but it also allows for the possibility that interaction strength can vary through time (cite). Symbionts may provide benefits under harsh conditions when they are needed by their hosts, but be neutral or even costly under benign conditions (cite). Over time, this may lead symbiont-associated organisms to experience a reduction in variation in vital rates by reducing the frequency of extreme years (conceptual figure). Embracing context-dependence in this way, we reveal a novel mechanism by which symbionts can act as mutualists that may come to be of increasing importance in a more variable future.
 
@@ -187,14 +189,14 @@ We typically expect plots of each endophyte status to maintain their status as t
 \tom{In sum, this individual-level demographic dataset covers 14 years and contains 30,XXXX individual transition-years.}{Move this earlier and also mention at the end of intro. The total number of plant-years is impressive.}
 
 \subsection*{Demographic modeling}
-Armed with this demographic data, we next constructed size-structured, stochastic population models. This demographic model describes transitions between sizes (measured as a count of tillers) from one year to the next.
+Armed with this demographic data, we next constructed size-structured, stochastic population models. This demographic model describes transitions between sizes (measured as a count of tillers) from one year to the next. For all species, we include a 1 year reproductive delay in the population model following the observation that these newly recruited plants are rarely observed flowering in their first year.
 
 \begin{equation}
 \label{eq:matrixmodel}
 \mathbf{n}_{t+1} = \mathbf{A}\mathbf{n}_{t}
 \end{equation}
 
-where $\mathbf{n}_{t+1}$ is a vector distributed across plant size in year t+1 for each species and endophyte status.
+where $\mathbf{n}_{t+1}$ is a vector of abundances across sizes in year t+1 for each species and endophyte status.
 
 \begin{equation}
 \label{eq:nvector}
@@ -244,7 +246,7 @@ Where $\mu$, for each species (s), is a linear function of the logarithm of plan
 \end{aligned}
 \end{equation}
 
-For all species, we include a 1 year reproductive delay in the population model following the observation that these newly recruited plants are rarely observed flowering in their first year. We account for this by modeling seedling growth and survival separately from adult growth and survival. Seedlings are those plants that are recruited into the plot in a given year, and typically have only one tiller. This means that they do not have size dependence. So, for seedlings, growth ($G^{sdlg}_{1,t1}$) is modelled as:
+For all species, we account for a reproductive delay by modeling seedling growth and survival separately from adult growth and survival. Seedlings are those plants that are recruited into the plot in a given year, and typically have only one tiller. This means that they do not have size dependence. So, for seedlings, growth ($G^{sdlg}_{1,t1}$) is modelled as:
 
 \begin{equation} 
 \label{eq:sdlg_growth}
@@ -275,8 +277,16 @@ Here, $\mu^{sdlg}_{s,e}$ is the linear function for these seedling specific vita
 
 As a default, we ran each vital rate model for 2500 warm-up and 2500 MCMC sampling iterations with three chains using rStan. We assessed model convergence with trace plots of posterior chains and  and other model diagnostic statistics \citep{}. For those models that show poor convergence, we extend the MCMC sampling to include 5000 warm-up and 5000 sampliing iterations; this was only necessary for seedling growth in our climate-implicit analysis. For each of these vital rate models, we graphically check model fit with posterior predictive checks using simulated data from 500 posterior draws and comparing with the observed data (See supplement?). These checks provide evidence that our models are accurately recreating size-specific growth, survival, and reproduction patterns in our data across endophyte treatments.
 
+We calculate the effect of endophytes on mean and variance in growth rates by assembliing matrix models following equation [\ref{eq:matrixmodel}] with and without endophyte effects for each year based on 500 posterior draws from our vital rate models.
 
 \subsubsection*{Stochastic growth rate simulation experiment}
+The stochatic growth rate is approximated as the long-run expectation of annual growth rates \citep{tuljapurkar1980population}
+\begin{equation}
+\label{eq:stoch_sim}
+\begin{aligned}
+log(\lambda_s) ~ E[log(\Sigma(\mathbf{n}_{t+1})/\Sigma(\mathbf{n}_{t}))]
+\end{aligned}
+\end{equation}
 
 \subsection*{Estimating climate drivers of environmental context-dependence}
 \subsubsection*{Climate data}

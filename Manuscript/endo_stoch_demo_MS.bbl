@@ -1,4 +1,4 @@
-\begin{thebibliography}{19}
+\begin{thebibliography}{20}
 \providecommand{\natexlab}[1]{#1}
 \providecommand{\url}[1]{\texttt{#1}}
 \expandafter\ifx\csname urlstyle\endcsname\relax
@@ -147,5 +147,12 @@ Bret~D Elderd and Tom~EX Miller.
   projection models.
 \newblock \emph{Ecological Monographs}, 86\penalty0 (1):\penalty0 125--144,
   2016.
+
+\bibitem[Tuljapurkar and Orzack(1980)]{tuljapurkar1980population}
+SD~Tuljapurkar and Steven~Hecht Orzack.
+\newblock Population dynamics in variable environments i. long-run growth rates
+  and extinction.
+\newblock \emph{Theoretical Population Biology}, 18\penalty0 (3):\penalty0
+  314--342, 1980.
 
 \end{thebibliography}
