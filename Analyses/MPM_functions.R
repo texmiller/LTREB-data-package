@@ -16,9 +16,9 @@ make_params <- function(species,endo_mean,endo_var,original=0,draw,rfx=F,year=NU
     rfx_surv_sdlg <-surv_sdlg_par$tau_year[draw,species,(endo_var+1),(year)];
     rfx_grow <- grow_par$tau_year[draw,species,(endo_var+1),(year)];
     rfx_grow_sdlg <- grow_sdlg_par$tau_year[draw,species,(endo_var+1),(year)];
-    rfx_flow <- flow_par$tau_year[draw,species,(endo_var+1),year];
-    rfx_fert <- fert_par$tau_year[draw,species,(endo_var+1),year]; 
-    rfx_spike <- spike_par$tau_year[draw,species,(endo_var+1),year];
+    rfx_flow <- flow_par$tau_year[draw,species,(endo_var+1),year-1]; # fitting 
+    rfx_fert <- fert_par$tau_year[draw,species,(endo_var+1),year-1]; 
+    rfx_spike <- spike_par$tau_year[draw,species,(endo_var+1),year-1];
     rfx_rct <- recruit_par$tau_year[draw,species,(endo_var+1),year];
   }
   
@@ -73,7 +73,8 @@ make_params <- function(species,endo_mean,endo_var,original=0,draw,rfx=F,year=NU
 }
 # Vital rate functions ----------------------------------------------------
 sx<-function(x,params){
-  invlogit(params$surv_int + params$surv_slope*log(x))
+  # invlogit(params$surv_int + params$surv_slope*log(x))
+  return(1)
 }
 sx_sdlg <- function(params){
   invlogit(params$surv_sdlg_int)

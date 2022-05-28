@@ -30,12 +30,25 @@ quote_bare <- function( ... ){
 source("Analyses/endodemog_data_processing.R")
 
 max_size <- LTREB_full %>% 
-  dplyr::select(species,size_t) %>% 
+  dplyr::select(species,species_index, size_t) %>% 
+  filter(!is.na(size_t)) %>% 
+  group_by(species, species_index) %>% 
+  summarise(actual_max_size = max(size_t),
+            max_size = quantile(size_t,probs=0.975),
+            max_size_99 = quantile(size_t,probs=0.99))
+max_size_2 <- LTREB_full %>% 
+  dplyr::select(species, size_t) %>% 
   filter(!is.na(size_t)) %>% 
   group_by(species) %>% 
   summarise(actual_max_size = max(size_t),
-            max_size = quantile(size_t,probs=0.975))
+            max_size = quantile(size_t,probs=0.975),
+            max_size_99 = quantile(size_t,probs=0.99))
 
+ggplot(data = LTREB_full)+
+  geom_histogram(aes(size_t)) +
+  geom_vline(data = max_size, aes(xintercept = max_size))+
+  geom_vline(data = max_size, aes(xintercept = max_size_99), col = "red")+
+  facet_wrap(~species, scales = "free")
 
 #############################################################################################
 ####### Read in matrix population functions ------------------
@@ -48,16 +61,25 @@ source("Analyses/MPM_functions.R")
 ####### Read in Stan vital rate model outputs ------------------
 #############################################################################################
 
+surv_fit_seedling <- read_rds("~/Dropbox/EndodemogData/Model_Runs/endo_seedling_surv.rds")
+surv_fit <- read_rds("~/Dropbox/EndodemogData/Model_Runs/endo_spp_surv_woseedling.rds")
+grow_fit_seedling <- read_rds("~/Dropbox/EndodemogData/Model_Runs/endo_seedling_grow_PIG_10000iterations.rds")
+grow_fit <- read_rds("~/Dropbox/EndodemogData/Model_Runs/endo_spp_grow_PIG.rds")
+flw_fit <- read_rds("~/Dropbox/EndodemogData/Model_Runs/endo_spp_flw.rds")
+fert_fit <- read_rds("~/Dropbox/EndodemogData/Model_Runs/endo_spp_fert_PIG.rds")
+spike_fit <- read_rds("~/Dropbox/EndodemogData/Model_Runs/endo_spp_spike_year_plot_nb.rds")
+seedmean_fit <- read_rds("~/Dropbox/EndodemogData/Model_Runs/seed_mean.rds")
+stos_fit <- read_rds("~/Dropbox/EndodemogData/Model_Runs/endo_spp_s_to_s.rds") 
 
-surv_fit_seedling <- readRDS(url("https://www.dropbox.com/s/vf1mju5u4c4fs3t/endo_seedling_surv.rds?dl=1"))
-surv_fit <- readRDS(url("https://www.dropbox.com/s/00bor35inv5dypd/endo_spp_surv_woseedling.rds?dl=1"))
-grow_fit_seedling <- readRDS(url("https://www.dropbox.com/s/m0mw5z29slpm4p7/endo_seedling_grow_PIG_10000iterations.rds?dl=1"))
-grow_fit <- readRDS(url("https://www.dropbox.com/s/0ze8aooi9axj3oq/endo_spp_grow_PIG.rds?dl=1"))
-flw_fit <- readRDS(url("https://www.dropbox.com/s/ej65pn5k0km0z9c/endo_spp_flw.rds?dl=1"))
-fert_fit <- readRDS(url("https://www.dropbox.com/s/pk4x1j97kazu6pb/endo_spp_fert_pig.rds?dl=1"))
-spike_fit <- readRDS(url("https://www.dropbox.com/s/pjgui0n9tng6427/endo_spp_spike_year_plot_nb.rds?dl=1"))
-seedmean_fit <- readRDS(url("https://www.dropbox.com/s/3ma5yc8iusu8bh0/endo_spp_seed_mean.rds?dl=1"))
-stos_fit <- readRDS(url("https://www.dropbox.com/s/nf50hd76iw3hucw/endo_spp_s_to_s.rds?dl=1"))
+# surv_fit_seedling <- readRDS(url("https://www.dropbox.com/s/vf1mju5u4c4fs3t/endo_seedling_surv.rds?dl=1"))
+# surv_fit <- readRDS(url("https://www.dropbox.com/s/00bor35inv5dypd/endo_spp_surv_woseedling.rds?dl=1"))
+# grow_fit_seedling <- readRDS(url("https://www.dropbox.com/s/m0mw5z29slpm4p7/endo_seedling_grow_PIG_10000iterations.rds?dl=1"))
+# grow_fit <- readRDS(url("https://www.dropbox.com/s/0ze8aooi9axj3oq/endo_spp_grow_PIG.rds?dl=1"))
+# flw_fit <- readRDS(url("https://www.dropbox.com/s/ej65pn5k0km0z9c/endo_spp_flw.rds?dl=1"))
+# fert_fit <- readRDS(url("https://www.dropbox.com/s/pk4x1j97kazu6pb/endo_spp_fert_pig.rds?dl=1"))
+# spike_fit <- readRDS(url("https://www.dropbox.com/s/pjgui0n9tng6427/endo_spp_spike_year_plot_nb.rds?dl=1"))
+# seedmean_fit <- readRDS(url("https://www.dropbox.com/s/3ma5yc8iusu8bh0/endo_spp_seed_mean.rds?dl=1"))
+# stos_fit <- readRDS(url("https://www.dropbox.com/s/nf50hd76iw3hucw/endo_spp_s_to_s.rds?dl=1"))
 
 surv_par <- rstan::extract(surv_fit, pars =quote_bare(beta0,betasize,betaendo,betaorigin,
                                                                    tau_year, tau_plot))
@@ -95,7 +117,7 @@ for(i in 1:length(post_draws)){
       lambda_mean[s,e,i] <- lambda(bigmatrix(make_params(species=s,
                                                          endo_mean=(e-1),
                                                          endo_var=(e-1),
-                                                         original = 1, # should be =1 to represent recruit
+                                                         original = 0, # should be =1 to represent recruit
                                                          draw=post_draws[i],
                                                          max_size=max_size,
                                                          rfx=F,
@@ -172,8 +194,8 @@ lambda_mean_diff_df <- as_tibble(lambda_mean_diff)  %>%
   rename( "mean" = V1, fifth = V2, twelfthpointfive = V3, twentyfifth = V4, seventyfifth = V5, eightyseventhpointfive = V6, ninetyfifth = V7) %>% 
   mutate(rownames = row.names(.)) %>% 
   mutate(species = case_when(rownames == 1 ~ "Agrostis perennans",
-                             rownames == 2 ~ "Elymus virginicus",
-                             rownames == 3 ~ "Elymus villosus",
+                             rownames == 2 ~ "Elymus villosus",
+                             rownames == 3 ~ "Elymus virginicus",
                              rownames == 4 ~ "Festuca subverticillata",
                              rownames == 5 ~ "Lolium arundinaceum",
                              rownames == 6 ~ "Poa alsodes",
@@ -200,8 +222,8 @@ lambda_mean_df <- as_tibble(lambda_mean_cube) %>%
   pivot_wider(names_from = Endo, values_from = lambda_mean) %>% 
   mutate(lambda_diff = e2-e1) %>% 
   mutate(species = case_when(Species == "s1" ~ "Agrostis perennans",
-                           Species == "s2" ~ "Elymus virginicus",
-                           Species == "s3" ~ "Elymus villosus",
+                           Species == "s2" ~ "Elymus villosus",
+                           Species == "s3" ~ "Elymus virginicus",
                            Species == "s4" ~ "Festuca subverticillata",
                            Species == "s5" ~ "Lolium arundinaceum",
                            Species == "s6" ~ "Poa alsodes",
@@ -226,8 +248,8 @@ lambda_var_diff_df <- as_tibble(lambda_var_diff)  %>%
   rename( "mean" = V1, fifth = V2, twelfthpointfive = V3, twentyfifth = V4, seventyfifth = V5, eightyseventhpointfive = V6, ninetyfifth = V7) %>% 
   mutate(rownames = row.names(.)) %>% 
   mutate(species = case_when(rownames == 1 ~ "Agrostis perennans",
-                             rownames == 2 ~ "Elymus virginicus",
-                             rownames == 3 ~ "Elymus villosus",
+                             rownames == 2 ~ "Elymus villosus",
+                             rownames == 3 ~ "Elymus virginicus",
                              rownames == 4 ~ "Festuca subverticillata",
                              rownames == 5 ~ "Lolium arundinaceum",
                              rownames == 6 ~ "Poa alsodes",
@@ -255,8 +277,8 @@ lambda_var_df <- as_tibble(lambda_var_cube) %>%
   pivot_wider(names_from = Endo, values_from = lambda_var) %>% 
   mutate(lambda_diff = e2-e1) %>% 
   mutate(species = case_when(Species == "s1" ~ "Agrostis perennans",
-                             Species == "s2" ~ "Elymus virginicus",
-                             Species == "s3" ~ "Elymus villosus",
+                             Species == "s2" ~ "Elymus villosus",
+                             Species == "s3" ~ "Elymus virginicus",
                              Species == "s4" ~ "Festuca subverticillata",
                              Species == "s5" ~ "Lolium arundinaceum",
                              Species == "s6" ~ "Poa alsodes",
