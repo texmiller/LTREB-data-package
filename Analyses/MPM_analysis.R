@@ -107,7 +107,7 @@ recruit_par <- rstan::extract(stos_fit, pars = quote_bare(beta0,betaendo,
 #############################################################################################
 
 # make the list of parameters and calculate mean lambdas
-n_draws <- 1
+n_draws <- 100
 post_draws <- sample.int(7500,size=n_draws) # The models except for seedling growth have 7500 iterations. That one has more (15000 iterations) to help it converge.
 
 lambda_mean <- array(dim = c(8,2,n_draws))
@@ -130,30 +130,33 @@ for(i in 1:length(post_draws)){
                                                          spike_par=spike_par,
                                                          seed_par=seed_par,
                                                          recruit_par=recruit_par), 
-                                             extension = 100)$MPMmat) # the extension parameter is used to fit the growth kernel to larger sizes
+                                             extension = 100)$MPMmat) # the extension parameter is used to fit the growth kernel to sizes larger than max size without losing probability density
     }
     lambda_mean[8,e,i] <- mean(lambda_mean[1:7,e,i])
   }
 }
-lambda_mean
-# saveRDS(lambda_mean, file = "~/Documents/lambda_mean.rds")
+# lambda_mean
+saveRDS(lambda_mean, file = "~/Documents/lambda_mean.rds")
 # lambda_mean <- read_rds(file = "~/Documents/lambda_mean.rds")
 
 # Mean endophyte difference and quantiles
+lambda_means <- matrix(NA,8,2)
 lambda_mean_diff <- matrix(NA,8,7)
 for(s in 1:8){
+  lambda_means[s,1] <- mean(lambda_mean[s,1,])
+  lambda_means[s,2] <- mean(lambda_mean[s,2,])
   lambda_mean_diff[s,1] = mean(lambda_mean[s,2,] - lambda_mean[s,1,])
   lambda_mean_diff[s,2:7] = quantile(lambda_mean[s,2,] - lambda_mean[s,1,],probs=c(0.05,0.125,0.25,0.75,0.875,0.95))
 }
 
 ## now do variance in lambda 
 
-lambda_hold <- array(dim = c(14,7,2,n_draws))
+lambda_hold <- array(dim = c(13,7,2,n_draws)) # 13 years because of reproduction measured in year t1; needs to be before growth, so no year 1
 lambda_var <- array(dim = c(8,2,n_draws))
 for(i in 1:length(post_draws)){
   for(e in 1:2){
     for(s in 1:7){
-      for(y in 1:14){
+      for(y in 1:13){
         
         lambda_hold[y,s,e,i] <- lambda(bigmatrix(make_params(species=s,
                                                              endo_mean=(e-1),
@@ -162,7 +165,7 @@ for(i in 1:length(post_draws)){
                                                              draw=post_draws[i],
                                                              max_size=max_size,
                                                              rfx=T,
-                                                             year=y,
+                                                             year=y+1,
                                                              surv_par=surv_par,
                                                              surv_sdlg_par = surv_sdlg_par,
                                                              grow_par=grow_par,
@@ -171,7 +174,8 @@ for(i in 1:length(post_draws)){
                                                              fert_par=fert_par,
                                                              spike_par=spike_par,
                                                              seed_par=seed_par,
-                                                             recruit_par=recruit_par))$MPMmat)
+                                                             recruit_par=recruit_par),
+                                                 extension = 100)$MPMmat) # the extension parameter is used to fit the growth kernel to sizes larger than max size without losing probability density
       }
       lambda_var[s,e,i] <- sd(lambda_hold[,s,e,i])
     }
@@ -181,10 +185,21 @@ for(i in 1:length(post_draws)){
 saveRDS(lambda_var, file = "~/Documents/lambda_var.rds")
 # lambda_var <- read_rds(file = "~/Documents/lambda_var.rds")
 
+lambda_sds <- matrix(NA,8,2)
+lambda_vars <- matrix(NA,8,2)
+lambda_sd_diff <- matrix(NA,8,7)
 lambda_var_diff <- matrix(NA,8,7)
 for(s in 1:8){
-  lambda_var_diff[s,1] = mean(lambda_var[s,2,] - lambda_var[s,1,])
-  lambda_var_diff[s,2:7] = quantile(lambda_var[s,2,] - lambda_var[s,1,],probs=c(0.05,0.125,0.25,0.75,0.875,0.95))
+  lambda_sds[s,1] <- mean(lambda_var[s,1,])
+  lambda_sds[s,2] <- mean(lambda_var[s,2,])
+  lambda_vars[s,1] <- mean(lambda_var[s,1,])^2
+  lambda_vars[s,2] <- mean(lambda_var[s,2,])^2
+  
+  lambda_sd_diff[s,1] = mean(lambda_var[s,2,] - lambda_var[s,1,])
+  lambda_sd_diff[s,2:7] = quantile(lambda_var[s,2,] - lambda_var[s,1,],probs=c(0.05,0.125,0.25,0.75,0.875,0.95))
+  
+  lambda_var_diff[s,1] = mean(lambda_var[s,2,]^2 - lambda_var[s,1,]^2)
+  lambda_var_diff[s,2:7] = quantile(lambda_var[s,2,]^2 - lambda_var[s,1,]^2,probs=c(0.05,0.125,0.25,0.75,0.875,0.95))
 }
 
 ################################################################
@@ -238,7 +253,7 @@ meanlambda_plot <- ggplot(data = lambda_mean_df) +
   stat_summary(aes(y = lambda_diff, x = species), fun = mean,geom = "point", size = 3) +
   geom_point(data = lambda_mean_diff_df, aes(y = mean, x = species, color = species), lwd = 2) +
   scale_color_manual(values = c("#dbdb42", "#b8e3a0", "#7fcdbb", "#41b6c4", "#1d91c0", "#225ea8", "#0c2c84", "#A9A9A9")) +
-  coord_flip() +
+  coord_flip(ylim = c(-.5,.5)) +
   theme(panel.background = element_rect(fill = "white"),
         panel.grid = element_line(color = NA))
 meanlambda_plot
@@ -293,11 +308,11 @@ lambdavar_plot <- ggplot(data = lambda_var_df) +
   stat_summary(aes(y = lambda_diff, x = species), fun = mean,geom = "point", size = 3) +
   geom_point(data = lambda_var_diff_df, aes(y = mean, x = species, color = species), lwd = 2) +
   scale_color_manual(values = c("#dbdb42", "#b8e3a0", "#7fcdbb", "#41b6c4", "#1d91c0", "#225ea8", "#0c2c84", "#A9A9A9")) +
-  coord_flip(ylim = c(-1.5,.3)) +  #There's one annoying iteration way out at 1
+  coord_flip(ylim = c(-.3,.2)) +  #There's one annoying iteration way out at 1
   theme(panel.background = element_rect(fill = "white"),
         panel.grid = element_line(color = NA))
-# lambdavar_plot
-ggsave(lambdavar_plot, filename = "lambdavar_plot.png", width = 8, height = 4)
+lambdavar_plot
+# ggsave(lambdavar_plot, filename = "lambdavar_plot.png", width = 8, height = 4)
 
 # a plot of variance by mean effects
 lambda_var_join <- lambda_var_df %>% 
