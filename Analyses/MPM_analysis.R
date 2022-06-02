@@ -149,6 +149,9 @@ for(s in 1:8){
   lambda_mean_diff[s,2:7] = quantile(lambda_mean[s,2,] - lambda_mean[s,1,],probs=c(0.05,0.125,0.25,0.75,0.875,0.95))
 }
 
+# look at the lambda values for a general gut check
+lambda_means
+
 ## now do variance in lambda 
 
 lambda_hold <- array(dim = c(13,7,2,n_draws)) # 13 years because of reproduction measured in year t1; needs to be before growth, so no year 1
@@ -182,6 +185,7 @@ for(i in 1:length(post_draws)){
     lambda_var[8,e,i] <- mean(lambda_var[1:7,e,i])
   }
 }
+saveRDS(lambda_hold, file = "~/Documents/lambda_hold.rds")
 saveRDS(lambda_var, file = "~/Documents/lambda_var.rds")
 # lambda_var <- read_rds(file = "~/Documents/lambda_var.rds")
 
