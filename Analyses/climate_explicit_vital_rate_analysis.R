@@ -13,6 +13,9 @@ library(devtools)
 library(moments)
 library(gridExtra)
 
+library(RColorBrewer)
+
+
 invlogit<-function(x){exp(x)/(1+exp(x))}
 logit = function(x) { log(x/(1-x)) }
 Lkurtosis=function(x) log(kurtosis(x)); 
@@ -75,51 +78,51 @@ LTREB_surv_means <- LTREB_data_forsurv %>%
 # 
 # 
 # # 
-# LTREB_surv_seedling <- LTREB_full %>%
-#   filter(!is.na(surv_t1)) %>%
-#   filter(!is.na(logsize_t)) %>%
-#   filter(!is.na(endo_01)) %>%  # There are a few LOAR that don't have a plot level endo assigned
-#   filter(origin_01 == 1 & year_t == birth) %>%  #filtering for recruits that are just germinated
-#   filter(logsize_t == 0) # this is filtering out the plants that are "recruits" but are larger than 1 tiller
-# dim(LTREB_surv_seedling)
+LTREB_surv_seedling <- LTREB_full %>%
+  filter(!is.na(surv_t1)) %>%
+  filter(!is.na(logsize_t)) %>%
+  filter(!is.na(endo_01)) %>%  # There are a few LOAR that don't have a plot level endo assigned
+  filter(origin_01 == 1 & year_t == birth) %>%  #filtering for recruits that are just germinated
+  filter(logsize_t == 0) # this is filtering out the plants that are "recruits" but are larger than 1 tiller
+dim(LTREB_surv_seedling)
 # 
-# LTREB_seedlingsurv_means <- LTREB_surv_seedling %>% 
-#   group_by(species, endo_01, year_t1) %>% 
-#   summarize(mean_surv = mean(surv_t1),
-#             spei12 = mean(as.numeric(spei12)),
-#             annual_precip = mean(as.numeric(annual_precip)),
-#             annual_temp = mean(as.numeric(annual_temp)),
-#             count = n())
-# 
-# ggplot(data = LTREB_seedlingsurv_means)+
-#   geom_point(aes(x = (year_t1), y = mean_surv, color = species, size = count))+ facet_wrap(~species) +
-#   theme_classic()
-# 
-# ggplot(data = LTREB_seedlingsurv_means)+
-#   geom_point(aes(x = year_t1, y = spei12, color = species, size = count))+ facet_wrap(~species)
-# 
-# ggplot(data = LTREB_seedlingsurv_means)+
-#   geom_point(aes(x = year_t1, y = spei12, color = endo_01, size = count))+ facet_wrap(~species)
-# 
-# ggplot(data = LTREB_seedlingsurv_means)+
-#   geom_point(aes(x = year_t1, y = annual_precip, color = endo_01, size = count))+ facet_wrap(~species)
-# 
-# ggplot(data = LTREB_seedlingsurv_means)+
-#   geom_point(aes(x = year_t1, y = annual_temp, color = endo_01, size = count))+ facet_wrap(~species)
-# 
-# 
-# ggplot(data = LTREB_seedlingsurv_means)+
-#   geom_point(aes(x = spei12, y = mean_surv, color = as.factor(endo_01), size = count))+ facet_wrap(~species) +
-#   theme_classic()
-# 
-# 
-# ggplot(data = LTREB_seedlingsurv_means)+
-#   geom_point(aes(x = annual_precip, y = mean_surv, color = as.factor(endo_01), size = count), alpha = .6)+ facet_wrap(~species) +
-#   theme_classic()
-# 
-# ggplot(data = LTREB_seedlingsurv_means)+
-#   geom_point(aes(x = annual_temp, y = mean_surv, color = as.factor(endo_01), size = count), alpha = .6)+ facet_wrap(~species) +
-#   theme_classic()
+LTREB_seedlingsurv_means <- LTREB_surv_seedling %>%
+  group_by(species, endo_01, year_t1) %>%
+  summarize(mean_surv = mean(surv_t1),
+            spei12 = mean(as.numeric(spei12)),
+            annual_precip = mean(as.numeric(annual_precip)),
+            annual_temp = mean(as.numeric(annual_temp)),
+            count = n())
+
+ggplot(data = LTREB_seedlingsurv_means)+
+  geom_point(aes(x = (year_t1), y = mean_surv, color = species, size = count))+ facet_wrap(~species) +
+  theme_classic()
+
+ggplot(data = LTREB_seedlingsurv_means)+
+  geom_point(aes(x = year_t1, y = spei12, color = species, size = count))+ facet_wrap(~species)
+
+ggplot(data = LTREB_seedlingsurv_means)+
+  geom_point(aes(x = year_t1, y = spei12, color = endo_01, size = count))+ facet_wrap(~species)
+
+ggplot(data = LTREB_seedlingsurv_means)+
+  geom_point(aes(x = year_t1, y = annual_precip, color = endo_01, size = count))+ facet_wrap(~species)
+
+ggplot(data = LTREB_seedlingsurv_means)+
+  geom_point(aes(x = year_t1, y = annual_temp, color = endo_01, size = count))+ facet_wrap(~species)
+
+
+ggplot(data = LTREB_seedlingsurv_means)+
+  geom_point(aes(x = spei12, y = mean_surv, color = as.factor(endo_01), size = count))+ facet_wrap(~species) +
+  theme_classic()
+
+
+ggplot(data = LTREB_seedlingsurv_means)+
+  geom_point(aes(x = annual_precip, y = mean_surv, color = as.factor(endo_01), size = count), alpha = .6)+ facet_wrap(~species) +
+  theme_classic()
+
+ggplot(data = LTREB_seedlingsurv_means)+
+  geom_point(aes(x = annual_temp, y = mean_surv, color = as.factor(endo_01), size = count), alpha = .6)+ facet_wrap(~species) +
+  theme_classic()
 
 
 # 
@@ -238,31 +241,31 @@ surv_data_list <- list(y = LTREB_data_forsurv$surv_t1,
                        spp = as.integer(LTREB_data_forsurv$species_index),
                        year_t = as.integer(LTREB_data_forsurv$year_t_index),
                        plot = as.integer(as.factor(LTREB_data_forsurv$plot_index)),
-                       # plot = as.integer(LTREB_data_forsurv$plot_index),
                        N = nrow(LTREB_data_forsurv),
                        nSpp = length(unique(LTREB_data_forsurv$species_index)),
                        nYear = max(unique(LTREB_data_forsurv$year_t_index)),
                        nPlot = length(unique(LTREB_data_forsurv$plot_index)),
-                       # nPlot = max(unique(LTREB_data_forsurv$plot_index)),
                        nEndo =   length(unique(LTREB_data_forsurv$endo_01)))
 str(surv_data_list)
-# 
-# seed_surv_data_list <- list(y = LTREB_surv_seedling$surv_t1,
-#                             logsize_t = LTREB_surv_seedling$logsize_t,
-#                             origin_01 = LTREB_surv_seedling$origin_01,
-#                             endo_01 = as.integer(LTREB_surv_seedling$endo_01),
-#                             endo_index = as.integer(LTREB_surv_seedling$endo_index),
-#                             spp = as.integer(LTREB_surv_seedling$species_index),
-#                             year_t = as.integer(LTREB_surv_seedling$year_t_index),
-#                             plot = as.integer(LTREB_surv_seedling$plot_index),
-#                             N = nrow(LTREB_surv_seedling),
-#                             nSpp = length(unique(LTREB_surv_seedling$species_index)),
-#                             nYear = max(unique(LTREB_surv_seedling$year_t_index)),
-#                             nPlot = max(unique(LTREB_surv_seedling$plot_index)),
-#                             nEndo =   length(unique(LTREB_surv_seedling$endo_01)))
-# str(seed_surv_data_list)
-# 
-# 
+
+seed_surv_data_list <- list(y = LTREB_surv_seedling$surv_t1,
+                            spei = as.numeric(LTREB_surv_seedling$spei12),
+                            spei_nl = as.numeric(LTREB_surv_seedling$spei12^2),
+                            logsize_t = LTREB_surv_seedling$logsize_t,
+                            origin_01 = LTREB_surv_seedling$origin_01,
+                            endo_01 = as.integer(LTREB_surv_seedling$endo_01),
+                            endo_index = as.integer(LTREB_surv_seedling$endo_index),
+                            spp = as.integer(LTREB_surv_seedling$species_index),
+                            year_t = as.integer(LTREB_surv_seedling$year_t_index),
+                            plot = as.integer(LTREB_surv_seedling$plot_index),
+                            N = nrow(LTREB_surv_seedling),
+                            nSpp = length(unique(LTREB_surv_seedling$species_index)),
+                            nYear = max(unique(LTREB_surv_seedling$year_t_index)),
+                            nPlot = length(unique(LTREB_data_forsurv$plot_index)),
+                            nEndo =   length(unique(LTREB_surv_seedling$endo_01)))
+str(seed_surv_data_list)
+
+
 
 flw_data_list <- list(y = LTREB_data_forflw$FLW_STAT_T1,
                       spei = as.numeric(LTREB_data_forflw$spei12),
@@ -367,13 +370,93 @@ sm_surv <- stan(file = "Analyses/climate_endo_spp_surv_flw.stan", data = surv_da
 # saveRDS(sm_surv, file = "~/Dropbox/EndodemogData/Model_Runs/climate_endo_spp_surv_woseedling.rds")
 # The model with squared climate terrms gives max_treedepth warnings but otherwise converges okay but without non-linear terms does not have wraning.
 
+#Running the seedling survival model for 10000 iterations running for only 5000 led to low effective sample size warnings, most likely in sigma0 parameter
+# running for 10000 iterations had enough effective sample size, but had 3 divergent transitions. Could try re-running and hope that goes away, or try simplifying, like no non-linear term
+# running without non-linear term: model fits with no errors
+# running with tighter priors for climate parameters: fits with no errors
+sm_seed_surv <- stan(file = "Analyses/climate_seedling_surv.stan", data = seed_surv_data_list,
+                     iter = mcmc_pars$iter,
+                     warmup = mcmc_pars$warmup,
+                     chains = mcmc_pars$chains, 
+                     thin = mcmc_pars$thin)
+saveRDS(sm_seed_surv, file = "~/Dropbox/EndodemogData/Model_Runs/climate_endo_seedling_surv_withtightpriors.rds")
+
+sm_seed_surv_linear <- readRDS(file = "~/Dropbox/EndodemogData/Model_Runs/climate_endo_seedling_surv_withoutquadraticterm.rds")
+sm_seed_surv_nonlinear <- readRDS(file = "~/Dropbox/EndodemogData/Model_Runs/climate_endo_seedling_surv_withtightpriors.rds")
+
+quote_bare <- function( ... ){
+  substitute( alist(...) ) %>% 
+    eval( ) %>% 
+    sapply( deparse )
+}
+surv_sdlg_parlinear <- rstan::extract(sm_seed_surv_linear, pars =quote_bare(beta0,betaendo,betaspei_endo,
+                                                                tau_year, tau_plot))
+surv_sdlg_parnonlinear <- rstan::extract(sm_seed_surv_nonlinear, pars =quote_bare(beta0,betaendo,betaspei_endo,betaspei_nl_endo,
+                                                                     tau_year, tau_plot))
+linear_s_seed_eminus <- matrix(NA, 7,100)
+linear_s_seed_eplus <- matrix(NA, 7,100)
+
+nonlinear_s_seed_eminus <- matrix(NA, 7,100)
+nonlinear_s_seed_eplus <- matrix(NA, 7,100)
+
+for(s in 1:7){
+linear_s_seed_eminus[s,] <- invlogit(mean(surv_sdlg_parlinear$beta0[,s])+mean(surv_sdlg_parlinear$betaendo[,s])*0+mean(surv_sdlg_parlinear$betaspei_endo[,s,1])*seq(-1,2, length.out = 100))#+mean(surv_sdlg_parlinear$betaspei_nl_endo[,s,1]*(seq(-1,2, length.out = 100)^2)))
+linear_s_seed_eplus[s,] <- invlogit(mean(surv_sdlg_parlinear$beta0[,s])+mean(surv_sdlg_parlinear$betaendo[,s])*1+mean(surv_sdlg_parlinear$betaspei_endo[,s,2])*seq(-1,2, length.out = 100))#+mean(surv_sdlg_parlinear$betaspei_nl_endo[,s,2]*(seq(-1,2, length.out = 100)^2)))
+nonlinear_s_seed_eminus[s,] <- invlogit(mean(surv_sdlg_parnonlinear$beta0[,s])+mean(surv_sdlg_parnonlinear$betaendo[,s])*0+mean(surv_sdlg_parnonlinear$betaspei_endo[,s,1])*seq(-1,2, length.out = 100)+mean(surv_sdlg_parnonlinear$betaspei_nl_endo[,s,1])*(seq(-1,2, length.out = 100)^2))
+nonlinear_s_seed_eplus[s,] <- invlogit(mean(surv_sdlg_parnonlinear$beta0[,s])+mean(surv_sdlg_parnonlinear$betaendo[,s])*1+mean(surv_sdlg_parnonlinear$betaspei_endo[,s,2])*seq(-1,2, length.out = 100)+mean(surv_sdlg_parnonlinear$betaspei_nl_endo[,s,2])*(seq(-1,2, length.out = 100)^2))
+}
+
+
+# plotting the predicted linear and nonlinear fits vs the seedling survival data
+pred <- as_tibble(t(linear_s_seed_eminus)) %>% 
+  rename("lin_Eminus_"= contains("V")) %>% 
+  cbind(spei = seq(-1,2,length.out=100)) %>% 
+  pivot_longer(cols = contains("lin")) %>% 
+  separate(name, c("effect", "endo", "species"))
+
+pred2 <- as_tibble(t(linear_s_seed_eplus)) %>% 
+  rename("lin_Eplus_"= contains("V")) %>% 
+  cbind(spei = seq(-1,2,length.out=100)) %>% 
+  pivot_longer(cols = contains("lin")) %>% 
+  separate(name, c("effect", "endo", "species"))
+
+pred3 <- as_tibble(t(nonlinear_s_seed_eminus)) %>% 
+  rename("nonlin_Eminus_"= contains("V")) %>% 
+  cbind(spei = seq(-1,2,length.out=100)) %>% 
+  pivot_longer(cols = contains("nonlin")) %>% 
+  separate(name, c("effect", "endo", "species"))
+
+pred4 <- as_tibble(t(nonlinear_s_seed_eplus)) %>% 
+  rename("nonlin_Eplus_"= contains("V")) %>% 
+  cbind(spei = seq(-1,2,length.out=100)) %>% 
+  pivot_longer(cols = contains("nonlin")) %>% 
+  separate(name, c("effect", "endo", "species"))
+
+pred0 <- pred %>% 
+  full_join(pred2) %>% 
+  full_join(pred3) %>% 
+  full_join(pred4) %>% 
+  mutate(species = case_when(species == 1 ~ "AGPE",
+                             species == 2 ~ "ELRI",
+                             species == 3 ~ "ELVI",
+                             species == 4 ~ "FESU",
+                             species == 5 ~ "LOAR",
+                             species == 6 ~ "POAL",
+                             species == 7 ~ "POSY"))
+
+ggplot(data = LTREB_seedlingsurv_means)+
+  geom_point(aes(x = spei12, y = mean_surv, color = species, shape = as.factor(endo_01), size = count))+ 
+  geom_line(data = pred0, aes(x = spei, y = value, color = species, lty = endo))+
+  facet_wrap(~species+effect) +
+  scale_shape_manual(values = c(16,1))+
+  theme_classic()
 
 sm_flw <- stan(file = "Analyses/climate_endo_spp_surv_flw.stan", data = flw_data_list,
                 iter = mcmc_pars$iter,
                 warmup = mcmc_pars$warmup,
                 chains = mcmc_pars$chains, 
                 thin = mcmc_pars$thin)
-# saveRDS(sm_flw, file = "~/Dropbox/EndodemogData/Model_Runs/climate_endo_spp_flw.rds")
+saveRDS(sm_flw, file = "~/Dropbox/EndodemogData/Model_Runs/climate_endo_spp_flw.rds")
 # gave the same max_treedepth warning, but otherwise ran okay
 
 
