@@ -26,7 +26,7 @@ parameters {
     vector[nSpp] betaorigin;               // spp specific origin effect
 
     
-    // interactions
+    // climate interactions
     matrix[nSpp,nEndo] betaspei_endo;              // endo by climate interaction
     matrix[nSpp,nEndo] betaspei_nl_endo;              // endo by climate interaction non-linear
 
