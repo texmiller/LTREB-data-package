@@ -107,7 +107,7 @@ recruit_par <- rstan::extract(stos_fit, pars = quote_bare(beta0,betaendo,
 #############################################################################################
 
 # make the list of parameters and calculate mean lambdas
-n_draws <- 100
+n_draws <- 500
 post_draws <- sample.int(7500,size=n_draws) # The models except for seedling growth have 7500 iterations. That one has more (15000 iterations) to help it converge.
 
 lambda_mean <- array(dim = c(8,2,n_draws))
@@ -135,9 +135,9 @@ for(i in 1:length(post_draws)){
     lambda_mean[8,e,i] <- mean(lambda_mean[1:7,e,i])
   }
 }
-# lambda_mean
-saveRDS(lambda_mean, file = "~/Documents/lambda_mean.rds")
-# lambda_mean <- read_rds(file = "~/Documents/lambda_mean.rds")
+# saving lambda_mean with 500 post draws too dropbox
+saveRDS(lambda_mean, file = "~/Dropbox/EndodemogData/Model_Runs/MPM_output/lambda_mean.rds")
+# lambda_mean <- read_rds(file = "~/Dropbox/EndodemogData/Model_Runs/MPM_output/lambda_mean.rds")
 
 # Mean endophyte difference and quantiles
 lambda_means <- matrix(NA,8,2)
@@ -180,15 +180,30 @@ for(i in 1:length(post_draws)){
                                                              recruit_par=recruit_par),
                                                  extension = 100)$MPMmat) # the extension parameter is used to fit the growth kernel to sizes larger than max size without losing probability density
       }
-      lambda_var[s,e,i] <- sd(lambda_hold[,s,e,i])
+      lambda_var[s,e,i] <- sd(lambda_hold[,s,e,i]) # we calulate the standard deviation here
     }
     lambda_var[8,e,i] <- mean(lambda_var[1:7,e,i])
   }
 }
-saveRDS(lambda_hold, file = "~/Documents/lambda_hold.rds")
-saveRDS(lambda_var, file = "~/Documents/lambda_var.rds")
+#saving the yearly lambdas and the sd of lambdas to dropbox
+saveRDS(lambda_hold, file = "~/Dropbox/EndodemogData/Model_Runs/MPM_output/lambda_hold.rds")
+saveRDS(lambda_var, file = "~/Dropbox/EndodemogData/Model_Runs/MPM_output/lambda_var.rds")
 # lambda_var <- read_rds(file = "~/Documents/lambda_var.rds")
 
+# Making plots of yearly lambdas
+yearly_lambda <- array(dim = c(13,7,2))
+
+for(y in 1:13){
+  for(s in 1:7){
+    for( e in 1:2){
+      yearly_lambda[y,s,e] <- mean(lambda_hold[y,s,e,])
+    }
+  }
+}
+
+yearly_lambda_cube <- cubelyr::as.tbl_cube(yearly_lambda)
+
+#Calculationg endophyte effect on sd and variance
 lambda_sds <- matrix(NA,8,2)
 lambda_vars <- matrix(NA,8,2)
 lambda_sd_diff <- matrix(NA,8,7)
@@ -264,7 +279,7 @@ meanlambda_plot
 ggsave(meanlambda_plot, filename = "meanlambda_plot.png", width = 8, height = 4)
 
 # now for the effect on variance plot
-lambda_var_diff_df <- as_tibble(lambda_var_diff)  %>% 
+lambda_var_diff_df <- as_tibble(lambda_sd_diff)  %>% 
   rename( "mean" = V1, fifth = V2, twelfthpointfive = V3, twentyfifth = V4, seventyfifth = V5, eightyseventhpointfive = V6, ninetyfifth = V7) %>% 
   mutate(rownames = row.names(.)) %>% 
   mutate(species = case_when(rownames == 1 ~ "Agrostis perennans",
