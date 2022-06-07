@@ -11,10 +11,12 @@ library(popbio)
 library(countreg)
 library(actuar)
 library(rstan)
-library(gridExtra)
-library(grid)
-library(cowplot) # for pulling legend from ggplots
-library(cubelyr) # for working between lists of matrixes and dataframes
+library(patchwork) # for putting plots together
+
+# library(gridExtra)
+# library(grid)
+# library(cowplot) # for pulling legend from ggplots
+# library(cubelyr) # for working between lists of matrixes and dataframes
 
 
 quote_bare <- function( ... ){
@@ -188,20 +190,9 @@ for(i in 1:length(post_draws)){
 #saving the yearly lambdas and the sd of lambdas to dropbox
 saveRDS(lambda_hold, file = "~/Dropbox/EndodemogData/Model_Runs/MPM_output/lambda_hold.rds")
 saveRDS(lambda_var, file = "~/Dropbox/EndodemogData/Model_Runs/MPM_output/lambda_var.rds")
-# lambda_var <- read_rds(file = "~/Documents/lambda_var.rds")
+# lambda_hold <- read_rds(file = "~/Dropbox/EndodemogData/Model_Runs/MPM_output/lambda_hold.rds")
+# lambda_var <- read_rds(file = "~/Dropbox/EndodemogData/Model_Runs/MPM_output/lambda_var.rds")
 
-# Making plots of yearly lambdas
-yearly_lambda <- array(dim = c(13,7,2))
-
-for(y in 1:13){
-  for(s in 1:7){
-    for( e in 1:2){
-      yearly_lambda[y,s,e] <- mean(lambda_hold[y,s,e,])
-    }
-  }
-}
-
-yearly_lambda_cube <- cubelyr::as.tbl_cube(yearly_lambda)
 
 #Calculationg endophyte effect on sd and variance
 lambda_sds <- matrix(NA,8,2)
@@ -220,6 +211,19 @@ for(s in 1:8){
   lambda_var_diff[s,1] = mean(lambda_var[s,2,]^2 - lambda_var[s,1,]^2)
   lambda_var_diff[s,2:7] = quantile(lambda_var[s,2,]^2 - lambda_var[s,1,]^2,probs=c(0.05,0.125,0.25,0.75,0.875,0.95))
 }
+
+# Making plots of yearly lambdas
+yearly_lambda <- array(dim = c(13,7,2))
+
+for(y in 1:13){
+  for(s in 1:7){
+    for( e in 1:2){
+      yearly_lambda[y,s,e] <- mean(lambda_hold[y,s,e,])
+    }
+  }
+}
+
+yearly_lambda_cube <- cubelyr::as.tbl_cube(yearly_lambda)
 
 ################################################################
 ##### Plot of mean and variance endo effect on lambda ##########
@@ -348,18 +352,104 @@ summarylambda_join_df <- lambda_join_df %>%
   summarize(avg_meandiff = mean(meanlambda_diff),
             avg_vardiff = mean(varlambda_diff))
 
+agpe_meanvar <- ggplot(data = filter(lambda_join_df, species == "Agrostis perennans"))+
+  geom_hline(yintercept = 0) + geom_vline(xintercept = 0)+
+  geom_point(aes(x = meanlambda_diff, y = varlambda_diff, color = species), alpha = .3)+
+  scale_color_manual(values = c("#dbdb42"))+
+  theme(panel.background = element_blank(), 
+        axis.line = element_blank(),
+        axis.title = element_blank(),
+        legend.position = "none")
+# agpe_meanvar
+
+elri_meanvar <- ggplot(data = filter(lambda_join_df, species == "Elymus villosus"))+
+  geom_hline(yintercept = 0) + geom_vline(xintercept = 0)+
+  geom_point(aes(x = meanlambda_diff, y = varlambda_diff, color = species), alpha = .3)+
+  scale_color_manual(values = c("#b8e3a0"))+
+  theme(panel.background = element_blank(), 
+        axis.line = element_blank(),
+        axis.title = element_blank(),
+        legend.position = "none")
+# elri_meanvar
+
+elvi_meanvar <- ggplot(data = filter(lambda_join_df, species == "Elymus virginicus"))+
+  geom_hline(yintercept = 0) + geom_vline(xintercept = 0)+
+  geom_point(aes(x = meanlambda_diff, y = varlambda_diff, color = species), alpha = .3)+
+  scale_color_manual(values = c("#7fcdbb"))+
+  theme(panel.background = element_blank(), 
+        axis.line = element_blank(),
+        axis.title = element_blank(),
+        legend.position = "none")
+# elvi_meanvar
+  
+fesu_meanvar <- ggplot(data = filter(lambda_join_df, species == "Festuca subverticillata"))+
+  geom_hline(yintercept = 0) + geom_vline(xintercept = 0)+
+  geom_point(aes(x = meanlambda_diff, y = varlambda_diff, color = species), alpha = .3)+
+  scale_color_manual(values = c("#41b6c4"))+
+  theme(panel.background = element_blank(), 
+        axis.line = element_blank(),
+        axis.title = element_blank(),
+        legend.position = "none")
+# fesu_meanvar
+
+loar_meanvar <- ggplot(data = filter(lambda_join_df, species == "Lolium arundinaceum"))+
+  geom_hline(yintercept = 0) + geom_vline(xintercept = 0)+
+  geom_point(aes(x = meanlambda_diff, y = varlambda_diff, color = species), alpha = .3)+
+  scale_color_manual(values = c("#1d91c0"))+
+  theme(panel.background = element_blank(), 
+        axis.line = element_blank(),
+        axis.title = element_blank(),
+        legend.position = "none")
+# loar_meanvar
+
+poal_meanvar <- ggplot(data = filter(lambda_join_df, species == "Poa alsodes"))+
+  geom_hline(yintercept = 0) + geom_vline(xintercept = 0)+
+  geom_point(aes(x = meanlambda_diff, y = varlambda_diff, color = species), alpha = .3)+
+  scale_color_manual(values = c("#225ea8"))+
+  theme(panel.background = element_blank(), 
+        axis.line = element_blank(),
+        axis.title = element_blank(),
+        legend.position = "none")
+# poal_meanvar
+
+posy_meanvar <- ggplot(data = filter(lambda_join_df, species == "Poa sylvestris"))+
+  geom_hline(yintercept = 0) + geom_vline(xintercept = 0)+
+  geom_point(aes(x = meanlambda_diff, y = varlambda_diff, color = species), alpha = .3)+
+  scale_color_manual(values = c("#0c2c84"))+
+  theme(panel.background = element_blank(), 
+        axis.line = element_blank(),
+        axis.title = element_blank(),
+        legend.position = "none")
+# posy_meanvar
+
+sppmean_meanvar <- ggplot(data = filter(lambda_join_df, species == "Species Mean"))+
+  geom_hline(yintercept = 0) + geom_vline(xintercept = 0)+
+  geom_point(aes(x = meanlambda_diff, y = varlambda_diff, color = species), alpha = .3)+
+  scale_color_manual(values = c("#A9A9A9"))+
+  theme(panel.background = element_blank(), 
+        axis.line = element_blank(),
+        axis.title = element_blank(),
+        legend.position = "none")
+# sppmean_meanvar
+
 meanvar_biplot <- ggplot(data = lambda_join_df) +
   geom_hline(yintercept = 0) + geom_vline(xintercept = 0)+
-  # geom_point(aes(x = meanlambda_diff, y = varlambda_diff, color = species), alpha = .3) +
+  # geom_point(aes(x = meanlambda_diff, y = varlambda_diff, color = species), alpha = .5) +
   geom_point(data = summarylambda_join_df, aes(x = avg_meandiff, y = avg_vardiff, color = species), lwd  = 3) +
-  geom_text(data = summarylambda_join_df, aes(x = avg_meandiff, y = (avg_vardiff-.01), label = species), lwd  = 3) +
-  xlim(-.1,.18) + ylim(-.3,.15)+
+  geom_text(data = summarylambda_join_df, aes(x = avg_meandiff, y = (avg_vardiff-.005), label = species), lwd  = 3) +
+  # xlim(-.4,.4) + ylim(-.3,.3)+
+  xlim(-.05,.2) + ylim(-.08,.05)+
   scale_color_manual(values = c("#dbdb42", "#b8e3a0", "#7fcdbb", "#41b6c4", "#1d91c0", "#225ea8", "#0c2c84", "#A9A9A9")) +
   theme(panel.background = element_blank(), 
         axis.line = element_blank(),
         legend.position = "none")
-meanvar_biplot 
-ggsave(meanvar_biplot, filename = "meanvar_biplot.png", width = 6, height = 5)
+# meanvar_biplot
+# ggsave(meanvar_biplot, filename = "meanvar_biplot.png", width = 6, height = 5)
+
+meanvar_biplot_post <- meanvar_biplot + (agpe_meanvar+agpe_meanvar+ elri_meanvar + elvi_meanvar +fesu_meanvar + loar_meanvar + poal_meanvar + posy_meanvar + sppmean_meanvar )+
+  plot_layout(ncol = 2, nrow = 1, widths = unit(c(9, 1), c("cm", "null")), heights = unit(c(9, 1), c('cm', 'null')))
+meanvar_biplot_post
+ggsave(meanvar_biplot_post, filename = "meanvar_biplot_post.png", width = 6, height = 5)
 
 #############################################################################################
 ####### Stochastic lambda simulations ------------------
