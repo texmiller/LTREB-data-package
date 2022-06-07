@@ -115,9 +115,9 @@ pxy<-function(x,y,params){
 
 fx<-function(x, params){
   xb<-pmin(x,params$max_size) # any predicted plants larger than max size will set to be max size
-  flw <- invlogit(params$flow_int + params$flow_slope*log(x))
-  fert <- exp(params$fert_int + params$fert_slope*log(x))
-  spike <- exp(params$spike_int + params$spike_slope*log(x))
+  flw <- invlogit(params$flow_int + params$flow_slope*log(xb))
+  fert <- exp(params$fert_int + params$fert_slope*log(xb))
+  spike <- exp(params$spike_int + params$spike_slope*log(xb))
   seeds_per_spike <- params$seeds_per_spike
   recruits_per_seed <- invlogit(params$recruits_per_seed)
   seedlings <- flw * fert * spike * seeds_per_spike * recruits_per_seed
