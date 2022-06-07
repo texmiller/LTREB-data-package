@@ -222,8 +222,26 @@ for(y in 1:13){
     }
   }
 }
-
+dimnames(yearly_lambda) <- list(Year = c(1:13), Species = paste0("s",1:7), Endo = paste0("e",1:2))
 yearly_lambda_cube <- cubelyr::as.tbl_cube(yearly_lambda)
+yearly_lambda_df <- as_tibble(yearly_lambda_cube)
+
+dimnames(lambda_hold) <- list(Year = c(1:13), Species = paste0("s",1:7), Endo = paste0("e",1:2), Iterations = paste0("i",1:n_draws))
+yearly_lambda_iter_cube <- cubelyr::as.tbl_cube(lambda_hold)
+yearly_lambda_iter_df <- as_tibble(yearly_lambda_iter_cube)
+
+ggplot(data = yearly_lambda_df)+
+  geom_hline(yintercept = 1)+
+  geom_path(aes(x = Year, y = yearly_lambda, color = Endo))+
+  facet_wrap(~Species)+
+  theme_minimal()
+
+ggplot(data = yearly_lambda_df)+
+  geom_vline(xintercept = 1)+
+  geom_histogram(aes(x = yearly_lambda, fill = Endo),alpha = .5, position = "identity", bins = 10)+
+  facet_wrap(~Species)+
+  theme_minimal()
+
 
 ################################################################
 ##### Plot of mean and variance endo effect on lambda ##########
