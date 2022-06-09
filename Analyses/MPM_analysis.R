@@ -103,13 +103,14 @@ spike_par <- rstan::extract(spike_fit, pars = quote_bare(beta0,betasize,betaendo
 seed_par <- rstan::extract(seedmean_fit, pars = quote_bare(beta0,betaendo)) #no plot or year effect
 recruit_par <- rstan::extract(stos_fit, pars = quote_bare(beta0,betaendo,
                                                           tau_year, tau_plot))
-
+dim(surv_par$tau_year)
+plot(surv_par$tau_year[,1,1,], grow_par$tau_year[,1,1,], col = levels(as_factor(grow_par$tau_year[1,1,1,])))
 #############################################################################################
 ####### Run the MPM ------------------
 #############################################################################################
 
 # make the list of parameters and calculate mean lambdas
-n_draws <- 500
+n_draws <- 500 # the means are the same whether we do 500 or 1000 draws
 post_draws <- sample.int(7500,size=n_draws) # The models except for seedling growth have 7500 iterations. That one has more (15000 iterations) to help it converge.
 
 lambda_mean <- array(dim = c(8,2,n_draws))
@@ -139,7 +140,7 @@ for(i in 1:length(post_draws)){
 }
 # saving lambda_mean with 500 post draws too dropbox
 saveRDS(lambda_mean, file = "~/Dropbox/EndodemogData/Model_Runs/MPM_output/lambda_mean.rds")
-# lambda_mean <- read_rds(file = "~/Dropbox/EndodemogData/Model_Runs/MPM_output/lambda_mean.rds")
+lambda_mean <- read_rds(file = "~/Dropbox/EndodemogData/Model_Runs/MPM_output/lambda_mean.rds")
 
 # Mean endophyte difference and quantiles
 lambda_means <- matrix(NA,8,2)
@@ -190,8 +191,8 @@ for(i in 1:length(post_draws)){
 #saving the yearly lambdas and the sd of lambdas to dropbox
 saveRDS(lambda_hold, file = "~/Dropbox/EndodemogData/Model_Runs/MPM_output/lambda_hold.rds")
 saveRDS(lambda_var, file = "~/Dropbox/EndodemogData/Model_Runs/MPM_output/lambda_var.rds")
-# lambda_hold <- read_rds(file = "~/Dropbox/EndodemogData/Model_Runs/MPM_output/lambda_hold.rds")
-# lambda_var <- read_rds(file = "~/Dropbox/EndodemogData/Model_Runs/MPM_output/lambda_var.rds")
+lambda_hold <- read_rds(file = "~/Dropbox/EndodemogData/Model_Runs/MPM_output/lambda_hold.rds")
+lambda_var <- read_rds(file = "~/Dropbox/EndodemogData/Model_Runs/MPM_output/lambda_var.rds")
 
 
 #Calculationg endophyte effect on sd and variance
@@ -242,7 +243,12 @@ ggplot(data = yearly_lambda_df)+
   facet_wrap(~Species)+
   theme_minimal()
 
-
+y_df <- yearly_lambda_df %>% 
+  pivot_wider(id_cols = c(Year,Species), names_from = Endo, values_from = yearly_lambda)
+ggplot(data = y_df)+
+  geom_point(aes(x = e1, y = e2),alpha = .5)+
+  facet_wrap(~Species)+
+  theme_minimal()
 ################################################################
 ##### Plot of mean and variance endo effect on lambda ##########
 ################################################################
@@ -289,7 +295,7 @@ lambda_mean_df <- as_tibble(lambda_mean_cube) %>%
 
 meanlambda_plot <- ggplot(data = lambda_mean_df) +
   geom_hline(yintercept = 0, col = "black") + 
-  geom_linerange(data = lambda_mean_diff_df, aes(x = species, y = mean, ymin = 0, ymax = mean, color = species)) + 
+  geom_linerange(data = lambda_mean_diff_df, aes(x = species, y = mean, ymin = 0, ymax = mean, color = "species")) + 
   geom_jitter( aes(y = lambda_diff, x = species, color = species), width = .2, alpha = .2) +
   stat_summary(aes(y = lambda_diff, x = species), fun = mean,geom = "point", size = 3) +
   geom_point(data = lambda_mean_diff_df, aes(y = mean, x = species, color = species), lwd = 2) +
