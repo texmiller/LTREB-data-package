@@ -501,7 +501,8 @@ for(i in 1:length(post_draws)){
                                                 fert_par=fert_par,
                                                 spike_par=spike_par,
                                                 seed_par=seed_par,
-                                                recruit_par=recruit_par))$MPMmat
+                                                recruit_par=recruit_par),
+                                    extension = 100)$MPMmat
       eplus_list[[y]] <- bigmatrix(make_params(species=s,
                                                endo_mean=1,
                                                endo_var=1,
@@ -518,7 +519,8 @@ for(i in 1:length(post_draws)){
                                                fert_par=fert_par,
                                                spike_par=spike_par,
                                                seed_par=seed_par,
-                                               recruit_par=recruit_par))$MPMmat
+                                               recruit_par=recruit_par),
+                                   extension = 100)$MPMmat
       eplus__mean_only_list[[y]] <- bigmatrix(make_params(species=s,
                                                           endo_mean=1,
                                                           endo_var=0,
@@ -535,7 +537,8 @@ for(i in 1:length(post_draws)){
                                                           fert_par=fert_par,
                                                           spike_par=spike_par,
                                                           seed_par=seed_par,
-                                                          recruit_par=recruit_par))$MPMmat
+                                                          recruit_par=recruit_par),
+                                              extension = 100)$MPMmat
       eplus__var_only_list[[y]] <- bigmatrix(make_params(species=s,
                                                          endo_mean=0,
                                                          endo_var=1,
@@ -552,7 +555,8 @@ for(i in 1:length(post_draws)){
                                                          fert_par=fert_par,
                                                          spike_par=spike_par,
                                                          seed_par=seed_par,
-                                                         recruit_par=recruit_par))$MPMmat
+                                                         recruit_par=recruit_par),
+                                             extension = 100)$MPMmat
     }
     lambdaS_out[s,1,i] <- lambdaSim(eminus_list)$lambdaS
     lambdaS_out[s,2,i] <- lambdaSim(eplus__mean_only_list)$lambdaS
