@@ -470,21 +470,21 @@ meanvar_biplot <- ggplot(data = lambda_join_df) +
 # meanvar_biplot
 # ggsave(meanvar_biplot, filename = "meanvar_biplot.png", width = 6, height = 5)
 
-meanvar_biplot_post <- meanvar_biplot + (agpe_meanvar+agpe_meanvar+ elri_meanvar + elvi_meanvar +fesu_meanvar + loar_meanvar + poal_meanvar + posy_meanvar + sppmean_meanvar )+
+meanvar_biplot_post <- meanvar_biplot + (agpe_meanvar+ elri_meanvar + elvi_meanvar +fesu_meanvar + loar_meanvar + poal_meanvar + posy_meanvar + sppmean_meanvar )+
   plot_layout(ncol = 2, nrow = 1, widths = unit(c(9, 1), c("cm", "null")), heights = unit(c(9, 1), c('cm', 'null')))
 meanvar_biplot_post
-ggsave(meanvar_biplot_post, filename = "meanvar_biplot_post.png", width = 6, height = 5)
+ggsave(meanvar_biplot_post, filename = "meanvar_biplot_post.png", width = 10, height = 5)
 
 #############################################################################################
 ####### Stochastic lambda simulations ------------------
 #############################################################################################
 
-# Make a list of year specific transition matrices
+# Make a list of year specific transition matrices for with and without variance and mean effects of endophytes
 lambdaS_out <- array(dim = c(8,4,n_draws))
 for(i in 1:length(post_draws)){
   for(s in 1:7){
     eminus_list <- eplus_list <- eplus__mean_only_list <- eplus__var_only_list <- list()
-    for(y in 1:14){
+    for(y in 1:13){
       eminus_list[[y]] <- bigmatrix(make_params(species=s,
                                                 endo_mean=0,
                                                 endo_var=0,
@@ -492,7 +492,7 @@ for(i in 1:length(post_draws)){
                                                 draw=post_draws[i],
                                                 max_size=max_size,
                                                 rfx=T,
-                                                year=y,
+                                                year=y+1,
                                                 surv_par=surv_par,
                                                 surv_sdlg_par = surv_sdlg_par,
                                                 grow_par=grow_par,
@@ -509,7 +509,8 @@ for(i in 1:length(post_draws)){
                                                draw=post_draws[i],
                                                max_size=max_size,
                                                rfx=T,
-                                               year=y,surv_par=surv_par,
+                                               year=y+1,
+                                               surv_par=surv_par,
                                                surv_sdlg_par = surv_sdlg_par,
                                                grow_par=grow_par,
                                                grow_sdlg_par = grow_sdlg_par,
@@ -525,7 +526,8 @@ for(i in 1:length(post_draws)){
                                                           draw=post_draws[i],
                                                           max_size=max_size,
                                                           rfx=T,
-                                                          year=y,surv_par=surv_par,
+                                                          year=y+1,
+                                                          surv_par=surv_par,
                                                           surv_sdlg_par = surv_sdlg_par,
                                                           grow_par=grow_par,
                                                           grow_sdlg_par = grow_sdlg_par,
@@ -541,7 +543,8 @@ for(i in 1:length(post_draws)){
                                                          draw=post_draws[i],
                                                          max_size=max_size,
                                                          rfx=T,
-                                                         year=y,surv_par=surv_par,
+                                                         year=y+1,
+                                                         surv_par=surv_par,
                                                          surv_sdlg_par = surv_sdlg_par,
                                                          grow_par=grow_par,
                                                          grow_sdlg_par = grow_sdlg_par,
@@ -562,8 +565,8 @@ for(i in 1:length(post_draws)){
   lambdaS_out[8,4,i] <- mean(lambdaS_out[1:7,4,i]) # species mean eplus
 }
 
-saveRDS(lambdaS_out, file = "~/Documents/lambdaS_out.rds")
-# lambdaS_out <- read_rds(path = "~/Documents/lambdaS_out.rds")
+saveRDS(lambdaS_out, file = "~/Dropbox/EndodemogData/Model_Runs/MPM_output/lambdaS_out.rds")
+# lambdaS_out <- read_rds(path = "~/Dropbox/EndodemogData/Model_Runs/MPM_output/lambdaS_out.rds")
 
 
 lambdaS_diff <- lambdaS_diff_mean_only <- lambdaS_diff_var_only <- matrix(NA,8,7)
