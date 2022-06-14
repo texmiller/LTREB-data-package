@@ -37,20 +37,13 @@ max_size <- LTREB_full %>%
   group_by(species, species_index) %>% 
   summarise(actual_max_size = max(size_t),
             max_size = quantile(size_t,probs=0.975),
-            max_size_99 = quantile(size_t,probs=0.99))
-max_size_2 <- LTREB_full %>% 
-  dplyr::select(species, size_t) %>% 
-  filter(!is.na(size_t)) %>% 
-  group_by(species) %>% 
-  summarise(actual_max_size = max(size_t),
-            max_size = quantile(size_t,probs=0.975),
-            max_size_99 = quantile(size_t,probs=0.99))
+            max_size_99 = quantile(size_t,probs=0.99)) # The mean and sd effects plots look basically identical with either max size
 
-ggplot(data = LTREB_full)+
-  geom_histogram(aes(size_t)) +
-  geom_vline(data = max_size, aes(xintercept = max_size))+
-  geom_vline(data = max_size, aes(xintercept = max_size_99), col = "red")+
-  facet_wrap(~species, scales = "free")
+# ggplot(data = LTREB_full)+
+#   geom_histogram(aes(size_t)) +
+#   geom_vline(data = max_size, aes(xintercept = max_size))+
+#   geom_vline(data = max_size, aes(xintercept = max_size_99), col = "red")+
+#   facet_wrap(~species, scales = "free")
 
 #############################################################################################
 ####### Read in matrix population functions ------------------
@@ -103,8 +96,8 @@ spike_par <- rstan::extract(spike_fit, pars = quote_bare(beta0,betasize,betaendo
 seed_par <- rstan::extract(seedmean_fit, pars = quote_bare(beta0,betaendo)) #no plot or year effect
 recruit_par <- rstan::extract(stos_fit, pars = quote_bare(beta0,betaendo,
                                                           tau_year, tau_plot))
-dim(surv_par$tau_year)
-plot(surv_par$tau_year[,1,1,], grow_par$tau_year[,1,1,], col = levels(as_factor(grow_par$tau_year[1,1,1,])))
+# dim(surv_par$tau_year)
+# plot(surv_par$tau_year[,1,1,], grow_par$tau_year[,1,1,], col = levels(as_factor(grow_par$tau_year[1,1,1,])))
 #############################################################################################
 ####### Run the MPM ------------------
 #############################################################################################
@@ -140,7 +133,7 @@ for(i in 1:length(post_draws)){
 }
 # saving lambda_mean with 500 post draws too dropbox
 saveRDS(lambda_mean, file = "~/Dropbox/EndodemogData/Model_Runs/MPM_output/lambda_mean.rds")
-lambda_mean <- read_rds(file = "~/Dropbox/EndodemogData/Model_Runs/MPM_output/lambda_mean.rds")
+# lambda_mean <- read_rds(file = "~/Dropbox/EndodemogData/Model_Runs/MPM_output/lambda_mean.rds")
 
 # Mean endophyte difference and quantiles
 lambda_means <- matrix(NA,8,2)
@@ -162,7 +155,7 @@ lambda_var <- array(dim = c(8,2,n_draws))
 for(i in 1:length(post_draws)){
   for(e in 1:2){
     for(s in 1:7){
-      for(y in 1:13){
+      for(y in 1:10){
         
         lambda_hold[y,s,e,i] <- lambda(bigmatrix(make_params(species=s,
                                                              endo_mean=(e-1),
@@ -192,7 +185,7 @@ for(i in 1:length(post_draws)){
 saveRDS(lambda_hold, file = "~/Dropbox/EndodemogData/Model_Runs/MPM_output/lambda_hold.rds")
 saveRDS(lambda_var, file = "~/Dropbox/EndodemogData/Model_Runs/MPM_output/lambda_var.rds")
 lambda_hold <- read_rds(file = "~/Dropbox/EndodemogData/Model_Runs/MPM_output/lambda_hold.rds")
-lambda_var <- read_rds(file = "~/Dropbox/EndodemogData/Model_Runs/MPM_output/lambda_var.rds")
+# lambda_var <- read_rds(file = "~/Dropbox/EndodemogData/Model_Runs/MPM_output/lambda_var.rds")
 
 
 #Calculationg endophyte effect on sd and variance
@@ -295,16 +288,19 @@ lambda_mean_df <- as_tibble(lambda_mean_cube) %>%
 
 meanlambda_plot <- ggplot(data = lambda_mean_df) +
   geom_hline(yintercept = 0, col = "black") + 
-  geom_linerange(data = lambda_mean_diff_df, aes(x = species, y = mean, ymin = 0, ymax = mean, color = "species")) + 
+  geom_linerange(data = lambda_mean_diff_df, aes(x = species, y = mean, ymin = 0, ymax = mean, color = species)) + 
   geom_jitter( aes(y = lambda_diff, x = species, color = species), width = .2, alpha = .2) +
   stat_summary(aes(y = lambda_diff, x = species), fun = mean,geom = "point", size = 3) +
   geom_point(data = lambda_mean_diff_df, aes(y = mean, x = species, color = species), lwd = 2) +
   scale_color_manual(values = c("#dbdb42", "#b8e3a0", "#7fcdbb", "#41b6c4", "#1d91c0", "#225ea8", "#0c2c84", "#A9A9A9")) +
   coord_flip(ylim = c(-.5,.5)) +
+  labs(y = expression(paste("Effect on ", bar(lambda))),
+       x = "",
+       color = "Species")+
   theme(panel.background = element_rect(fill = "white"),
         panel.grid = element_line(color = NA))
 meanlambda_plot
-ggsave(meanlambda_plot, filename = "meanlambda_plot.png", width = 8, height = 4)
+ggsave(meanlambda_plot, filename = "meanlambda_plot_99thpercentilemaxsize.png", width = 8, height = 4)
 
 # now for the effect on variance plot
 lambda_var_diff_df <- as_tibble(lambda_sd_diff)  %>% 
@@ -355,11 +351,14 @@ lambdavar_plot <- ggplot(data = lambda_var_df) +
   stat_summary(aes(y = lambda_diff, x = species), fun = mean,geom = "point", size = 3) +
   geom_point(data = lambda_var_diff_df, aes(y = mean, x = species, color = species), lwd = 2) +
   scale_color_manual(values = c("#dbdb42", "#b8e3a0", "#7fcdbb", "#41b6c4", "#1d91c0", "#225ea8", "#0c2c84", "#A9A9A9")) +
-  coord_flip(ylim = c(-.3,.2)) +  #There's one annoying iteration way out at 1
+  coord_flip(ylim = c(-.3,.2)) +  #There's a few iterations out at -1.5
+  labs(y = expression(paste("Effect on ", "Var(",lambda,")")),
+       x = "",
+       color = "Species")+
   theme(panel.background = element_rect(fill = "white"),
         panel.grid = element_line(color = NA))
 lambdavar_plot
-# ggsave(lambdavar_plot, filename = "lambdavar_plot.png", width = 8, height = 4)
+ggsave(lambdavar_plot, filename = "lambdavar_plot_99thpercentilemaxsize.png", width = 8, height = 4)
 
 # a plot of variance by mean effects
 lambda_var_join <- lambda_var_df %>% 
@@ -380,9 +379,11 @@ agpe_meanvar <- ggplot(data = filter(lambda_join_df, species == "Agrostis perenn
   geom_hline(yintercept = 0) + geom_vline(xintercept = 0)+
   geom_point(aes(x = meanlambda_diff, y = varlambda_diff, color = species), alpha = .3)+
   scale_color_manual(values = c("#dbdb42"))+
+  labs(title = "AGPE")+
   theme(panel.background = element_blank(), 
         axis.line = element_blank(),
         axis.title = element_blank(),
+        plot.title = element_text(size = 10),
         legend.position = "none")
 # agpe_meanvar
 
@@ -390,9 +391,11 @@ elri_meanvar <- ggplot(data = filter(lambda_join_df, species == "Elymus villosus
   geom_hline(yintercept = 0) + geom_vline(xintercept = 0)+
   geom_point(aes(x = meanlambda_diff, y = varlambda_diff, color = species), alpha = .3)+
   scale_color_manual(values = c("#b8e3a0"))+
+  labs(title = "ELRI")+
   theme(panel.background = element_blank(), 
         axis.line = element_blank(),
         axis.title = element_blank(),
+        plot.title = element_text(size = 10),
         legend.position = "none")
 # elri_meanvar
 
@@ -400,9 +403,11 @@ elvi_meanvar <- ggplot(data = filter(lambda_join_df, species == "Elymus virginic
   geom_hline(yintercept = 0) + geom_vline(xintercept = 0)+
   geom_point(aes(x = meanlambda_diff, y = varlambda_diff, color = species), alpha = .3)+
   scale_color_manual(values = c("#7fcdbb"))+
+  labs(title = "ELVI")+
   theme(panel.background = element_blank(), 
         axis.line = element_blank(),
         axis.title = element_blank(),
+        plot.title = element_text(size = 10),
         legend.position = "none")
 # elvi_meanvar
   
@@ -410,9 +415,11 @@ fesu_meanvar <- ggplot(data = filter(lambda_join_df, species == "Festuca subvert
   geom_hline(yintercept = 0) + geom_vline(xintercept = 0)+
   geom_point(aes(x = meanlambda_diff, y = varlambda_diff, color = species), alpha = .3)+
   scale_color_manual(values = c("#41b6c4"))+
+  labs(title = "FESU")+
   theme(panel.background = element_blank(), 
         axis.line = element_blank(),
         axis.title = element_blank(),
+        plot.title = element_text(size = 10),
         legend.position = "none")
 # fesu_meanvar
 
@@ -420,9 +427,11 @@ loar_meanvar <- ggplot(data = filter(lambda_join_df, species == "Lolium arundina
   geom_hline(yintercept = 0) + geom_vline(xintercept = 0)+
   geom_point(aes(x = meanlambda_diff, y = varlambda_diff, color = species), alpha = .3)+
   scale_color_manual(values = c("#1d91c0"))+
+  labs(title = "LOAR")+
   theme(panel.background = element_blank(), 
         axis.line = element_blank(),
         axis.title = element_blank(),
+        plot.title = element_text(size = 10),
         legend.position = "none")
 # loar_meanvar
 
@@ -430,9 +439,11 @@ poal_meanvar <- ggplot(data = filter(lambda_join_df, species == "Poa alsodes"))+
   geom_hline(yintercept = 0) + geom_vline(xintercept = 0)+
   geom_point(aes(x = meanlambda_diff, y = varlambda_diff, color = species), alpha = .3)+
   scale_color_manual(values = c("#225ea8"))+
+  labs(title = "POAL")+
   theme(panel.background = element_blank(), 
         axis.line = element_blank(),
         axis.title = element_blank(),
+        plot.title = element_text(size = 10),
         legend.position = "none")
 # poal_meanvar
 
@@ -440,9 +451,11 @@ posy_meanvar <- ggplot(data = filter(lambda_join_df, species == "Poa sylvestris"
   geom_hline(yintercept = 0) + geom_vline(xintercept = 0)+
   geom_point(aes(x = meanlambda_diff, y = varlambda_diff, color = species), alpha = .3)+
   scale_color_manual(values = c("#0c2c84"))+
+  labs(title = "POSY")+
   theme(panel.background = element_blank(), 
         axis.line = element_blank(),
         axis.title = element_blank(),
+        plot.title = element_text(size = 10),
         legend.position = "none")
 # posy_meanvar
 
@@ -450,9 +463,11 @@ sppmean_meanvar <- ggplot(data = filter(lambda_join_df, species == "Species Mean
   geom_hline(yintercept = 0) + geom_vline(xintercept = 0)+
   geom_point(aes(x = meanlambda_diff, y = varlambda_diff, color = species), alpha = .3)+
   scale_color_manual(values = c("#A9A9A9"))+
+  labs(title = "Species Mean")+
   theme(panel.background = element_blank(), 
         axis.line = element_blank(),
         axis.title = element_blank(),
+        plot.title = element_text(size = 10),
         legend.position = "none")
 # sppmean_meanvar
 
@@ -464,6 +479,8 @@ meanvar_biplot <- ggplot(data = lambda_join_df) +
   # xlim(-.4,.4) + ylim(-.3,.3)+
   xlim(-.05,.2) + ylim(-.08,.05)+
   scale_color_manual(values = c("#dbdb42", "#b8e3a0", "#7fcdbb", "#41b6c4", "#1d91c0", "#225ea8", "#0c2c84", "#A9A9A9")) +
+  xlab(expression(paste("Effect on ", bar(lambda)))) +
+  ylab(expression(paste("Effect on ", "Var(",lambda,")"))) +
   theme(panel.background = element_blank(), 
         axis.line = element_blank(),
         legend.position = "none")
@@ -484,7 +501,7 @@ lambdaS_out <- array(dim = c(8,4,n_draws))
 for(i in 1:length(post_draws)){
   for(s in 1:7){
     eminus_list <- eplus_list <- eplus__mean_only_list <- eplus__var_only_list <- list()
-    for(y in 1:13){
+    for(y in 1:11){
       eminus_list[[y]] <- bigmatrix(make_params(species=s,
                                                 endo_mean=0,
                                                 endo_var=0,
@@ -570,13 +587,16 @@ for(i in 1:length(post_draws)){
 }
 
 saveRDS(lambdaS_out, file = "~/Dropbox/EndodemogData/Model_Runs/MPM_output/lambdaS_out.rds")
-# lambdaS_out <- read_rds(path = "~/Dropbox/EndodemogData/Model_Runs/MPM_output/lambdaS_out.rds")
+lambdaS_out <- read_rds(file = "~/Dropbox/EndodemogData/Model_Runs/MPM_output/lambdaS_out.rds")
 
 
-lambdaS_diff <- lambdaS_diff_mean_only <- lambdaS_diff_var_only <- matrix(NA,8,7)
+lambdaS_diff <- lambdaS_diff_mean_only <- lambdaS_diff_var_only <- lambdaS_diff_mean_var_inter <- matrix(NA,8,7)
 for(s in 1:8){
   lambdaS_diff[s,1] = mean(lambdaS_out[s,4,] - lambdaS_out[s,1,], na.rm = T) # eplus - eminus
   lambdaS_diff[s,2:7] = quantile(lambdaS_out[s,4,] - lambdaS_out[s,1,],probs=c(0.05,0.125,0.25,0.75,0.875,0.95), na.rm = T)
+  
+  lambdaS_diff_mean_var_inter[s,1] = mean(lambdaS_out[s,4,] - lambdaS_out[s,1,] -(lambdaS_out[s,2,]-lambdaS_out[s,1,]) - (lambdaS_out[s,3,]-lambdaS_out[s,1,]), na.rm = T) # Trying to calcuallte the contribution of the mean-variance interaction
+  lambdaS_diff_mean_var_inter[s,2:7] = quantile(lambdaS_out[s,4,] - lambdaS_out[s,1,]--(lambdaS_out[s,2,]-lambdaS_out[s,1,]) - (lambdaS_out[s,3,]-lambdaS_out[s,1,]),probs=c(0.05,0.125,0.25,0.75,0.875,0.95), na.rm = T)
   
   lambdaS_diff_mean_only[s,1] = mean(lambdaS_out[s,2,] - lambdaS_out[s,1,], na.rm = T) # eplus mean only - eminus
   lambdaS_diff_mean_only[s,2:7] = quantile(lambdaS_out[s,2,] - lambdaS_out[s,1,],probs=c(0.05,0.125,0.25,0.75,0.875,0.95), na.rm = T)
@@ -597,20 +617,32 @@ lambdaS_diff_df <- as_tibble(lambdaS_diff) %>%
   rename( "mean" = V1, fifth = V2, twelfthpointfive = V3, twentyfifth = V4, seventyfifth = V5, eightyseventhpointfive = V6, ninetyfifth = V7) %>% 
   mutate(rownames = row.names(.)) %>% 
   mutate(species = case_when(rownames == 1 ~ "Agrostis perennans",
-                             rownames == 2 ~ "Elymus virginicus",
-                             rownames == 3 ~ "Elymus villosus",
+                             rownames == 2 ~ "Elymus villosus",
+                             rownames == 3 ~ "Elymus virginicus",
                              rownames == 4 ~ "Festuca subverticillata",
                              rownames == 5 ~ "Lolium arundinaceum",
                              rownames == 6 ~ "Poa alsodes",
                              rownames == 7 ~ "Poa sylvestris",
                              rownames == 8 ~ "Species Mean")) %>% 
   mutate(contribution = "Total")
+lambdaS_diff_mean_var_inter_df <- as_tibble(lambdaS_diff_mean_var_inter) %>%  
+  rename( "mean" = V1, fifth = V2, twelfthpointfive = V3, twentyfifth = V4, seventyfifth = V5, eightyseventhpointfive = V6, ninetyfifth = V7) %>% 
+  mutate(rownames = row.names(.)) %>% 
+  mutate(species = case_when(rownames == 1 ~ "Agrostis perennans",
+                             rownames == 2 ~ "Elymus villosus",
+                             rownames == 3 ~ "Elymus virginicus",
+                             rownames == 4 ~ "Festuca subverticillata",
+                             rownames == 5 ~ "Lolium arundinaceum",
+                             rownames == 6 ~ "Poa alsodes",
+                             rownames == 7 ~ "Poa sylvestris",
+                             rownames == 8 ~ "Species Mean")) %>% 
+  mutate(contribution = "Interaction")
 lambdaS_diff_mean_only_df <- as_tibble(lambdaS_diff_mean_only) %>%  
   rename( "mean" = V1, fifth = V2, twelfthpointfive = V3, twentyfifth = V4, seventyfifth = V5, eightyseventhpointfive = V6, ninetyfifth = V7) %>% 
   mutate(rownames = row.names(.)) %>% 
   mutate(species = case_when(rownames == 1 ~ "Agrostis perennans",
-                             rownames == 2 ~ "Elymus virginicus",
-                             rownames == 3 ~ "Elymus villosus",
+                             rownames == 2 ~ "Elymus villosus",
+                             rownames == 3 ~ "Elymus virginicus",
                              rownames == 4 ~ "Festuca subverticillata",
                              rownames == 5 ~ "Lolium arundinaceum",
                              rownames == 6 ~ "Poa alsodes",
@@ -621,8 +653,8 @@ lambdaS_diff_var_only_df <- as_tibble(lambdaS_diff_var_only) %>%
   rename( "mean" = V1, fifth = V2, twelfthpointfive = V3, twentyfifth = V4, seventyfifth = V5, eightyseventhpointfive = V6, ninetyfifth = V7) %>% 
   mutate(rownames = row.names(.)) %>% 
   mutate(species = case_when(rownames == 1 ~ "Agrostis perennans",
-                             rownames == 2 ~ "Elymus virginicus",
-                             rownames == 3 ~ "Elymus villosus",
+                             rownames == 2 ~ "Elymus villosus",
+                             rownames == 3 ~ "Elymus virginicus",
                              rownames == 4 ~ "Festuca subverticillata",
                              rownames == 5 ~ "Lolium arundinaceum",
                              rownames == 6 ~ "Poa alsodes",
@@ -630,9 +662,9 @@ lambdaS_diff_var_only_df <- as_tibble(lambdaS_diff_var_only) %>%
                              rownames == 8 ~ "Species Mean")) %>% 
   mutate(contribution = "Var")
 
-lambdaS_diff_all_df <- bind_rows(lambdaS_diff_df, lambdaS_diff_mean_only_df, lambdaS_diff_var_only_df)
-lambdaS_diff_all_df$contribution <- factor(lambdaS_diff_all_df$contribution, levels = c("Var", "Mean", "Total"))
-x_labels <- c(expression(paste("Var(", bar(lambda), ")")), expression(bar(lambda)), "Total")
+lambdaS_diff_all_df <- bind_rows(lambdaS_diff_df, lambdaS_diff_mean_var_inter_df, lambdaS_diff_mean_only_df, lambdaS_diff_var_only_df)
+lambdaS_diff_all_df$contribution <- factor(lambdaS_diff_all_df$contribution, levels = c("Var", "Mean", "Interaction", "Total"))
+x_labels <- c(expression(paste("Var(", bar(lambda), ")")), expression(bar(lambda)),"Interaction", "Total")
 byspp_stochplot <- ggplot(data = lambdaS_diff_all_df) +
   geom_hline(yintercept = 0, col = "black") + 
   geom_linerange(aes(y = mean, x = contribution, ymin = twentyfifth, ymax = seventyfifth, color = species), lwd = 2) +
@@ -640,7 +672,7 @@ byspp_stochplot <- ggplot(data = lambdaS_diff_all_df) +
   geom_linerange(aes(y = mean, x = contribution, ymin = fifth, ymax = ninetyfifth, color = species)) +
   geom_point(aes(y = mean, x = contribution, fill = species, pch = contribution), lwd = 4) + 
   facet_wrap(~species, nrow = 2, scales = "free") + coord_flip() + 
-  scale_shape_manual(values = c(21, 22, 23)) +
+  scale_shape_manual(values = c(21, 22, 23,1)) +
   scale_fill_manual(values = c("#59A1BC", "#4E816D", "#EFAD3A", "#397BB7", "#9E78A1", "#E04D55", "#9D5251", "#5C5C5D")) +
   scale_color_manual(values = c("#59A1BC", "#4E816D", "#EFAD3A", "#397BB7", "#9E78A1", "#E04D55", "#9D5251", "#5C5C5D")) +
   xlab("") + scale_x_discrete(labels = x_labels) +
@@ -692,7 +724,12 @@ ggsave(sppmean_stochplot, filename = "sppmean_stochplot.tiff",  width = 6, heigh
 
 lambdaS_percent <- lambdaS_diff_all_df %>% 
   group_by(species) %>% 
-  summarize(percent_var = mean[contribution == "Var"]/mean[contribution == "Total"])
+  summarize(percent_var = mean[contribution == "Var"]/mean[contribution == "Total"],
+            percent_mean = mean[contribution == "Mean"]/mean[contribution == "Total"])
+
+
+
+
 
 
 
