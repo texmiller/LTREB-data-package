@@ -604,7 +604,7 @@ for(s in 1:8){
   lambdaS_diff_var_only[s,1] = mean(lambdaS_out[s,3,] - lambdaS_out[s,1,], na.rm = T) # eplus var only - eminus
   lambdaS_diff_var_only[s,2:7] = quantile(lambdaS_out[s,3,] - lambdaS_out[s,1,],probs=c(0.05,0.125,0.25,0.75,0.875,0.95), na.rm = T)
 }
-
+# sanity check base r plot
 lambdaS_effect <- rowMeans(lambdaS_out[8,2:4,]-lambdaS_out[8,1,], na.rm = T)
 barplot(lambdaS_effect,col=rainbow(3),
         names.arg = c("Mean effect","Variance effect","Total effect"))
