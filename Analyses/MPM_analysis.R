@@ -596,7 +596,7 @@ for(s in 1:8){
   lambdaS_diff[s,2:7] = quantile(lambdaS_out[s,4,] - lambdaS_out[s,1,],probs=c(0.05,0.125,0.25,0.75,0.875,0.95), na.rm = T)
   
   lambdaS_diff_mean_var_inter[s,1] = mean(lambdaS_out[s,4,] - lambdaS_out[s,1,] -(lambdaS_out[s,2,]-lambdaS_out[s,1,]) - (lambdaS_out[s,3,]-lambdaS_out[s,1,]), na.rm = T) # Trying to calcuallte the contribution of the mean-variance interaction
-  lambdaS_diff_mean_var_inter[s,2:7] = quantile(lambdaS_out[s,4,] - lambdaS_out[s,1,]--(lambdaS_out[s,2,]-lambdaS_out[s,1,]) - (lambdaS_out[s,3,]-lambdaS_out[s,1,]),probs=c(0.05,0.125,0.25,0.75,0.875,0.95), na.rm = T)
+  lambdaS_diff_mean_var_inter[s,2:7] = quantile(lambdaS_out[s,4,] - lambdaS_out[s,1,]-(lambdaS_out[s,2,]-lambdaS_out[s,1,]) - (lambdaS_out[s,3,]-lambdaS_out[s,1,]),probs=c(0.05,0.125,0.25,0.75,0.875,0.95), na.rm = T)
   
   lambdaS_diff_mean_only[s,1] = mean(lambdaS_out[s,2,] - lambdaS_out[s,1,], na.rm = T) # eplus mean only - eminus
   lambdaS_diff_mean_only[s,2:7] = quantile(lambdaS_out[s,2,] - lambdaS_out[s,1,],probs=c(0.05,0.125,0.25,0.75,0.875,0.95), na.rm = T)
