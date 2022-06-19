@@ -105,35 +105,58 @@ recruit_par <- rstan::extract(stos_fit, pars = quote_bare(beta0,betaendo,
 ####### Run the MPM ------------------
 #############################################################################################
 
+## There are two possible ways of running the analysis:
+## 1. Sample observation years (10-12 of these depending how you count)
+## 2. Sample many hypothetical years from posterior of year effects
+
+## SET-UP
 # make the list of parameters and calculate mean lambdas
 n_draws <- 500 # the means are the same whether we do 500 or 1000 draws
 post_draws <- sample.int(7500,size=n_draws) # The models except for seedling growth have 7500 iterations. That one has more (15000 iterations) to help it converge.
+n_spp <- length(unique(LTREB_full$species))
+n_endo <- 2
+# observation years
+years_obs <- unique(LTREB_full$year_t1_index)
+lambda_year_obs <- array(dim = c(length(years_obs),(n_spp+1),n_endo,n_draws))
+# sampled years
+n_years_samp <- 100
+lambda_year_samp <- array(dim = c(n_years_samp,(n_spp+1),n_endo,n_draws))
+# store mean and variance outputs for observed and sampled years
+lambda_mean_obs <- lambda_mean_samp <- array(dim = c((n_spp+1),n_endo,n_draws))
+lambda_var_obs <- lambda_var_samp <- array(dim = c(8,2,n_draws))
 
-lambda_mean <- array(dim = c(8,2,n_draws))
-for(i in 1:length(post_draws)){
-  for(e in 1:2){
-    for(s in 1:7){
-      lambda_mean[s,e,i] <- lambda(bigmatrix(make_params(species=s,
-                                                         endo_mean=(e-1),
-                                                         endo_var=(e-1),
-                                                         original = 0, # should be =1 to represent recruit
-                                                         draw=post_draws[i],
-                                                         max_size=max_size,
-                                                         rfx=F,
-                                                         surv_par=surv_par,
-                                                         surv_sdlg_par = surv_sdlg_par,
-                                                         grow_par=grow_par,
-                                                         grow_sdlg_par = grow_sdlg_par,
-                                                         flow_par=flow_par,
-                                                         fert_par=fert_par,
-                                                         spike_par=spike_par,
-                                                         seed_par=seed_par,
-                                                         recruit_par=recruit_par), 
-                                             extension = 100)$MPMmat) # the extension parameter is used to fit the growth kernel to sizes larger than max size without losing probability density
+## 1. Sample observation years, calculate mean and variance
+## loop over iterations, endophyte, species, year
+for(i in 1:n_draws){
+  for(e in 1:n_endo){
+    for(s in 1:n_spp){
+      for(y in years_obs){
+        
+        lambda_year_obs[y,s,e,i] <- lambda(bigmatrix(make_params(species=s,
+                                                             endo_mean=(e-1),
+                                                             endo_var=(e-1),
+                                                             original = 1, # should be =1 to represent recruit
+                                                             draw=post_draws[i],
+                                                             max_size=max_size,
+                                                             rfx=T,
+                                                             year=y,
+                                                             surv_par=surv_par,
+                                                             surv_sdlg_par = surv_sdlg_par,
+                                                             grow_par=grow_par,
+                                                             grow_sdlg_par = grow_sdlg_par,
+                                                             flow_par=flow_par,
+                                                             fert_par=fert_par,
+                                                             spike_par=spike_par,
+                                                             seed_par=seed_par,
+                                                             recruit_par=recruit_par),
+                                                 extension = 100)$MPMmat) # the extension parameter is used to fit the growth kernel to sizes larger than max size without losing probability density
+      }
+      lambda_var[s,e,i] <- sd(lambda_hold[,s,e,i]) # we calulate the standard deviation here
     }
-    lambda_mean[8,e,i] <- mean(lambda_mean[1:7,e,i])
+    lambda_var[8,e,i] <- mean(lambda_var[1:7,e,i])
   }
 }
+
 # saving lambda_mean with 500 post draws too dropbox
 saveRDS(lambda_mean, file = "~/Dropbox/EndodemogData/Model_Runs/MPM_output/lambda_mean.rds")
 # lambda_mean <- read_rds(file = "~/Dropbox/EndodemogData/Model_Runs/MPM_output/lambda_mean.rds")
@@ -158,7 +181,7 @@ lambda_var <- array(dim = c(8,2,n_draws))
 for(i in 1:length(post_draws)){
   for(e in 1:2){
     for(s in 1:7){
-      for(y in 1:10){ ## why is y looped over only 10 years?
+      for(y in 1:10){
         
         lambda_hold[y,s,e,i] <- lambda(bigmatrix(make_params(species=s,
                                                              endo_mean=(e-1),
@@ -504,7 +527,7 @@ lambdaS_out <- array(dim = c(8,4,n_draws))
 for(i in 1:length(post_draws)){
   for(s in 1:7){
     eminus_list <- eplus_list <- eplus__mean_only_list <- eplus__var_only_list <- list()
-    for(y in 1:11){ ## why is y looped 11 times here?
+    for(y in 1:11){
       eminus_list[[y]] <- bigmatrix(make_params(species=s,
                                                 endo_mean=0,
                                                 endo_var=0,
