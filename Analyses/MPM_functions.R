@@ -6,11 +6,12 @@
 invlogit<-function(x){exp(x)/(1+exp(x))}
 
 # Parameter assembly function ---------------------------------------------
-make_params <- function(species,endo_mean,endo_var,original=0,draw,rfx=F,year=NULL,max_size,
+make_params <- function(species,endo_mean,endo_var,original=0,draw,rfx=F,year=NULL,max_size,samp=F,
                         surv_par,surv_sdlg_par,grow_par,grow_sdlg_par,flow_par,fert_par,spike_par,seed_par,recruit_par){
   
   if(rfx==F){rfx_surv <- rfx_surv_sdlg <- rfx_grow <- rfx_grow_sdlg <- rfx_flow <- rfx_fert <- rfx_spike <- rfx_rct <-  0}
-  if(rfx==T){
+  
+  if(rfx==T & samp==F){
     ## timing and survival and growth (size_t / y_t1) is meant to line up with reproduction (size_t1 / y_t1)
     rfx_surv <- surv_par$tau_year[draw,species,(endo_var+1),(year)]; 
     rfx_surv_sdlg <-surv_sdlg_par$tau_year[draw,species,(endo_var+1),(year)];
@@ -21,6 +22,17 @@ make_params <- function(species,endo_mean,endo_var,original=0,draw,rfx=F,year=NU
     rfx_spike <- spike_par$tau_year[draw,species,(endo_var+1),year-1];
     rfx_rct <- recruit_par$tau_year[draw,species,(endo_var+1),year];
   }
+  
+  if(rfx==T & samp==T){
+    rfx_surv <- rnorm(1,mean=0,sd=surv_par$sigma_year[draw,species,(endo_var+1)])  #surv_par$tau_year[draw,species,(endo_var+1),(year)]; 
+    rfx_surv_sdlg <- rnorm(1,mean=0,sd=surv_sdlg_par$sigma_year[draw,species,(endo_var+1)]) #surv_sdlg_par$tau_year[draw,species,(endo_var+1),(year)];
+    rfx_grow <- rnorm(1,mean=0,sd=grow_par$sigma_year[draw,species,(endo_var+1)]) #grow_par$tau_year[draw,species,(endo_var+1),(year)];
+    rfx_grow_sdlg <- rnorm(1,mean=0,sd=grow_sdlg_par$sigma_year[draw,species,(endo_var+1)]) #grow_sdlg_par$tau_year[draw,species,(endo_var+1),(year)];
+    rfx_flow <- rnorm(1,mean=0,sd=flow_par$sigma_year[draw,species,(endo_var+1)]) #flow_par$tau_year[draw,species,(endo_var+1),year-1]; # fitting 
+    rfx_fert <- rnorm(1,mean=0,sd=fert_par$sigma_year[draw,species,(endo_var+1)]) #fert_par$tau_year[draw,species,(endo_var+1),year-1]; 
+    rfx_spike <- rnorm(1,mean=0,sd=spike_par$sigma_year[draw,species,(endo_var+1)]) #spike_par$tau_year[draw,species,(endo_var+1),year-1];
+    rfx_rct <- rnorm(1,mean=0,sd=recruit_par$sigma_year[draw,species,(endo_var+1)])#recruit_par$tau_year[draw,species,(endo_var+1),year];
+  }  
   
   params <- c()
   #survival
