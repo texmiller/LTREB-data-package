@@ -38,7 +38,7 @@ dat <- list(
   block2=df2$block
 )
 
-combo_model = stan_model("combo_model.stan")
+combo_model = stan_model("Analyses/combo_model.stan")
 fit_combo <- sampling(combo_model,data = dat,
                       chains = 2, iter = 5000, warmup = 1000)
 block_samples <- rstan::extract(fit_combo, pars =quote_bare(eps1,eps2))

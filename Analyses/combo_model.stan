@@ -28,10 +28,10 @@ parameters {
   real mu1;
   real eps1[n_blocks1];
   real<lower=0> sigma;
-  real<lower=0,upper=1> block1_sigma;  
+  real<lower=0> block1_sigma;  
   real mu2;
   real eps2[n_blocks2];
-  real<lower=0,upper=1> block2_sigma;  
+  real<lower=0> block2_sigma;  
   }
   
 transformed parameters {
