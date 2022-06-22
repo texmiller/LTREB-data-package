@@ -133,7 +133,7 @@ for(i in 1:length(post_draws)){
 }
 # saving lambda_mean with 500 post draws too dropbox
 saveRDS(lambda_mean, file = "~/Dropbox/EndodemogData/Model_Runs/MPM_output/lambda_mean.rds")
-# lambda_mean <- read_rds(file = "~/Dropbox/EndodemogData/Model_Runs/MPM_output/lambda_mean.rds")
+lambda_mean <- read_rds(file = "~/Dropbox/EndodemogData/Model_Runs/MPM_output/lambda_mean.rds")
 
 # Mean endophyte difference and quantiles
 lambda_means <- matrix(NA,8,2)
@@ -185,25 +185,39 @@ for(i in 1:length(post_draws)){
 saveRDS(lambda_hold, file = "~/Dropbox/EndodemogData/Model_Runs/MPM_output/lambda_hold.rds")
 saveRDS(lambda_var, file = "~/Dropbox/EndodemogData/Model_Runs/MPM_output/lambda_var.rds")
 lambda_hold <- read_rds(file = "~/Dropbox/EndodemogData/Model_Runs/MPM_output/lambda_hold.rds")
-# lambda_var <- read_rds(file = "~/Dropbox/EndodemogData/Model_Runs/MPM_output/lambda_var.rds")
+lambda_var <- read_rds(file = "~/Dropbox/EndodemogData/Model_Runs/MPM_output/lambda_var.rds")
 
 
 #Calculationg endophyte effect on sd and variance
 lambda_sds <- matrix(NA,8,2)
 lambda_vars <- matrix(NA,8,2)
+
+lambda_cv <- (lambda_var^2)/(2*lambda_mean^2)
+
+lambda_cvs <- matrix(NA,8,2)
+
 lambda_sd_diff <- matrix(NA,8,7)
 lambda_var_diff <- matrix(NA,8,7)
+lambda_cv_diff <-  matrix(NA,8,7)
 for(s in 1:8){
   lambda_sds[s,1] <- mean(lambda_var[s,1,])
   lambda_sds[s,2] <- mean(lambda_var[s,2,])
+  
   lambda_vars[s,1] <- mean(lambda_var[s,1,])^2
   lambda_vars[s,2] <- mean(lambda_var[s,2,])^2
+  
+  lambda_cvs[s,1] <- mean(lambda_cv[s,1,])
+  lambda_cvs[s,2] <- mean(lambda_cv[s,2,])
   
   lambda_sd_diff[s,1] = mean(lambda_var[s,2,] - lambda_var[s,1,])
   lambda_sd_diff[s,2:7] = quantile(lambda_var[s,2,] - lambda_var[s,1,],probs=c(0.05,0.125,0.25,0.75,0.875,0.95))
   
   lambda_var_diff[s,1] = mean(lambda_var[s,2,]^2 - lambda_var[s,1,]^2)
   lambda_var_diff[s,2:7] = quantile(lambda_var[s,2,]^2 - lambda_var[s,1,]^2,probs=c(0.05,0.125,0.25,0.75,0.875,0.95))
+  
+  lambda_cv_diff[s,1] = mean(lambda_cv[s,2,] - lambda_cv[s,1,])
+  lambda_cv_diff[s,2:7] = quantile(lambda_cv[s,2,]^2 - lambda_cv[s,1,]^2,probs=c(0.05,0.125,0.25,0.75,0.875,0.95))
+  
 }
 
 # Making plots of yearly lambdas
@@ -303,7 +317,7 @@ meanlambda_plot
 ggsave(meanlambda_plot, filename = "meanlambda_plot_99thpercentilemaxsize.png", width = 8, height = 4)
 
 # now for the effect on variance plot
-lambda_var_diff_df <- as_tibble(lambda_sd_diff)  %>% 
+lambda_var_diff_df <- as_tibble(lambda_cv_diff)  %>% 
   rename( "mean" = V1, fifth = V2, twelfthpointfive = V3, twentyfifth = V4, seventyfifth = V5, eightyseventhpointfive = V6, ninetyfifth = V7) %>% 
   mutate(rownames = row.names(.)) %>% 
   mutate(species = case_when(rownames == 1 ~ "Agrostis perennans",
@@ -330,10 +344,10 @@ ggplot(data = lambda_var_diff_df) +
 
 
 # Version with raw posterior draws
-dimnames(lambda_var) <- list(Species = paste0("s",1:8), Endo = paste0("e",1:2), Iteration= paste0("i",1:n_draws))
-lambda_var_cube <- cubelyr::as.tbl_cube(lambda_var)
+dimnames(lambda_cv) <- list(Species = paste0("s",1:8), Endo = paste0("e",1:2), Iteration= paste0("i",1:n_draws))
+lambda_var_cube <- cubelyr::as.tbl_cube(lambda_cv)
 lambda_var_df <- as_tibble(lambda_var_cube) %>% 
-  pivot_wider(names_from = Endo, values_from = lambda_var) %>% 
+  pivot_wider(names_from = Endo, values_from = lambda_cv) %>% 
   mutate(lambda_diff = e2-e1) %>% 
   mutate(species = case_when(Species == "s1" ~ "Agrostis perennans",
                              Species == "s2" ~ "Elymus villosus",
@@ -351,14 +365,14 @@ lambdavar_plot <- ggplot(data = lambda_var_df) +
   stat_summary(aes(y = lambda_diff, x = species), fun = mean,geom = "point", size = 3) +
   geom_point(data = lambda_var_diff_df, aes(y = mean, x = species, color = species), lwd = 2) +
   scale_color_manual(values = c("#dbdb42", "#b8e3a0", "#7fcdbb", "#41b6c4", "#1d91c0", "#225ea8", "#0c2c84", "#A9A9A9")) +
-  coord_flip(ylim = c(-.3,.2)) +  #There's a few iterations out at -1.5
-  labs(y = expression(paste("Effect on ", "Var(",lambda,")")),
+  coord_flip(ylim = c(-.5,.25)) +  #There's a few iterations out at -1.5
+  labs(y = expression(paste("Effect on ", "CV(",lambda,")")),
        x = "",
        color = "Species")+
   theme(panel.background = element_rect(fill = "white"),
         panel.grid = element_line(color = NA))
 lambdavar_plot
-ggsave(lambdavar_plot, filename = "lambdavar_plot_99thpercentilemaxsize.png", width = 8, height = 4)
+ggsave(lambdavar_plot, filename = "lambdavar_plot_coefficientofvariation.png", width = 8, height = 4)
 
 # a plot of variance by mean effects
 lambda_var_join <- lambda_var_df %>% 
@@ -725,7 +739,8 @@ ggsave(sppmean_stochplot, filename = "sppmean_stochplot.tiff",  width = 6, heigh
 lambdaS_percent <- lambdaS_diff_all_df %>% 
   group_by(species) %>% 
   summarize(percent_var = mean[contribution == "Var"]/mean[contribution == "Total"],
-            percent_mean = mean[contribution == "Mean"]/mean[contribution == "Total"])
+            percent_mean = mean[contribution == "Mean"]/mean[contribution == "Total"],
+            percent_inter = mean[contribution == "Interaction"]/mean[contribution == "Total"])
 
 
 
