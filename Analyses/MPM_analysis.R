@@ -56,7 +56,7 @@ source("Analyses/MPM_functions.R")
 ####### Read in Stan vital rate model outputs ------------------
 #############################################################################################
 tompath <- "C:/Users/tm9/Dropbox/EndodemogData/"
-joshpath <- NULL
+joshpath <- "~/Dropbox/EndodemogData/"
 path<-tompath
 
 surv_fit_seedling <- read_rds(paste0(path,"/Model_Runs/endo_seedling_surv.rds"))
