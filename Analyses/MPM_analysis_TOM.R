@@ -8,7 +8,7 @@ library(tidyverse)
 library(scales)
 library(bayesplot)
 library(popbio)
-library(countreg)
+# library(countreg)
 library(actuar)
 library(rstan)
 library(patchwork) # for putting plots together
@@ -56,8 +56,8 @@ source("Analyses/MPM_functions.R")
 ####### Read in Stan vital rate model outputs ------------------
 #############################################################################################
 tompath <- "C:/Users/tm9/Dropbox/EndodemogData/"
-joshpath <- NULL
-path<-tompath
+joshpath <- "~/Dropbox/EndodemogData/"
+path<-joshpath
 
 surv_fit_seedling <- read_rds(paste0(path,"/Model_Runs/endo_seedling_surv.rds"))
 surv_fit <- read_rds(paste0(path,"/Model_Runs/endo_spp_surv_woseedling.rds"))
@@ -109,8 +109,8 @@ post_draws <- sample.int(7500,size=n_draws) # The models except for seedling gro
 n_spp <- length(unique(LTREB_full$species))
 n_endo <- 2
 # observation years
-years_obs <- unique(LTREB_full$year_t1_index)
-lambda_year_obs <- array(dim = c(length(years_obs),(n_spp+1),n_endo,n_draws))
+years_obs <- max(unique(LTREB_full$year_t_index))-1 # we are sampling years 2-14
+lambda_year_obs <- array(dim = c(years_obs,(n_spp+1),n_endo,n_draws))
 # sampled years
 n_years_samp <- 50
 lambda_year_samp <- array(dim = c(n_years_samp,(n_spp+1),n_endo,n_draws))
@@ -122,7 +122,7 @@ lambda_cv_obs <- lambda_cv_samp <- array(dim = c((n_spp+1),n_endo,n_draws))
 for(i in 1:n_draws){
   for(e in 1:n_endo){
     for(s in 1:n_spp){
-      for(y in years_obs){
+      for(y in 1:years_obs){ # we are sampling years 2-14
         # 1. Sample observation years, calculate mean and variance
         lambda_year_obs[y,s,e,i] <- lambda(bigmatrix(make_params(species=s,
                                                              endo_mean=(e-1),
@@ -131,7 +131,7 @@ for(i in 1:n_draws){
                                                              draw=post_draws[i],
                                                              max_size=max_size,
                                                              rfx=T,
-                                                             year=y, ## this pulls the t to t1 growth-surv transition and t1 reproduction -- see make_params()
+                                                             year=y+1, ## this pulls the t to t1 growth-surv transition and t1 reproduction -- see make_params()
                                                              surv_par=surv_par,
                                                              surv_sdlg_par = surv_sdlg_par,
                                                              grow_par=grow_par,
@@ -146,10 +146,10 @@ for(i in 1:n_draws){
       lambda_mean_obs[s,e,i] <- mean(lambda_year_obs[,s,e,i])
       lambda_sd_obs[s,e,i] <- sd(lambda_year_obs[,s,e,i])
       lambda_cv_obs[s,e,i] <- lambda_mean_obs[s,e,i]/lambda_cv_obs[s,e,i]
-      
+    
       # 2.Sample many hypothetical years from fitted year variances  
-      for(y in 1:n_years_samp){
-        lambda_year_samp[y,s,e,i] <- lambda(bigmatrix(make_params(species=s,
+      for(yi in 1:n_years_samp){
+        lambda_year_samp[yi,s,e,i] <- lambda(bigmatrix(make_params(species=s,
                                                                   endo_mean=(e-1),
                                                                   endo_var=(e-1),
                                                                   original = 1, # should be =1 to represent recruit
@@ -157,7 +157,7 @@ for(i in 1:n_draws){
                                                                   max_size=max_size,
                                                                   rfx=T,
                                                                   samp=T,
-                                                                  year=y, ## this pulls the t to t1 growth-surv transition and t1 reproduction -- see make_params()
+                                                                  #year=y+1, ## this pulls the t to t1 growth-surv transition and t1 reproduction -- see make_params()
                                                                   surv_par=surv_par,
                                                                   surv_sdlg_par = surv_sdlg_par,
                                                                   grow_par=grow_par,
@@ -173,13 +173,13 @@ for(i in 1:n_draws){
       lambda_sd_samp[s,e,i] <- sd(lambda_year_samp[,s,e,i])
       lambda_cv_samp[s,e,i] <- lambda_mean_samp[s,e,i]/lambda_sd_samp[s,e,i]
     }
+    #calculating overall species means
+    lambda_mean_obs[8,e,i] <- mean(lambda_mean_obs[1:7,e,i])
+    lambda_sd_obs[8,e,i] <- sd(lambda_mean_obs[1:7,e,i])
+    lambda_cv_obs[8,e,i] <- lambda_mean_obs[8,e,i]/lambda_sd_obs[8,e,i]
     
-    lambda_mean_obs[8,e,i] <- mean(lambda_year_obs[1:7,e,i])
-    lambda_sd_obs[8,e,i] <- sd(lambda_year_obs[1:7,e,i])
-    lambda_cv_obs[8,e,i] <- lambda_mean_obs[8,e,i]/lambda_cv_obs[8,e,i]
-    
-    lambda_mean_samp[8,e,i] <- mean(lambda_year_samp[1:7,e,i])
-    lambda_sd_samp[8,e,i] <- sd(lambda_year_samp[1:7,e,i])
+    lambda_mean_samp[8,e,i] <- mean(lambda_mean_samp[1:7,e,i])
+    lambda_sd_samp[8,e,i] <- sd(lambda_mean_samp[1:7,e,i])
     lambda_cv_samp[8,e,i] <- lambda_mean_samp[8,e,i]/lambda_sd_samp[8,e,i]
   }
 }
