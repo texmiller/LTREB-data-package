@@ -92,6 +92,7 @@ LTREB_seedlingsurv_means <- LTREB_surv_seedling %>%
             spei12 = mean(as.numeric(spei12)),
             annual_precip = mean(as.numeric(annual_precip)),
             annual_temp = mean(as.numeric(annual_temp)),
+            endo = as.character(endo_01),
             count = n())
 
 # ggplot(data = LTREB_seedlingsurv_means)+
@@ -445,14 +446,26 @@ pred0 <- pred %>%
                              species == 4 ~ "FESU",
                              species == 5 ~ "LOAR",
                              species == 6 ~ "POAL",
-                             species == 7 ~ "POSY"))
+                             species == 7 ~ "POSY")) %>% 
+  mutate(endo = case_when(endo == "Eminus" ~ "0",
+                          endo == "Eplus" ~ "1"))
 
-ggplot(data = LTREB_seedlingsurv_means)+
-  geom_point(aes(x = spei12, y = mean_surv, color = species, shape = as.factor(endo_01), size = count))+ 
-  geom_line(data = pred0, aes(x = spei, y = value, color = species, lty = endo))+
-  facet_wrap(~species+effect) +
+seedlingsurv_climate_plot <- ggplot(data = LTREB_seedlingsurv_means)+
+  geom_point(aes(x = spei12, y = mean_surv, color = species, shape = endo, size = count))+ 
+  geom_line(data = filter(pred0,effect == "lin"), aes(x = spei, y = value, color = species, lty = endo))+
+  facet_wrap(~species)+
+  # facet_wrap(~species+effect) +
+  scale_color_manual(values = c("#dbdb42", "#b8e3a0", "#7fcdbb", "#41b6c4", "#1d91c0", "#225ea8", "#0c2c84")) +
   scale_shape_manual(values = c(16,1))+
+  ylab("Mean Seedling Survival") + xlab("SPEI (12 month)") +
   theme_classic()
+seedlingsurv_climate_plot
+ggsave(seedlingsurv_climate_plot, filename = "seedlingsurv_climate_plot.png", width = 8, height = 5)
+
+
+
+
+
 
 sm_flw <- stan(file = "Analyses/climate_endo_spp_surv_flw.stan", data = flw_data_list,
                 iter = mcmc_pars$iter,
@@ -464,12 +477,14 @@ saveRDS(sm_flw, file = "~/Dropbox/EndodemogData/Model_Runs/climate_endo_spp_flw.
 
 
 # Running the growth model with the PIG with climate effects
+# fits with no errors including polynomial term
+# running without the polynomial term as well, that gave the maximun treedepth warning
 sm_grow <- stan(file = "Analyses/climate_endo_spp_grow_fert_PIG.stan", data = grow_data_list,
                iter = mcmc_pars$iter,
                warmup = mcmc_pars$warmup,
                chains = mcmc_pars$chains, 
                thin = mcmc_pars$thin)
-saveRDS(sm_grow, file = "~/Dropbox/EndodemogData/Model_Runs/climate_endo_grow_fert_PIG.rds")
+saveRDS(sm_grow, file = "~/Dropbox/EndodemogData/Model_Runs/climate_endo_grow_fert_PIG_nonlinear.rds")
 # gave the same max_treedepth warning, but otherwise ran okay
 
 
@@ -533,7 +548,7 @@ size_moments_ppc <- function(data,y_name,sim, n_bins, title = NA){
 
 #### survival ppc ####
 surv_fit <- sm_surv
-# surv_fit <- read_rds("~/Dropbox/EndodemogData/Model_Runs/climate_endo_spp_surv_woseedling.rds")
+surv_fit <- read_rds("~/Dropbox/EndodemogData/Model_Runs/climate_endo_spp_surv_woseedling.rds")
 predS <- rstan::extract(surv_fit, pars = c("p"))$p # extract the linear predictor
 n_post_draws <- 100
 post_draws <- sample.int(dim(predS)[1], n_post_draws) # draw samples from the posterior of the linear predictor
@@ -545,6 +560,8 @@ for(i in 1:n_post_draws){
 surv_densplot <- ppc_dens_overlay(surv_data_list$y, y_s_sim) + theme_classic() + labs(title = "Adult Survival", x = "Survival status", y = "Density")
 surv_densplot
 # ggsave(surv_densplot, filename = "surv_densplot.png", width = 4, height = 4)
+
+traceplot(surv_fit, pars = "sigma0")
 
 mean_s_plot <-   ppc_stat(surv_data_list$y, y_s_sim, stat = "mean")
 sd_s_plot <- ppc_stat(surv_data_list$y, y_s_sim, stat = "sd")
@@ -560,4 +577,64 @@ surv_size_ppc <- size_moments_ppc(data = LTREB_data_forsurv,
                                   sim = y_s_sim, 
                                   n_bins = 4, 
                                   title = "Survival")
+
+#### seedling survival ppc ####
+surv_seed_fit <- read_rds("~/Dropbox/EndodemogData/Model_Runs/climate_endo_seedling_surv_withoutquadraticterm.rds")
+predseedS <- rstan::extract(surv_seed_fit, pars = c("p"))$p
+n_post_draws <- 100
+post_draws <- sample.int(dim(predseedS)[1], n_post_draws)
+y_seed_s_sim <- matrix(NA,n_post_draws,length(seed_surv_data_list$y))
+for(i in 1:n_post_draws){
+  y_seed_s_sim[i,] <- rbinom(n=length(seed_surv_data_list$y), size=1, prob = invlogit(predseedS[post_draws[i],]))
+}
+# saveRDS(y_seed_s_sim, file = "yrep_spei_seedlingsurvivalmodel.rds")
+# y_seed_s_sim <- readRDS(file = "yrer_spei_seedlingsurvivalmodel.rds")
+# ppc_dens_overlay(seed_surv_data_list$y, y_s_sim)
+seedsurv_densplot <- ppc_dens_overlay(seed_surv_data_list$y, y_seed_s_sim) + theme_classic() + labs(title = "Seedling Survival", x = "Survival status", y = "Density")
+seedsurv_densplot
+# ggsave(seedsurv_densplot, filename = "seedsurv_densplot.png", width = 4, height = 4)
+
+mean_s_plot <-   ppc_stat(seed_surv_data_list$y, y_seed_s_sim, stat = "mean")
+sd_s_plot <- ppc_stat(seed_surv_data_list$y, y_seed_s_sim, stat = "sd")
+skew_s_plot <- ppc_stat(seed_surv_data_list$y, y_seed_s_sim, stat = "skewness")
+kurt_s_plot <- ppc_stat(seed_surv_data_list$y, y_seed_s_sim, stat = "Lkurtosis")
+climate_seedsurv_moments <- mean_s_plot+sd_s_plot+skew_s_plot+kurt_s_plot + plot_annotation(title = "Seedling Survival")
+climate_seedsurv_moments
+# ggsave(climate_seedsurv_moments, filename = "climate_seedsurv_momentsplot.png", width = 4, height = 4)
+
+
+#### flowering ppc ####
+flow_fit <- read_rds("~/Dropbox/EndodemogData/Model_Runs/climate_endo_spp_flw.rds")
+predF <- rstan::extract(flow_fit, pars = c("p"))$p
+n_post_draws <- 100
+post_draws <- sample.int(dim(predF)[1], n_post_draws)
+y_f_sim <- matrix(NA,n_post_draws,length(flw_data_list$y))
+for(i in 1:n_post_draws){
+  y_f_sim[i,] <- rbinom(n=length(flw_data_list$y), size=1, prob = invlogit(predF[post_draws[i],]))
+}
+# saveRDS(y_f_sim, file = "yrep_spei_floweringmodel.rds")
+# y_f_sim <- readRDS(file = "yrep_spei_floweringmodel.rds")
+
+# ppc_dens_overlay(flw_data_list$y, y_f_sim)
+flw_densplot <- ppc_dens_overlay(flw_data_list$y, y_f_sim) + theme_classic() + labs(title = "Flowering", x = "Flowering status", y = "Density")
+flw_densplot
+ggsave(flw_densplot, filename = "flw_densplot.png", width = 4, height = 4)
+
+
+mean_f_plot <-   ppc_stat(flw_data_list$y, y_f_sim, stat = "mean")
+sd_f_plot <- ppc_stat(flw_data_list$y, y_f_sim, stat = "sd")
+skew_f_plot <- ppc_stat(flw_data_list$y, y_f_sim, stat = "skewness")
+kurt_f_plot <- ppc_stat(flw_data_list$y, y_f_sim, stat = "Lkurtosis")
+flw_moments <- mean_f_plot+sd_f_plot+skew_f_plot+kurt_f_plot +plot_annotation(title = "Flowering")
+flw_moments
+# ggsave(flw_moments, filename = "flw_momentsplot.png", width = 4, height = 4)
+
+# now we want to look at how the the model is fitting across sizes
+flw_size_ppc <- size_moments_ppc(data = LTREB_data_forflw,
+                                 y_name = "FLW_STAT_T1",
+                                 sim = y_f_sim, 
+                                 n_bins = 2, 
+                                 title = "Flowering")
+# ggsave(flw_size_ppc, filename = "flw_size_ppc.png", width = 4, height = 4)
+
 
