@@ -55,16 +55,19 @@ source("Analyses/MPM_functions.R")
 #############################################################################################
 ####### Read in Stan vital rate model outputs ------------------
 #############################################################################################
+tompath <- "C:/Users/tm9/Dropbox/EndodemogData/"
+joshpath <- NULL
+path<-tompath
 
-surv_fit_seedling <- read_rds("~/Dropbox/EndodemogData/Model_Runs/endo_seedling_surv.rds")
-surv_fit <- read_rds("~/Dropbox/EndodemogData/Model_Runs/endo_spp_surv_woseedling.rds")
-grow_fit_seedling <- read_rds("~/Dropbox/EndodemogData/Model_Runs/endo_seedling_grow_PIG_10000iterations.rds")
-grow_fit <- read_rds("~/Dropbox/EndodemogData/Model_Runs/endo_spp_grow_PIG.rds")
-flw_fit <- read_rds("~/Dropbox/EndodemogData/Model_Runs/endo_spp_flw.rds")
-fert_fit <- read_rds("~/Dropbox/EndodemogData/Model_Runs/endo_spp_fert_PIG.rds")
-spike_fit <- read_rds("~/Dropbox/EndodemogData/Model_Runs/endo_spp_spike_year_plot_nb.rds")
-seedmean_fit <- read_rds("~/Dropbox/EndodemogData/Model_Runs/seed_mean.rds")
-stos_fit <- read_rds("~/Dropbox/EndodemogData/Model_Runs/endo_spp_s_to_s.rds") 
+surv_fit_seedling <- read_rds(paste0(path,"/Model_Runs/endo_seedling_surv.rds"))
+surv_fit <- read_rds(paste0(path,"/Model_Runs/endo_spp_surv_woseedling.rds"))
+grow_fit_seedling <- read_rds(paste0(path,"/Model_Runs/endo_seedling_grow_PIG_10000iterations.rds"))
+grow_fit <- read_rds(paste0(path,"/Model_Runs/endo_spp_grow_PIG.rds"))
+flw_fit <- read_rds(paste0(path,"/Model_Runs/endo_spp_flw.rds"))
+fert_fit <- read_rds(paste0(path,"/Model_Runs/endo_spp_fert_PIG.rds"))
+spike_fit <- read_rds(paste0(path,"/Model_Runs/endo_spp_spike_year_plot_nb.rds"))
+seedmean_fit <- read_rds(paste0(path,"/Model_Runs/seed_mean.rds"))
+stos_fit <- read_rds(paste0(path,"/Model_Runs/endo_spp_s_to_s.rds")) 
 
 # surv_fit_seedling <- readRDS(url("https://www.dropbox.com/s/vf1mju5u4c4fs3t/endo_seedling_surv.rds?dl=1"))
 # surv_fit <- readRDS(url("https://www.dropbox.com/s/00bor35inv5dypd/endo_spp_surv_woseedling.rds?dl=1"))
@@ -155,7 +158,7 @@ lambda_var <- array(dim = c(8,2,n_draws))
 for(i in 1:length(post_draws)){
   for(e in 1:2){
     for(s in 1:7){
-      for(y in 1:10){
+      for(y in 1:10){ ## why is y looped over only 10 years?
         
         lambda_hold[y,s,e,i] <- lambda(bigmatrix(make_params(species=s,
                                                              endo_mean=(e-1),
@@ -515,7 +518,7 @@ lambdaS_out <- array(dim = c(8,4,n_draws))
 for(i in 1:length(post_draws)){
   for(s in 1:7){
     eminus_list <- eplus_list <- eplus__mean_only_list <- eplus__var_only_list <- list()
-    for(y in 1:11){
+    for(y in 1:11){ ## why is y looped 11 times here?
       eminus_list[[y]] <- bigmatrix(make_params(species=s,
                                                 endo_mean=0,
                                                 endo_var=0,
