@@ -2167,6 +2167,3 @@ LTREB_full <- LTREB_full_climate %>%
 # LTREB_findtypo <- LTREB_full %>% 
 #   filter(species == "ELRI", plot_fixed == 109)
 
-
-
-
