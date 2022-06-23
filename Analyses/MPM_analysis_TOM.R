@@ -104,7 +104,7 @@ recruit_par <- rstan::extract(stos_fit, pars = quote_bare(beta0,betaendo,sigma_y
 
 ## SET-UP
 # make the list of parameters and calculate mean lambdas
-n_draws <- 10 # the means are the same whether we do 500 or 1000 draws
+n_draws <- 500 # the means are the same whether we do 500 or 1000 draws
 post_draws <- sample.int(7500,size=n_draws) # The models except for seedling growth have 7500 iterations. That one has more (15000 iterations) to help it converge.
 n_spp <- length(unique(LTREB_full$species))
 n_endo <- 2
