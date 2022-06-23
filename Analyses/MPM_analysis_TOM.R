@@ -211,12 +211,6 @@ lambda_mean_samp <- read_rds(paste0(path,"/Model_Runs/MPM_output/lambda_mean_sam
 lambda_sd_samp <- read_rds(paste0(path,"/Model_Runs/MPM_output/lambda_sd_samp.rds"))
 lambda_cv_samp <- read_rds(paste0(path,"/Model_Runs/MPM_output/lambda_cv_samp.rds"))
 
-# The CV obs is messed up in the loop and is calculated backwards, we are just calculalting for the overall species mean
-
-lambda_cv_obs <- lambda_sd_obs/lambda_mean_obs
-lambda_cv_samp <- lambda_sd_samp/lambda_mean_samp
-
-
 
 # Turning the sampled lambdas into a dataframe
 dimnames(lambda_mean_samp) <- list(species = paste0("s",1:8), Endo = paste0("e",1:2), Iteration= paste0("i",1:n_draws))
