@@ -104,7 +104,7 @@ recruit_par <- rstan::extract(stos_fit, pars = quote_bare(beta0,betaendo,sigma_y
 
 ## SET-UP
 # make the list of parameters and calculate mean lambdas
-n_draws <- 100 # the means are the same whether we do 500 or 1000 draws
+n_draws <- 10 # the means are the same whether we do 500 or 1000 draws
 post_draws <- sample.int(7500,size=n_draws) # The models except for seedling growth have 7500 iterations. That one has more (15000 iterations) to help it converge.
 n_spp <- length(unique(LTREB_full$species))
 n_endo <- 2
@@ -145,7 +145,7 @@ for(i in 1:n_draws){
       }
       lambda_mean_obs[s,e,i] <- mean(lambda_year_obs[,s,e,i])
       lambda_sd_obs[s,e,i] <- sd(lambda_year_obs[,s,e,i])
-      lambda_cv_obs[s,e,i] <- lambda_mean_obs[s,e,i]/lambda_cv_obs[s,e,i]
+      lambda_cv_obs[s,e,i] <- lambda_sd_obs[s,e,i]/lambda_mean_obs[s,e,i]
     
       # 2.Sample many hypothetical years from fitted year variances  
       for(yi in 1:n_years_samp){
@@ -171,18 +171,200 @@ for(i in 1:n_draws){
       }
       lambda_mean_samp[s,e,i] <- mean(lambda_year_samp[,s,e,i])
       lambda_sd_samp[s,e,i] <- sd(lambda_year_samp[,s,e,i])
-      lambda_cv_samp[s,e,i] <- lambda_mean_samp[s,e,i]/lambda_sd_samp[s,e,i]
+      lambda_cv_samp[s,e,i] <- lambda_sd_samp[s,e,i]/lambda_mean_samp[s,e,i]
     }
     #calculating overall species means
     lambda_mean_obs[8,e,i] <- mean(lambda_mean_obs[1:7,e,i])
     lambda_sd_obs[8,e,i] <- sd(lambda_mean_obs[1:7,e,i])
-    lambda_cv_obs[8,e,i] <- lambda_mean_obs[8,e,i]/lambda_sd_obs[8,e,i]
+    lambda_cv_obs[8,e,i] <- lambda_sd_obs[8,e,i]/lambda_mean_obs[8,e,i]
     
     lambda_mean_samp[8,e,i] <- mean(lambda_mean_samp[1:7,e,i])
     lambda_sd_samp[8,e,i] <- sd(lambda_mean_samp[1:7,e,i])
-    lambda_cv_samp[8,e,i] <- lambda_mean_samp[8,e,i]/lambda_sd_samp[8,e,i]
+    lambda_cv_samp[8,e,i] <- lambda_sd_samp[8,e,i]/lambda_mean_samp[8,e,i]
   }
 }
 
+# Saving all of the simulations
+saveRDS(lambda_year_obs, file = paste0(path,"/Model_Runs/MPM_output/lambda_year_obs.rds"))
 
-## there is something wrong with the way years are being indexed but I cannot deal with it right now
+saveRDS(lambda_mean_obs, file = paste0(path,"/Model_Runs/MPM_output/lambda_mean_obs.rds"))
+saveRDS(lambda_sd_obs, file = paste0(path,"/Model_Runs/MPM_output/lambda_sd_obs.rds"))
+saveRDS(lambda_cv_obs, file = paste0(path,"/Model_Runs/MPM_output/lambda_cv_obs.rds"))
+
+saveRDS(lambda_year_samp, file = paste0(path,"/Model_Runs/MPM_output/lambda_year_samp.rds"))
+
+saveRDS(lambda_mean_samp, file = paste0(path,"/Model_Runs/MPM_output/lambda_mean_samp.rds"))
+saveRDS(lambda_sd_samp, file = paste0(path,"/Model_Runs/MPM_output/lambda_sd_samp.rds"))
+saveRDS(lambda_cv_samp, file = paste0(path,"/Model_Runs/MPM_output/lambda_cv_samp.rds"))
+
+
+# reading back in the simulations
+lambda_year_obs <- read_rds(paste0(path,"/Model_Runs/MPM_output/lambda_year_obs.rds"))
+
+lambda_mean_obs <- read_rds(paste0(path,"/Model_Runs/MPM_output/lambda_mean_obs.rds"))
+lambda_sd_obs <- read_rds(paste0(path,"/Model_Runs/MPM_output/lambda_sd_obs.rds"))
+lambda_cv_obs <- read_rds(paste0(path,"/Model_Runs/MPM_output/lambda_cv_obs.rds"))
+
+lambda_year_samp <- read_rds(paste0(path,"/Model_Runs/MPM_output/lambda_year_samp.rds"))
+
+lambda_mean_samp <- read_rds(paste0(path,"/Model_Runs/MPM_output/lambda_mean_samp.rds"))
+lambda_sd_samp <- read_rds(paste0(path,"/Model_Runs/MPM_output/lambda_sd_samp.rds"))
+lambda_cv_samp <- read_rds(paste0(path,"/Model_Runs/MPM_output/lambda_cv_samp.rds"))
+
+# The CV obs is messed up in the loop and is calculated backwards, we are just calculalting for the overall species mean
+
+lambda_cv_obs <- lambda_sd_obs/lambda_mean_obs
+lambda_cv_samp <- lambda_sd_samp/lambda_mean_samp
+
+
+
+# Turning the sampled lambdas into a dataframe
+dimnames(lambda_mean_samp) <- list(species = paste0("s",1:8), Endo = paste0("e",1:2), Iteration= paste0("i",1:n_draws))
+dimnames(lambda_sd_samp) <- list(species = paste0("s",1:8), Endo = paste0("e",1:2), Iteration= paste0("i",1:n_draws))
+dimnames(lambda_cv_samp) <- list(species = paste0("s",1:8), Endo = paste0("e",1:2), Iteration= paste0("i",1:n_draws))
+
+lambda_mean_samp_cube <- cubelyr::as.tbl_cube(lambda_mean_samp)
+lambda_sd_samp_cube <- cubelyr::as.tbl_cube(lambda_sd_samp)
+lambda_cv_samp_cube <- cubelyr::as.tbl_cube(lambda_cv_samp)
+
+lambda_mean_samp_df <- as_tibble(lambda_mean_samp_cube) %>% 
+  pivot_wider(names_from = Endo, values_from = lambda_mean_samp) %>% 
+  mutate(lambda_diff = e2-e1) %>% 
+  mutate(Species = case_when(species == "s1" ~ "Agrostis perennans",
+                             species == "s2" ~ "Elymus villosus",
+                             species == "s3" ~ "Elymus virginicus",
+                             species == "s4" ~ "Festuca subverticillata",
+                             species == "s5" ~ "Lolium arundinaceum",
+                             species == "s6" ~ "Poa alsodes",
+                             species == "s7" ~ "Poa sylvestris",
+                             species == "s8" ~ "Species Mean"))  %>% 
+  mutate(sampling = "samp")
+
+lambda_sd_samp_df <- as_tibble(lambda_sd_samp_cube) %>% 
+  pivot_wider(names_from = Endo, values_from = lambda_sd_samp) %>% 
+  mutate(lambda_diff = e2-e1) %>% 
+  mutate(Species = case_when(species == "s1" ~ "Agrostis perennans",
+                             species == "s2" ~ "Elymus villosus",
+                             species == "s3" ~ "Elymus virginicus",
+                             species == "s4" ~ "Festuca subverticillata",
+                             species == "s5" ~ "Lolium arundinaceum",
+                             species == "s6" ~ "Poa alsodes",
+                             species == "s7" ~ "Poa sylvestris",
+                             species == "s8" ~ "Species Mean"))  %>% 
+  mutate(sampling = "samp")
+
+lambda_cv_samp_df <- as_tibble(lambda_cv_samp_cube) %>% 
+  pivot_wider(names_from = Endo, values_from = lambda_cv_samp) %>% 
+  mutate(lambda_diff = e2-e1) %>% 
+  mutate(Species = case_when(species == "s1" ~ "Agrostis perennans",
+                             species == "s2" ~ "Elymus villosus",
+                             species == "s3" ~ "Elymus virginicus",
+                             species == "s4" ~ "Festuca subverticillata",
+                             species == "s5" ~ "Lolium arundinaceum",
+                             species == "s6" ~ "Poa alsodes",
+                             species == "s7" ~ "Poa sylvestris",
+                             species == "s8" ~ "Species Mean"))  %>% 
+  mutate(sampling = "samp")
+
+
+# Turning the obs lambdas into a dataframe
+dimnames(lambda_mean_obs) <- list(species = paste0("s",1:8), Endo = paste0("e",1:2), Iteration= paste0("i",1:n_draws))
+dimnames(lambda_sd_obs) <- list(species = paste0("s",1:8), Endo = paste0("e",1:2), Iteration= paste0("i",1:n_draws))
+dimnames(lambda_cv_obs) <- list(species = paste0("s",1:8), Endo = paste0("e",1:2), Iteration= paste0("i",1:n_draws))
+
+lambda_mean_obs_cube <- cubelyr::as.tbl_cube(lambda_mean_obs)
+lambda_sd_obs_cube <- cubelyr::as.tbl_cube(lambda_sd_obs)
+lambda_cv_obs_cube <- cubelyr::as.tbl_cube(lambda_cv_obs)
+
+lambda_mean_obs_df <- as_tibble(lambda_mean_obs_cube) %>% 
+  pivot_wider(names_from = Endo, values_from = lambda_mean_obs) %>% 
+  mutate(lambda_diff = e2-e1) %>% 
+  mutate(Species = case_when(species == "s1" ~ "Agrostis perennans",
+                             species == "s2" ~ "Elymus villosus",
+                             species == "s3" ~ "Elymus virginicus",
+                             species == "s4" ~ "Festuca subverticillata",
+                             species == "s5" ~ "Lolium arundinaceum",
+                             species == "s6" ~ "Poa alsodes",
+                             species == "s7" ~ "Poa sylvestris",
+                             species == "s8" ~ "Species Mean")) %>% 
+  mutate(sampling = "obs")
+lambda_sd_obs_df <- as_tibble(lambda_sd_obs_cube) %>% 
+  pivot_wider(names_from = Endo, values_from = lambda_sd_obs) %>% 
+  mutate(lambda_diff = e2-e1) %>% 
+  mutate(Species = case_when(species == "s1" ~ "Agrostis perennans",
+                             species == "s2" ~ "Elymus villosus",
+                             species == "s3" ~ "Elymus virginicus",
+                             species == "s4" ~ "Festuca subverticillata",
+                             species == "s5" ~ "Lolium arundinaceum",
+                             species == "s6" ~ "Poa alsodes",
+                             species == "s7" ~ "Poa sylvestris",
+                             species == "s8" ~ "Species Mean")) %>% 
+  mutate(sampling = "obs")
+lambda_cv_obs_df <- as_tibble(lambda_cv_obs_cube) %>% 
+  pivot_wider(names_from = Endo, values_from = lambda_cv_obs) %>% 
+  mutate(lambda_diff = e2-e1) %>% 
+  mutate(Species = case_when(species == "s1" ~ "Agrostis perennans",
+                             species == "s2" ~ "Elymus villosus",
+                             species == "s3" ~ "Elymus virginicus",
+                             species == "s4" ~ "Festuca subverticillata",
+                             species == "s5" ~ "Lolium arundinaceum",
+                             species == "s6" ~ "Poa alsodes",
+                             species == "s7" ~ "Poa sylvestris",
+                             species == "s8" ~ "Species Mean")) %>% 
+  mutate(sampling = "obs")
+
+lambda_mean_df <- rbind(lambda_mean_obs_df, lambda_mean_samp_df)
+lambda_sd_df <- rbind(lambda_sd_obs_df, lambda_sd_samp_df)
+lambda_cv_df <- rbind(lambda_cv_obs_df, lambda_cv_samp_df)
+
+# Plots of endo effects on mean, sd and cv
+meanlambda_plot <- ggplot(data = lambda_mean_df) +
+  geom_hline(yintercept = 0, col = "black") + 
+  # geom_linerange(data = lambda_mean_diff_df, aes(x = species, y = mean, ymin = 0, ymax = mean, color = species)) + 
+  geom_point(aes(y = lambda_diff, x = species, color = sampling, group = sampling), position = position_jitterdodge(dodge.width = 0.75,jitter.width=0.2), alpha = .2) +
+  stat_summary(aes(y = lambda_diff, x = species, fill = sampling,  group = sampling),positio = position_dodge(width= 0.75),pch = 21, col = "black", fun = mean,geom = "point", size = 2) +
+  # geom_point(data = lambda_mean_diff_df, aes(y = mean, x = species, color = species), lwd = 2) +
+  # scale_color_manual(values = c("#dbdb42", "#b8e3a0", "#7fcdbb", "#41b6c4", "#1d91c0", "#225ea8", "#0c2c84", "#A9A9A9")) +
+  # scale_fill_manual(values = c("#dbdb42", "#b8e3a0", "#7fcdbb", "#41b6c4", "#1d91c0", "#225ea8", "#0c2c84", "#A9A9A9")) +
+  coord_flip(ylim = c(-.5,.5)) +
+  labs(y = expression(paste("Effect on ", bar(lambda))),
+       x = "")+
+  theme(panel.background = element_rect(fill = "white"),
+        panel.grid = element_line(color = NA))
+meanlambda_plot
+
+sdlambda_plot <- ggplot(data = lambda_sd_df) +
+  geom_hline(yintercept = 0, col = "black") + 
+  # geom_linerange(data = lambda_mean_diff_df, aes(x = species, y = mean, ymin = 0, ymax = mean, color = species)) + 
+  geom_point(aes(y = lambda_diff, x = species, color = sampling, group = sampling), position = position_jitterdodge(dodge.width = 0.75,jitter.width=0.2), alpha = .2) +
+  stat_summary(aes(y = lambda_diff, x = species, fill = sampling,  group = sampling),positio = position_dodge(width= 0.75),pch = 21, col = "black", fun = mean,geom = "point", size = 2) +
+  # geom_point(data = lambda_mean_diff_df, aes(y = mean, x = species, color = species), lwd = 2) +
+  # scale_color_manual(values = c("#dbdb42", "#b8e3a0", "#7fcdbb", "#41b6c4", "#1d91c0", "#225ea8", "#0c2c84", "#A9A9A9")) +
+  # scale_fill_manual(values = c("#dbdb42", "#b8e3a0", "#7fcdbb", "#41b6c4", "#1d91c0", "#225ea8", "#0c2c84", "#A9A9A9")) +
+  coord_flip(ylim = c(-.5,.3)) +
+  labs(y = expression(paste("Effect on ", "SD(",lambda,")")),
+       x = "")+
+  theme(panel.background = element_rect(fill = "white"),
+        panel.grid = element_line(color = NA))
+sdlambda_plot
+
+cvlambda_plot <- ggplot(data = lambda_cv_df) +
+  geom_hline(yintercept = 0, col = "black") + 
+  # geom_linerange(data = lambda_mean_diff_df, aes(x = species, y = mean, ymin = 0, ymax = mean, color = species)) + 
+  geom_point(aes(y = lambda_diff, x = species, color = sampling, group = sampling), position = position_jitterdodge(dodge.width = 0.75,jitter.width=0.2), alpha = .2) +
+  stat_summary(aes(y = lambda_diff, x = species, fill = sampling,  group = sampling),positio = position_dodge(width= 0.75),pch = 21, col = "black", fun = mean,geom = "point", size = 2) +
+  # geom_point(data = lambda_mean_diff_df, aes(y = mean, x = species, color = species), lwd = 2) +
+  # scale_color_manual(values = c("#dbdb42", "#b8e3a0", "#7fcdbb", "#41b6c4", "#1d91c0", "#225ea8", "#0c2c84", "#A9A9A9")) +
+  # scale_fill_manual(values = c("#dbdb42", "#b8e3a0", "#7fcdbb", "#41b6c4", "#1d91c0", "#225ea8", "#0c2c84", "#A9A9A9")) +
+  coord_flip()+#ylim = c(-.5,.5)) +
+  labs(y = expression(paste("Effect on ", "CV(",lambda,")")),
+       x = "")+
+  theme(panel.background = element_rect(fill = "white"),
+        panel.grid = element_line(color = NA))
+cvlambda_plot
+
+altogether <- meanlambda_plot + sdlambda_plot + cvlambda_plot + 
+  plot_layout(nrow = 1) +
+  plot_annotation(title = "Observed vs Modeled Year effects")
+ggsave(altogether, filename = "endo_effects_obsVSsampled.png", width = 12, height = 6)
+
