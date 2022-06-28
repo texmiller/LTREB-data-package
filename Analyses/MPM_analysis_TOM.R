@@ -199,17 +199,17 @@ saveRDS(lambda_cv_samp, file = paste0(path,"/Model_Runs/MPM_output/lambda_cv_sam
 
 
 # reading back in the simulations
-lambda_year_obs <- read_rds(paste0(path,"/Model_Runs/MPM_output/lambda_year_obs.rds"))
-
-lambda_mean_obs <- read_rds(paste0(path,"/Model_Runs/MPM_output/lambda_mean_obs.rds"))
-lambda_sd_obs <- read_rds(paste0(path,"/Model_Runs/MPM_output/lambda_sd_obs.rds"))
-lambda_cv_obs <- read_rds(paste0(path,"/Model_Runs/MPM_output/lambda_cv_obs.rds"))
-
-lambda_year_samp <- read_rds(paste0(path,"/Model_Runs/MPM_output/lambda_year_samp.rds"))
-
-lambda_mean_samp <- read_rds(paste0(path,"/Model_Runs/MPM_output/lambda_mean_samp.rds"))
-lambda_sd_samp <- read_rds(paste0(path,"/Model_Runs/MPM_output/lambda_sd_samp.rds"))
-lambda_cv_samp <- read_rds(paste0(path,"/Model_Runs/MPM_output/lambda_cv_samp.rds"))
+# lambda_year_obs <- read_rds(paste0(path,"/Model_Runs/MPM_output/lambda_year_obs.rds"))
+# 
+# lambda_mean_obs <- read_rds(paste0(path,"/Model_Runs/MPM_output/lambda_mean_obs.rds"))
+# lambda_sd_obs <- read_rds(paste0(path,"/Model_Runs/MPM_output/lambda_sd_obs.rds"))
+# lambda_cv_obs <- read_rds(paste0(path,"/Model_Runs/MPM_output/lambda_cv_obs.rds"))
+# 
+# lambda_year_samp <- read_rds(paste0(path,"/Model_Runs/MPM_output/lambda_year_samp.rds"))
+# 
+# lambda_mean_samp <- read_rds(paste0(path,"/Model_Runs/MPM_output/lambda_mean_samp.rds"))
+# lambda_sd_samp <- read_rds(paste0(path,"/Model_Runs/MPM_output/lambda_sd_samp.rds"))
+# lambda_cv_samp <- read_rds(paste0(path,"/Model_Runs/MPM_output/lambda_cv_samp.rds"))
 
 
 # Turning the sampled lambdas into a dataframe
@@ -335,7 +335,7 @@ sdlambda_plot <- ggplot(data = lambda_sd_df) +
   # geom_point(data = lambda_mean_diff_df, aes(y = mean, x = species, color = species), lwd = 2) +
   # scale_color_manual(values = c("#dbdb42", "#b8e3a0", "#7fcdbb", "#41b6c4", "#1d91c0", "#225ea8", "#0c2c84", "#A9A9A9")) +
   # scale_fill_manual(values = c("#dbdb42", "#b8e3a0", "#7fcdbb", "#41b6c4", "#1d91c0", "#225ea8", "#0c2c84", "#A9A9A9")) +
-  coord_flip(ylim = c(-.5,.3)) +
+  coord_flip(ylim = c(-.3,.2)) +
   labs(y = expression(paste("Effect on ", "SD(",lambda,")")),
        x = "")+
   theme(panel.background = element_rect(fill = "white"),
@@ -350,7 +350,7 @@ cvlambda_plot <- ggplot(data = lambda_cv_df) +
   # geom_point(data = lambda_mean_diff_df, aes(y = mean, x = species, color = species), lwd = 2) +
   # scale_color_manual(values = c("#dbdb42", "#b8e3a0", "#7fcdbb", "#41b6c4", "#1d91c0", "#225ea8", "#0c2c84", "#A9A9A9")) +
   # scale_fill_manual(values = c("#dbdb42", "#b8e3a0", "#7fcdbb", "#41b6c4", "#1d91c0", "#225ea8", "#0c2c84", "#A9A9A9")) +
-  coord_flip()+#ylim = c(-.5,.5)) +
+  coord_flip(ylim = c(-1,.8)) +
   labs(y = expression(paste("Effect on ", "CV(",lambda,")")),
        x = "")+
   theme(panel.background = element_rect(fill = "white"),
@@ -362,3 +362,20 @@ altogether <- meanlambda_plot + sdlambda_plot + cvlambda_plot +
   plot_annotation(title = "Observed vs Modeled Year effects")
 ggsave(altogether, filename = "endo_effects_obsVSsampled.png", width = 12, height = 6)
 
+# I want to see the vital rate correlations
+LTREB_full %>% 
+  filter(FLW_COUNT_T1<=size_t1) %>% 
+  mutate(growth = size_t1-size_t,
+         prop_flow = FLW_COUNT_T1/size_t1) %>% 
+  group_by(species, year_t1) %>%
+  # summarize(cor = cor(growth, prop_flow, use= "complete.obs")) %>% 
+  summarize(mean_growth = mean(growth, na.rm = T),
+            mean_flow = mean(prop_flow,na.rm = T)) %>% 
+  ggplot()+
+  # geom_histogram(aes(x = cor))+
+  # facet_wrap(~species)
+  geom_smooth(aes(y = mean_flow, x= mean_growth),col = "darkgrey", method = "glm", method.args=list(family = "binomial") )+
+  geom_point(aes(y = mean_flow, x = mean_growth, col = as.factor(year_t1)), alpha = .4)+
+  facet_wrap(~species, scale = "free") +
+  ylab("Mean Proportion of Flowering Tillers")+
+  xlab("Mean Growth")
