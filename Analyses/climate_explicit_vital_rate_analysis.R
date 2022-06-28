@@ -141,16 +141,16 @@ LTREB_data_forflw <- LTREB_full %>%
   filter(!is.na(FLW_STAT_T1)) %>%
   filter(!is.na(logsize_t1)) %>%
   filter(!is.na(endo_01))
-dim(LTREB_data_forflw)
+# dim(LTREB_data_forflw)
 
 
-LTREB_flw_means <- LTREB_data_forflw %>% 
-  group_by(species, endo_01, year_t1) %>% 
-  summarize(mean_flw = mean(FLW_STAT_T),
-            spei12 = mean(as.numeric(spei12)),
-            annual_precip = mean(as.numeric(annual_precip)),
-            annual_temp = mean(as.numeric(annual_temp)),
-            count = n())
+# LTREB_flw_means <- LTREB_data_forflw %>% 
+#   group_by(species, endo_01, year_t1) %>% 
+#   summarize(mean_flw = mean(FLW_STAT_T),
+#             spei12 = mean(as.numeric(spei12)),
+#             annual_precip = mean(as.numeric(annual_precip)),
+#             annual_temp = mean(as.numeric(annual_temp)),
+#             count = n())
 
 # ggplot(data = LTREB_flw_means)+
 #   geom_point(aes(x = year_t1, y = mean_flw, color = as.factor(endo_01), size = count))+ facet_wrap(~species)
@@ -189,22 +189,23 @@ LTREB_data_forgrow <- LTREB_full %>%
 dim(LTREB_data_forgrow)
 
 # 
-# LTREB_grow_seedling <- LTREB_full %>%
-#   filter(!is.na(logsize_t)) %>% 
-#   filter(!is.na(size_t1)) %>% 
-#   filter(!is.na(endo_01)) %>% 
-#   filter(origin_01 == 1 & year_t == birth) %>%  #filtering for recruits that are just germinated
-#   filter(logsize_t == 0) # this is filtering out the plants that are "recruits" but are larger than 1 tiller
-# 
+LTREB_grow_seedling <- LTREB_full %>%
+  filter(!is.na(logsize_t)) %>%
+  filter(!is.na(size_t1)) %>%
+  filter(!is.na(endo_01)) %>%
+  filter(origin_01 == 1 & year_t == birth) %>%  #filtering for recruits that are just germinated
+  filter(logsize_t == 0) # this is filtering out the plants that are "recruits" but are larger than 1 tiller
+
 # dim(LTREB_grow_seedling)
 # 
 # 
-# LTREB_data_forfert <- LTREB_full %>% 
-#   filter(!is.na(FLW_COUNT_T)) %>% 
-#   filter(FLW_COUNT_T > 0) %>% 
-#   filter(!is.na(logsize_t))
+LTREB_data_forfert <- LTREB_full %>%
+  filter(!is.na(FLW_COUNT_T1)) %>%
+  filter(FLW_COUNT_T1 > 0) %>%
+  filter(!is.na(logsize_t1))
 # dim(LTREB_data_forfert)
-# 
+
+
 # LTREB_data_forspike <- LTREB_full %>%
 #   dplyr::select(-FLW_COUNT_T1, -FLW_STAT_T1, -SPIKE_A_T1, -SPIKE_B_T1, -SPIKE_C_T1, -SPIKE_D_T1, -SPIKE_AGPE_MEAN_T1, -endo_status_from_check, -plot_endo_for_check, -endo_mismatch, -dist_a, -dist_b) %>% 
 #   filter(!is.na(FLW_STAT_T)) %>% 
@@ -302,38 +303,39 @@ grow_data_list <- list(y = as.integer(LTREB_data_forgrow$size_t1),
                        nPlot = length(unique(LTREB_data_forgrow$plot_index)),
                        nEndo =   length(unique(LTREB_data_forgrow$endo_01)))
 str(grow_data_list)
-# seed_grow_data_list <- list(y = as.integer(LTREB_grow_seedling$size_t1),
-#                             logsize_t = LTREB_grow_seedling$logsize_t,
-#                             origin_01 = as.integer(LTREB_grow_seedling$origin_01),
-#                             endo_01 = as.integer(LTREB_grow_seedling$endo_01),
-#                             endo_index = as.integer(LTREB_grow_seedling$endo_index),
-#                             spp = as.integer(LTREB_grow_seedling$species_index),
-#                             year_t = as.integer(LTREB_grow_seedling$year_t_index),
-#                             plot = as.integer(LTREB_grow_seedling$plot_index),
-#                             N = nrow(LTREB_grow_seedling),
-#                             nSpp = length(unique(LTREB_grow_seedling$species_index)),
-#                             nYear = max(unique(LTREB_grow_seedling$year_t_index)),
-#                             nPlot = max(unique(LTREB_grow_seedling$plot_index)),
-#                             nEndo =   length(unique(LTREB_grow_seedling$endo_01)))
-# str(seed_grow_data_list)
-# 
-# 
-# 
-# fert_data_list <- list(y = as.integer(LTREB_data_forfert$FLW_COUNT_T),
-#                        logsize_t = LTREB_data_forfert$logsize_t,
-#                        origin_01 = LTREB_data_forfert$origin_01,
-#                        endo_01 = as.integer(LTREB_data_forfert$endo_01),
-#                        endo_index = as.integer(LTREB_data_forfert$endo_index),
-#                        spp = as.integer(LTREB_data_forfert$species_index),
-#                        year_t = as.integer(LTREB_data_forfert$year_t_index),
-#                        plot = as.integer(LTREB_data_forfert$plot_index),
-#                        N = nrow(LTREB_data_forfert),
-#                        nSpp = length(unique(LTREB_data_forfert$species_index)),
-#                        nYear = max(unique(LTREB_data_forfert$year_t_index)),
-#                        nPlot = max(unique(LTREB_data_forfert$plot_index)),
-#                        nEndo =   length(unique(LTREB_data_forfert$endo_01)))
-# str(fert_data_list)
-# 
+seed_grow_data_list <- list(y = as.integer(LTREB_grow_seedling$size_t1),
+                            spei = as.numeric(LTREB_grow_seedling$spei12),
+                            spei_nl = as.numeric(LTREB_grow_seedling$spei12^2),
+                            logsize = LTREB_grow_seedling$logsize_t,
+                            origin_01 = as.integer(LTREB_grow_seedling$origin_01),
+                            endo_01 = as.integer(LTREB_grow_seedling$endo_01),
+                            endo_index = as.integer(LTREB_grow_seedling$endo_index),
+                            spp = as.integer(LTREB_grow_seedling$species_index),
+                            year_t = as.integer(LTREB_grow_seedling$year_t_index),
+                            plot = as.integer(LTREB_grow_seedling$plot_index),
+                            N = nrow(LTREB_grow_seedling),
+                            nSpp = length(unique(LTREB_grow_seedling$species_index)),
+                            nYear = max(unique(LTREB_grow_seedling$year_t_index)),
+                            nPlot = max(unique(LTREB_grow_seedling$plot_index)),
+                            nEndo =   length(unique(LTREB_grow_seedling$endo_01)))
+str(seed_grow_data_list)
+
+fert_data_list <- list(y = as.integer(LTREB_data_forfert$FLW_COUNT_T1),
+                       spei = as.numeric(LTREB_data_forfert$spei12),
+                       spei_nl = as.numeric(LTREB_data_forfert$spei12^2),
+                       logsize = LTREB_data_forfert$logsize_t1,
+                       origin_01 = LTREB_data_forfert$origin_01,
+                       endo_01 = as.integer(LTREB_data_forfert$endo_01),
+                       endo_index = as.integer(LTREB_data_forfert$endo_index),
+                       spp = as.integer(LTREB_data_forfert$species_index),
+                       year_t = as.integer(LTREB_data_forfert$year_t_index),
+                       plot = as.integer(LTREB_data_forfert$plot_index),
+                       N = nrow(LTREB_data_forfert),
+                       nSpp = length(unique(LTREB_data_forfert$species_index)),
+                       nYear = max(unique(LTREB_data_forfert$year_t_index)),
+                       nPlot = max(unique(LTREB_data_forfert$plot_index)),
+                       nEndo =   length(unique(LTREB_data_forfert$endo_01)))
+str(fert_data_list)
 # 
 # 
 # spike_data_list <- list(nYear = max(unique(LTREB_data_forspike$year_t_index)),
@@ -487,7 +489,22 @@ sm_grow <- stan(file = "Analyses/climate_endo_spp_grow_fert_PIG.stan", data = gr
 saveRDS(sm_grow, file = "~/Dropbox/EndodemogData/Model_Runs/climate_endo_grow_fert_PIG_nonlinear.rds")
 # gave the same max_treedepth warning, but otherwise ran okay
 
+# fitting linear model with 5000 iterations gives low bulk and tail ESS, rerunning with 10000 (this is what we had to do for non-climate model as well)
+# ftting linear model for 10000 iteration fits with no errors or warnings
+sm_seedgrow <- stan(file = "Analyses/climate_seedling_grow_PIG.stan", data = seed_grow_data_list,
+                iter = mcmc_pars$iter*2,
+                warmup = mcmc_pars$warmup*2,
+                chains = mcmc_pars$chains, 
+                thin = mcmc_pars$thin)
+saveRDS(sm_seedgrow, file = "~/Dropbox/EndodemogData/Model_Runs/climate_seedling_grow_linear_10000iterations.rds")
+# sm_seedgrow_linear <- readRDS(file = "~/Dropbox/EndodemogData/Model_Runs/climate_endo_seedling_grow_linear.rds")
 
+sm_fert <- stan(file = "Analyses/climate_endo_spp_grow_fert_PIG.stan", data =fert_data_list,
+                iter = mcmc_pars$iter,
+                warmup = mcmc_pars$warmup,
+                chains = mcmc_pars$chains, 
+                thin = mcmc_pars$thin)
+saveRDS(sm_fert, file = "~/Dropbox/EndodemogData/Model_Runs/climate_endo_fert_PIG_nonlinear.rds")
 #########################################################################################################
 # Model Diagnostics ------------------------------
 #########################################################################################################
