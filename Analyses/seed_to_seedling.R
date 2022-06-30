@@ -103,10 +103,16 @@ LTREB_annual_recruit_data <- LTREB_full %>%
             recruits_surviving_plants_t1 = sum(surv_t1, na.rm = T),
             tot_recruits_t = sum(surv_t, na.rm = T)) %>% 
   ungroup() %>% 
-  complete(nesting(species, species_index, plot_index, endo_01, endo_index), nesting(year_t1, year_t1_index, year_t, year_t_index), 
+  complete(nesting(species, species_index, plot_index, endo_01, endo_index), nesting( year_t1, year_t1_index, year_t, year_t_index), 
            fill = list(tot_recruits_t = 0)) %>% 
   mutate(tot_recruits_t1 = dplyr::lead(tot_recruits_t, order_by = plot_index))
 
+# getting the spei data for each species and year 
+# LOAR only goes up to 2019
+LTREB_spei <- LTREB_full %>% 
+  ungroup() %>% 
+  dplyr::select(species, species_index, year_t1, year_t1_index, year_t, year_t_index, spei12) %>% 
+  unique()
 
 # These are the problem recruit id's
 # View(filter(LTREB_annual_recruit_data, surv_t == 0))
@@ -118,14 +124,17 @@ LTREB_annual_recruit_data <- LTREB_full %>%
   
 LTREB_s_to_s_data <- LTREB_annual_seed_data %>% 
   left_join(LTREB_annual_recruit_data, by = c("species", "species_index", "plot_index", "year_t", "year_t_index", "year_t1", "year_t1_index", "endo_01", "endo_index")) %>% 
+  left_join(LTREB_spei,  by = c("species", "species_index", "year_t", "year_t_index", "year_t1", "year_t1_index")) %>% 
   mutate(tot_recruits_t1 = case_when(is.na(tot_recruits_t1) ~ 0, 
                                       TRUE ~ tot_recruits_t1)) %>% # Giving a zero value of recruits for 2007 and 2008. This pretty true, I think, but there may be some instance where the birth years of those earlly recruits are just weird because the Original plants all have birth year 2007
   filter(!is.na(tot_recruits_t1), tot_seed_t >= tot_recruits_t1) %>%   # There are ~120 rows where there are recruits, but no seeds from previous year, or more recruits than seeds. Think about a seed bank
-  filter(!is.na(endo_01)) # There are a few LOAR which have NA's for endophyte status, probably from data entry iin the endo_demog_long file
+  filter(!is.na(endo_01)) %>%  # There are a few LOAR which have NA's for endophyte status, probably from data entry iin the endo_demog_long file
+  filter(!is.na(spei12)) # this drops the spei values for LOAR where we don't have any actual data. This is actually good because they were being labeled as 0 values for seed and recruits
 
 dim(LTREB_s_to_s_data)
 
 # Create data lists to be used for the Stan model
+# We are using the same predicted seed values for the climate-implicit and -explicit versions of the models
 s_to_s_data_list <- list(tot_recruit_t1 = LTREB_s_to_s_data$tot_recruits_t1,
                          tot_seed_t = LTREB_s_to_s_data$tot_seed_t,
                          endo_01 = as.integer(LTREB_s_to_s_data$endo_01),
@@ -140,8 +149,8 @@ s_to_s_data_list <- list(tot_recruit_t1 = LTREB_s_to_s_data$tot_recruits_t1,
                          nEndo = length(unique(LTREB_s_to_s_data$endo_01)))
 str(s_to_s_data_list)
 
-saveRDS(s_to_s_data_list, file = "s_to_s_data_list.rds")
-
+# saveRDS(s_to_s_data_list, file = "s_to_s_data_list.rds")
+# s_to_s_data_list <- read_rds(file = "s_to_s_data_list.rds")
 #########################################################################################################
 # Stan model for seed to seedling recruitment rate ------------------------------
 #########################################################################################################
@@ -175,12 +184,22 @@ print(sm_s_to_s, pars = c("sigmaendo"))
 traceplot(sm_s_to_s, pars = c("beta0"))
 
 
-sm_s_to_s <- stan(file = "Analyses/endo_spp_s_to_s_novarianceeffect.stan", data = s_to_s_data_list,
+# sm_s_to_s <- stan(file = "Analyses/endo_spp_s_to_s_novarianceeffect.stan", data = s_to_s_data_list,
+#                   iter = mcmc_pars$iter,
+#                   warmup = mcmc_pars$warmup,
+#                   chains = mcmc_pars$chains,
+#                   thin = mcmc_pars$thin)
+# stanc(file = "Analyses/endo_spp_s_to_s_novarianceeffect.stan")
+
+#running the climate-explicit version
+sm_s_to_s <- stan(file = "Analyses/climate_endo_spp_s_to_s.stan", data = s_to_s_data_list,
                   iter = mcmc_pars$iter,
                   warmup = mcmc_pars$warmup,
-                  chains = mcmc_pars$chains,
-                  thin = mcmc_pars$thin)
-stanc(file = "Analyses/endo_spp_s_to_s_novarianceeffect.stan")
+                  chains = mcmc_pars$chains, 
+                  thin = mcmc_pars$thin, 
+                  control = list(max_treedepth = 15))
+saveRDS(sm_s_to_s, file = "~/Dropbox/EndodemogData/Model_Runs/climate_endo_spp_s_to_s.rds")
+
 #########################################################################################################
 # Model Diagnostics ------------------------------
 #########################################################################################################
