@@ -1931,12 +1931,27 @@ LTREB_full_2 <- LTREB_full_update_lag %>%
 
 # here are some summaries of the amount of changes in endophyte status
 LTREB_status_changes <- LTREB_full_2 %>% 
-  group_by(species, plot_fixed) %>% 
+  group_by(species, plot_fixed, endo_01) %>% 
   summarize(same = sum(endo_mismatch == 0, na.rm = TRUE),
             lose_endo = sum(endo_mismatch > 0, na.rm = TRUE),
             gain_endo = sum(endo_mismatch <0, na.rm = TRUE)) %>% 
   mutate(percent_gain = (gain_endo/same)*100, percent_lose = (lose_endo/same)*100)
   
+LTREB_status_changes_species <- LTREB_full_2 %>% 
+  distinct(species, plot_fixed, id, endo_01, endo_mismatch) %>% 
+  group_by(species, endo_01) %>% 
+  summarize(same = sum(endo_mismatch == 0, na.rm = TRUE),
+            lose_endo = sum(endo_mismatch > 0, na.rm = TRUE),
+            gain_endo = sum(endo_mismatch <0, na.rm = TRUE)) %>% 
+  mutate(percent_gain = (gain_endo/same)*100, percent_lose = (lose_endo/same)*100)
+
+LTREB_status_changes_endo <- LTREB_full_2 %>% 
+  distinct(species, plot_fixed, id, endo_01, endo_mismatch) %>% 
+  group_by() %>% 
+  summarize(same = sum(endo_mismatch == 0, na.rm = TRUE),
+            lose_endo = sum(endo_mismatch > 0, na.rm = TRUE),
+            gain_endo = sum(endo_mismatch <0, na.rm = TRUE)) %>% 
+  mutate(percent_gain = (gain_endo/same)*100, percent_lose = (lose_endo/same)*100, faithfulness = 100-((percent_gain + percent_lose)/2))
 
 # Here is a list of all the original plot endophyte statuses
 

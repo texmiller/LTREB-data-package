@@ -1,4 +1,4 @@
-\begin{thebibliography}{20}
+\begin{thebibliography}{32}
 \providecommand{\natexlab}[1]{#1}
 \providecommand{\url}[1]{\texttt{#1}}
 \expandafter\ifx\csname urlstyle\endcsname\relax
@@ -79,17 +79,106 @@ Christoffer~H. Hilde, Marlène Gamelon, Bernt-Erik Sæther, Jean-Michel
   \url{https://www.cell.com/trends/ecology-evolution/abstract/S0169-5347(20)30050-1}.
 \newblock Publisher: Elsevier.
 
+\bibitem[Rodriguez et~al.(2009)Rodriguez, White~Jr, Arnold, and
+  Redman]{rodriguez2009fungal}
+RJ~Rodriguez, JF~White~Jr, Anne~E Arnold, and a~RS~and Redman.
+\newblock Fungal endophytes: diversity and functional roles.
+\newblock \emph{New phytologist}, 182\penalty0 (2):\penalty0 314--330, 2009.
+
+\bibitem[McFall-Ngai et~al.(2013)McFall-Ngai, Hadfield, Bosch, Carey,
+  Domazet-Lo{\v{s}}o, Douglas, Dubilier, Eberl, Fukami, Gilbert,
+  et~al.]{mcfall2013animals}
+Margaret McFall-Ngai, Michael~G Hadfield, Thomas~CG Bosch, Hannah~V Carey,
+  Tomislav Domazet-Lo{\v{s}}o, Angela~E Douglas, Nicole Dubilier, Gerard Eberl,
+  Tadashi Fukami, Scott~F Gilbert, et~al.
+\newblock Animals in a bacterial world, a new imperative for the life sciences.
+\newblock \emph{Proceedings of the National Academy of Sciences}, 110\penalty0
+  (9):\penalty0 3229--3236, 2013.
+
+\bibitem[Rudgers et~al.(2020)Rudgers, Afkhami, Bell-Dereske, Chung, Crawford,
+  Kivlin, Mann, and Nu{\~n}ez]{rudgers2020climate}
+Jennifer~A Rudgers, Michelle~E Afkhami, Lukas Bell-Dereske, Y~Anny Chung,
+  Kerri~M Crawford, Stephanie~N Kivlin, Michael~A Mann, and Martin~A Nu{\~n}ez.
+\newblock Climate disruption of plant-microbe interactions.
+\newblock \emph{Annual review of ecology, evolution, and systematics},
+  51\penalty0 (1), 2020.
+
+\bibitem[Russell and Moran(2006)]{russell2006costs}
+Jacob~A Russell and Nancy~A Moran.
+\newblock Costs and benefits of symbiont infection in aphids: variation among
+  symbionts and across temperatures.
+\newblock \emph{Proceedings of the Royal Society B: Biological Sciences},
+  273\penalty0 (1586):\penalty0 603--610, 2006.
+
+\bibitem[Brownlie and Johnson(2009)]{brownlie2009symbiont}
+Jeremy~C Brownlie and Karyn~N Johnson.
+\newblock Symbiont-mediated protection in insect hosts.
+\newblock \emph{Trends in microbiology}, 17\penalty0 (8):\penalty0 348--354,
+  2009.
+
 \bibitem[Kivlin et~al.(2013)Kivlin, Emery, and Rudgers]{kivlin2013fungal}
 Stephanie~N Kivlin, Sarah~M Emery, and Jennifer~A Rudgers.
 \newblock Fungal symbionts alter plant responses to global change.
 \newblock \emph{American Journal of Botany}, 100\penalty0 (7):\penalty0
   1445--1457, 2013.
 
+\bibitem[Corbin et~al.(2017)Corbin, Heyworth, Ferrari, and
+  Hurst]{corbin2017heritable}
+Chris Corbin, Eleanor~Rose Heyworth, Julia Ferrari, and Gregory~DD Hurst.
+\newblock Heritable symbionts in a world of varying temperature.
+\newblock \emph{Heredity}, 118\penalty0 (1):\penalty0 10--20, 2017.
+
+\bibitem[Hoadley et~al.(2019)Hoadley, Lewis, Wham, Pettay, Grasso, Smith, Kemp,
+  LaJeunesse, and Warner]{hoadley2019host}
+Kenneth~D Hoadley, Allison~M Lewis, Drew~C Wham, D~Tye Pettay, Chris Grasso,
+  Robin Smith, Dustin~W Kemp, Todd~C LaJeunesse, and Mark~E Warner.
+\newblock Host--symbiont combinations dictate the photo-physiological response
+  of reef-building corals to thermal stress.
+\newblock \emph{Scientific Reports}, 9\penalty0 (1):\penalty0 1--15, 2019.
+
 \bibitem[Chamberlain et~al.(2014)Chamberlain, Bronstein, and
   Rudgers]{chamberlain2014context}
 Scott~A Chamberlain, Judith~L Bronstein, and Jennifer~A Rudgers.
 \newblock How context dependent are species interactions?
 \newblock \emph{Ecology letters}, 17\penalty0 (7):\penalty0 881--890, 2014.
+
+\bibitem[Jordano(1994)]{jordano1994spatial}
+Pedro Jordano.
+\newblock Spatial and temporal variation in the avian-frugivore assemblage of
+  prunus mahaleb: patterns and consequences.
+\newblock \emph{Oikos}, pages 479--491, 1994.
+
+\bibitem[Billick and Tonkel(2003)]{billick2003relative}
+Ian Billick and Kirk Tonkel.
+\newblock The relative importance of spatial vs. temporal variability in
+  generating a conditional mutualism.
+\newblock \emph{Ecology}, 84\penalty0 (2):\penalty0 289--295, 2003.
+
+\bibitem[Cheplick et~al.(2009)Cheplick, Faeth, and Faeth]{cheplick2009ecology}
+Gregory~P Cheplick, Stanley Faeth, and Stanley~H Faeth.
+\newblock \emph{Ecology and evolution of the grass-endophyte symbiosis}.
+\newblock OUP USA, 2009.
+
+\bibitem[Cheplick(2004)]{cheplick2004recovery}
+Gregory~P Cheplick.
+\newblock Recovery from drought stress in lolium perenne (poaceae): are fungal
+  endophytes detrimental?
+\newblock \emph{American Journal of Botany}, 91\penalty0 (12):\penalty0
+  1960--1968, 2004.
+
+\bibitem[Kannadan and Rudgers(2008)]{kannadan2008endophyte}
+S~Kannadan and JA~Rudgers.
+\newblock Endophyte symbiosis benefits a rare grass under low water
+  availability.
+\newblock \emph{Functional Ecology}, 22\penalty0 (4):\penalty0 706--713, 2008.
+
+\bibitem[Decunta et~al.(2021)Decunta, P{\'e}rez, Malinowski, Molina-Montenegro,
+  and Gundel]{decunta2021systematic}
+Facundo~A Decunta, Luis~I P{\'e}rez, Dariusz~P Malinowski, Marco~A
+  Molina-Montenegro, and Pedro~E Gundel.
+\newblock A systematic review on the effects of epichlo{\"e} fungal endophytes
+  on drought tolerance in cool-season grasses.
+\newblock \emph{Frontiers in plant science}, 12:\penalty0 644731, 2021.
 
 \bibitem[Fine(1975)]{fine1975vectors}
 Paul~EM Fine.
@@ -122,24 +211,18 @@ Cyd~E Hamilton and Taryn~L Bauerle.
   activity in hosts responding to drought.
 \newblock \emph{Fungal Diversity}, 54\penalty0 (1):\penalty0 39--49, 2012.
 
-\bibitem[Cheplick(2004)]{cheplick2004recovery}
-Gregory~P Cheplick.
-\newblock Recovery from drought stress in lolium perenne (poaceae): are fungal
-  endophytes detrimental?
-\newblock \emph{American Journal of Botany}, 91\penalty0 (12):\penalty0
-  1960--1968, 2004.
-
-\bibitem[Kannadan and Rudgers(2008)]{kannadan2008endophyte}
-S~Kannadan and JA~Rudgers.
-\newblock Endophyte symbiosis benefits a rare grass under low water
-  availability.
-\newblock \emph{Functional Ecology}, 22\penalty0 (4):\penalty0 706--713, 2008.
-
 \bibitem[Bacon and White(2018)]{bacon2018stains}
 Charles~W Bacon and James~F White.
 \newblock Stains, media, and procedures for analyzing endophytes.
 \newblock In \emph{Biotechnology of endophytic fungi of grasses}, pages 47--56.
   CRC Press, 2018.
+
+\bibitem[Rudgers and Swafford(2009)]{rudgers2009benefits}
+Jennifer~A Rudgers and Angela~L Swafford.
+\newblock Benefits of a fungal endophyte in elymus virginicus decline under
+  drought stress.
+\newblock \emph{Basic and Applied Ecology}, 10\penalty0 (1):\penalty0 43--51,
+  2009.
 
 \bibitem[Elderd and Miller(2016)]{elderd2016quantifying}
 Bret~D Elderd and Tom~EX Miller.
