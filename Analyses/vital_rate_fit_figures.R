@@ -264,7 +264,7 @@ spike_fit <- read_rds("~/Dropbox/EndodemogData/Model_Runs/endo_spp_spike_year_pl
 seedmean_fit <- read_rds("~/Dropbox/EndodemogData/Model_Runs/endo_spp_seed_mean.rds")
 stos_fit <- read_rds("~/Dropbox/EndodemogData/Model_Runs/endo_spp_s_to_s.rds") 
 
-# Pulling out the actuall parameters
+# Pulling out the actual parameters
 surv_par <- rstan::extract(surv_fit, pars =quote_bare(beta0,betasize,betaendo,betaorigin,
                                                       tau_year, tau_plot, sigma_year))
 surv_sdlg_par <- rstan::extract(surv_fit_seedling, pars =quote_bare(beta0,betaendo,
@@ -417,8 +417,8 @@ seedmean_moments <- mean_sm_plot + sd_sm_plot + skew_sm_plot + kurt_sm_plot
 # ggsave(seedmean_moments, filename = "seedmean_moments.png", width = 4, height = 4)
 
 # Seed to Seedling
-recruit_densplot <- ppc_dens_overlay(s_to_s_data_list$tot_recruit_t1, y_recruit_sim) +xlim(0,75) + labs(title = "Recruitment", x = "Successful Germination", y = "Density") 
-# ggsave(recruit_densplot, filename = "recruit_densplot.png", width = 4, height = 4)
+stos_densplot <- ppc_dens_overlay(s_to_s_data_list$tot_recruit_t1, y_recruit_sim) +xlim(0,75) + labs(title = "Recruitment", x = "Successful Germination", y = "Density") 
+# ggsave(stos_densplot, filename = "stos_densplot.png", width = 4, height = 4)
 
 mean_stos_plot <-   ppc_stat(s_to_s_data_list$tot_recruit_t1, y_recruit_sim, stat = "mean")
 sd_stos_plot <- ppc_stat(s_to_s_data_list$tot_recruit_t1, y_recruit_sim, stat = "sd")
@@ -514,7 +514,7 @@ PIG_growth_size_ppc <- size_moments_ppc(data = LTREB_data_forgrow,
 size_ppc_plot <- (PIG_growth_size_ppc+ plot_annotation(title = 'Growth'))+
   plot_annotation(title = "Size specific vital rate moments")
 # size_ppc_plot
-ggsave(size_ppc_plot, filename = "size_ppc_plot.png", width = 12, height = 20)
+ggsave(size_ppc_plot, filename = "size_ppc_plot.png", width = 6, height = 8)
 
 ## Traceplots for select parameters from all vital rates for AGPE
 surv_trace <- mcmc_trace(surv_fit, pars = c("beta0[1]", "betaendo[1]", "sigmaendo[1]"))+ggtitle("Survival")

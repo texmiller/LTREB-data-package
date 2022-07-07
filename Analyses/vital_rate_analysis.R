@@ -57,7 +57,7 @@ mean_ageplot <- ggplot(data = max_ages)+
 LTREB_data_forsurv <- LTREB_full %>% 
   filter(!is.na(surv_t1)) %>% 
   filter(!is.na(logsize_t)) %>% 
-  filter(!is.na(endo_01)) %>%   # There are a few LOAR that don't have a plot level endo assigned
+  filter(!is.na(endo_01)) %>%  # There are a few LOAR that don't have a plot level endo assigned
   filter(origin_01 == 1 & year_t != birth | origin_01 == 0)  # filtering out first year germinants (including those that are bigger than 1 tiller)
 dim(LTREB_data_forsurv)
 
