@@ -137,6 +137,8 @@ dim(LTREB_s_to_s_data)
 # We are using the same predicted seed values for the climate-implicit and -explicit versions of the models
 s_to_s_data_list <- list(tot_recruit_t1 = LTREB_s_to_s_data$tot_recruits_t1,
                          tot_seed_t = LTREB_s_to_s_data$tot_seed_t,
+                         spei = as.numeric(LTREB_s_to_s_data$spei12),
+                         spei_nl = as.numeric(LTREB_s_to_s_data$spei12^2),
                          endo_01 = as.integer(LTREB_s_to_s_data$endo_01),
                          endo_index = as.integer(LTREB_s_to_s_data$endo_index),
                          year_t = as.integer(LTREB_s_to_s_data$year_t_index),
@@ -150,7 +152,7 @@ s_to_s_data_list <- list(tot_recruit_t1 = LTREB_s_to_s_data$tot_recruits_t1,
 str(s_to_s_data_list)
 
 # saveRDS(s_to_s_data_list, file = "s_to_s_data_list.rds")
-# s_to_s_data_list <- read_rds(file = "s_to_s_data_list.rds")
+s_to_s_data_list <- read_rds(file = "s_to_s_data_list.rds")
 #########################################################################################################
 # Stan model for seed to seedling recruitment rate ------------------------------
 #########################################################################################################
@@ -176,8 +178,7 @@ sm_s_to_s <- stan(file = "Analyses/endo_spp_s_to_s.stan", data = s_to_s_data_lis
                      iter = mcmc_pars$iter,
                      warmup = mcmc_pars$warmup,
                      chains = mcmc_pars$chains, 
-                     thin = mcmc_pars$thin, 
-                  control = list(max_treedepth = 15))
+                     thin = mcmc_pars$thin)
 saveRDS(sm_s_to_s, file = "~/Dropbox/EndodemogData/Model_Runs/endo_spp_s_to_s.rds")
 
 print(sm_s_to_s, pars = c("sigmaendo"))
@@ -191,13 +192,13 @@ traceplot(sm_s_to_s, pars = c("beta0"))
 #                   thin = mcmc_pars$thin)
 # stanc(file = "Analyses/endo_spp_s_to_s_novarianceeffect.stan")
 
-#running the climate-explicit version
+#running the climate-explicit version with just the linear climate effect
+# running this gives maximum treedepth warnings
 sm_s_to_s <- stan(file = "Analyses/climate_endo_spp_s_to_s.stan", data = s_to_s_data_list,
                   iter = mcmc_pars$iter,
                   warmup = mcmc_pars$warmup,
                   chains = mcmc_pars$chains, 
-                  thin = mcmc_pars$thin, 
-                  control = list(max_treedepth = 15))
+                  thin = mcmc_pars$thin)
 saveRDS(sm_s_to_s, file = "~/Dropbox/EndodemogData/Model_Runs/climate_endo_spp_s_to_s.rds")
 
 #########################################################################################################
@@ -219,9 +220,42 @@ saveRDS(y_recruit_sim, file = "yrep_stosmodel.rds")
 y_recruit_sim <- read_rds(file = "yrep_stosmodel.rds")
 
 ppc_dens_overlay(s_to_s_data_list$tot_recruit_t1, y_recruit_sim)
-ppc_dens_overlay(s_to_s_data_list$tot_recruit_t1, y_recruit_sim) +xlim(0,75) # seems to be fitting okay
+ppc_dens_overlay(s_to_s_data_list$tot_recruit_t1, y_recruit_sim) +xlim(0,30) # seems to be fitting okay
 stos_densplot <- ppc_dens_overlay(s_to_s_data_list$tot_recruit_t1, y_recruit_sim) +xlim(0,40) + labs(title = "Recruitment", x = "Successful Germination", y = "Density") 
 ggsave(stos_densplot, filename = "stos_densplot.png", width = 4, height = 4)
+
+# overall mean looks okay, but not great
+
+mean_stos_plot <-   ppc_stat(s_to_s_data_list$tot_recruit_t1, y_recruit_sim, stat = "mean")
+sd_stos_plot <- ppc_stat(s_to_s_data_list$tot_recruit_t1, y_recruit_sim, stat = "sd")
+skew_stos_plot <- ppc_stat(s_to_s_data_list$tot_recruit_t1, y_recruit_sim, stat = "skewness")
+kurt_stos_plot <- ppc_stat(s_to_s_data_list$tot_recruit_t1, y_recruit_sim, stat = "Lkurtosis")
+stos_moments <- mean_stos_plot+sd_stos_plot+skew_stos_plot+kurt_stos_plot
+stos_moments
+ggsave(stos_moments, filename = "stos_moments.png", width = 4, height = 4)
+
+
+# PPC for the climate-explicit recruitment model
+s_to_s_fit <- read_rds("~/Dropbox/EndodemogData/Model_Runs/climate_endo_spp_s_to_s.rds") 
+s_to_s_par <- rstan::extract(s_to_s_fit, pars = c("p"))$p
+predRecruit<- s_to_s_par
+
+
+
+n_post_draws <- 500
+post_draws <- sample.int(dim(predRecruit)[1], n_post_draws)
+y_recruit_sim <- matrix(NA,n_post_draws,length(s_to_s_data_list$tot_recruit_t1))
+
+for(i in 1:n_post_draws){
+  y_recruit_sim[i,] <- rbinom(n = length(s_to_s_data_list$tot_recruit_t1), size = s_to_s_data_list$tot_seed_t, prob = invlogit(predRecruit[post_draws[i],]))
+}
+saveRDS(y_recruit_sim, file = "yrep_climate_stosmodel_linear.rds")
+y_recruit_sim <- read_rds(file = "yrep_climate_stosmodel_linear.rds")
+
+ppc_dens_overlay(s_to_s_data_list$tot_recruit_t1, y_recruit_sim)
+ppc_dens_overlay(s_to_s_data_list$tot_recruit_t1, y_recruit_sim) +xlim(0,30) # seems to be fitting okay
+stos_densplot <- ppc_dens_overlay(s_to_s_data_list$tot_recruit_t1, y_recruit_sim) +xlim(0,40) + labs(title = "Recruitment", x = "Successful Germination", y = "Density") 
+ggsave(stos_densplot, filename = "climate_stos_densplot.png", width = 4, height = 4)
 
 # overall mean looks okay.
 
@@ -230,6 +264,5 @@ sd_stos_plot <- ppc_stat(s_to_s_data_list$tot_recruit_t1, y_recruit_sim, stat = 
 skew_stos_plot <- ppc_stat(s_to_s_data_list$tot_recruit_t1, y_recruit_sim, stat = "skewness")
 kurt_stos_plot <- ppc_stat(s_to_s_data_list$tot_recruit_t1, y_recruit_sim, stat = "Lkurtosis")
 stos_moments <- mean_stos_plot+sd_stos_plot+skew_stos_plot+kurt_stos_plot
-# stos_moments
-ggsave(stos_moments, filename = "stos_moments.png", width = 4, height = 4)
-
+stos_moments
+ggsave(stos_moments, filename = "climate_stos_moments.png", width = 4, height = 4)
