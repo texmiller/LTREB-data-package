@@ -364,18 +364,19 @@ ggsave(altogether, filename = "endo_effects_obsVSsampled.png", width = 12, heigh
 
 # I want to see the vital rate correlations
 LTREB_full %>% 
-  filter(FLW_COUNT_T1<=size_t1) %>% 
+  # filter(FLW_COUNT_T1<=size_t1) %>% 
   mutate(growth = size_t1-size_t,
-         prop_flow = FLW_COUNT_T1/size_t1) %>% 
-  group_by(species, year_t1) %>%
+         prop_flow = FLW_COUNT_T1) %>% 
+  group_by(species, year_t1) %>% 
   # summarize(cor = cor(growth, prop_flow, use= "complete.obs")) %>% 
   summarize(mean_growth = mean(growth, na.rm = T),
-            mean_flow = mean(prop_flow,na.rm = T)) %>% 
+            mean_flow = mean(prop_flow,na.rm = T),
+            mean_surv = mean(surv_t1, na.rm = T)) %>% 
   ggplot()+
   # geom_histogram(aes(x = cor))+
   # facet_wrap(~species)
-  geom_smooth(aes(y = mean_flow, x= mean_growth),col = "darkgrey", method = "glm", method.args=list(family = "binomial") )+
+  geom_smooth(aes(y = mean_flow, x= mean_growth),col = "darkgrey", method = "glm")+#, method.args=list(family = "binomial") )+
   geom_point(aes(y = mean_flow, x = mean_growth, col = as.factor(year_t1)), alpha = .4)+
   facet_wrap(~species, scale = "free") +
-  ylab("Mean Proportion of Flowering Tillers")+
+  ylab("Mean Survival")+
   xlab("Mean Growth")
