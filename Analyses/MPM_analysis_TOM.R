@@ -57,7 +57,7 @@ source("Analyses/MPM_functions.R")
 #############################################################################################
 tompath <- "C:/Users/tm9/Dropbox/EndodemogData/"
 joshpath <- "~/Dropbox/EndodemogData/"
-path<-joshpath
+path<-tompath
 
 surv_fit_seedling <- read_rds(paste0(path,"/Model_Runs/endo_seedling_surv.rds"))
 surv_fit <- read_rds(paste0(path,"/Model_Runs/endo_spp_surv_woseedling.rds"))
@@ -98,6 +98,10 @@ spike_par <- rstan::extract(spike_fit, pars = quote_bare(beta0,betasize,betaendo
                                                          phi))
 seed_par <- rstan::extract(seedmean_fit, pars = quote_bare(beta0,betaendo)) #no plot or year effect
 recruit_par <- rstan::extract(stos_fit, pars = quote_bare(beta0,betaendo,sigma_year,tau_year, tau_plot))
+
+
+# endophyte effects on lambda mean and variance ---------------------------
+
 ## There are two possible ways of running the analysis:
 ## 1. Sample observation years (10-12 of these depending how you count)
 ## 2. Sample many hypothetical years from posterior of year effects
@@ -122,7 +126,7 @@ lambda_cv_obs <- lambda_cv_samp <- array(dim = c((n_spp+1),n_endo,n_draws))
 for(i in 1:n_draws){
   for(e in 1:n_endo){
     for(s in 1:n_spp){
-      for(y in 1:years_obs){ # we are sampling years 2-14
+      for(y in 1:years_obs){ # loops 1-13, which samples years 2 (2008-2009) through 14 (2020-2021)
         # 1. Sample observation years, calculate mean and variance
         lambda_year_obs[y,s,e,i] <- lambda(bigmatrix(make_params(species=s,
                                                              endo_mean=(e-1),
@@ -185,31 +189,31 @@ for(i in 1:n_draws){
 }
 
 # Saving all of the simulations
-saveRDS(lambda_year_obs, file = paste0(path,"/Model_Runs/MPM_output/lambda_year_obs.rds"))
+#saveRDS(lambda_year_obs, file = paste0(path,"/Model_Runs/MPM_output/lambda_year_obs.rds"))
 
-saveRDS(lambda_mean_obs, file = paste0(path,"/Model_Runs/MPM_output/lambda_mean_obs.rds"))
-saveRDS(lambda_sd_obs, file = paste0(path,"/Model_Runs/MPM_output/lambda_sd_obs.rds"))
-saveRDS(lambda_cv_obs, file = paste0(path,"/Model_Runs/MPM_output/lambda_cv_obs.rds"))
+#saveRDS(lambda_mean_obs, file = paste0(path,"/Model_Runs/MPM_output/lambda_mean_obs.rds"))
+#saveRDS(lambda_sd_obs, file = paste0(path,"/Model_Runs/MPM_output/lambda_sd_obs.rds"))
+#saveRDS(lambda_cv_obs, file = paste0(path,"/Model_Runs/MPM_output/lambda_cv_obs.rds"))
 
-saveRDS(lambda_year_samp, file = paste0(path,"/Model_Runs/MPM_output/lambda_year_samp.rds"))
+#saveRDS(lambda_year_samp, file = paste0(path,"/Model_Runs/MPM_output/lambda_year_samp.rds"))
 
-saveRDS(lambda_mean_samp, file = paste0(path,"/Model_Runs/MPM_output/lambda_mean_samp.rds"))
-saveRDS(lambda_sd_samp, file = paste0(path,"/Model_Runs/MPM_output/lambda_sd_samp.rds"))
-saveRDS(lambda_cv_samp, file = paste0(path,"/Model_Runs/MPM_output/lambda_cv_samp.rds"))
+#saveRDS(lambda_mean_samp, file = paste0(path,"/Model_Runs/MPM_output/lambda_mean_samp.rds"))
+#saveRDS(lambda_sd_samp, file = paste0(path,"/Model_Runs/MPM_output/lambda_sd_samp.rds"))
+#saveRDS(lambda_cv_samp, file = paste0(path,"/Model_Runs/MPM_output/lambda_cv_samp.rds"))
 
 
 # reading back in the simulations
-# lambda_year_obs <- read_rds(paste0(path,"/Model_Runs/MPM_output/lambda_year_obs.rds"))
-# 
-# lambda_mean_obs <- read_rds(paste0(path,"/Model_Runs/MPM_output/lambda_mean_obs.rds"))
-# lambda_sd_obs <- read_rds(paste0(path,"/Model_Runs/MPM_output/lambda_sd_obs.rds"))
-# lambda_cv_obs <- read_rds(paste0(path,"/Model_Runs/MPM_output/lambda_cv_obs.rds"))
-# 
-# lambda_year_samp <- read_rds(paste0(path,"/Model_Runs/MPM_output/lambda_year_samp.rds"))
-# 
-# lambda_mean_samp <- read_rds(paste0(path,"/Model_Runs/MPM_output/lambda_mean_samp.rds"))
-# lambda_sd_samp <- read_rds(paste0(path,"/Model_Runs/MPM_output/lambda_sd_samp.rds"))
-# lambda_cv_samp <- read_rds(paste0(path,"/Model_Runs/MPM_output/lambda_cv_samp.rds"))
+ lambda_year_obs <- read_rds(paste0(path,"/Model_Runs/MPM_output/lambda_year_obs.rds"))
+ 
+ lambda_mean_obs <- read_rds(paste0(path,"/Model_Runs/MPM_output/lambda_mean_obs.rds"))
+ lambda_sd_obs <- read_rds(paste0(path,"/Model_Runs/MPM_output/lambda_sd_obs.rds"))
+ lambda_cv_obs <- read_rds(paste0(path,"/Model_Runs/MPM_output/lambda_cv_obs.rds"))
+ 
+ lambda_year_samp <- read_rds(paste0(path,"/Model_Runs/MPM_output/lambda_year_samp.rds"))
+ 
+ lambda_mean_samp <- read_rds(paste0(path,"/Model_Runs/MPM_output/lambda_mean_samp.rds"))
+ lambda_sd_samp <- read_rds(paste0(path,"/Model_Runs/MPM_output/lambda_sd_samp.rds"))
+ lambda_cv_samp <- read_rds(paste0(path,"/Model_Runs/MPM_output/lambda_cv_samp.rds"))
 
 
 # Turning the sampled lambdas into a dataframe
@@ -380,3 +384,184 @@ LTREB_full %>%
   facet_wrap(~species, scale = "free") +
   ylab("Mean Survival")+
   xlab("Mean Growth")
+
+
+# decomposition analysis --------------------------------------------------
+## stochastic simulation of lambda_S, with mean/var effects on/off in combination
+## same options as above: we could randomly sample just the years we observed, 
+## or simulate hypothetical years. In the latter case we need worry about correlations. 
+euclidean <- function(a, b) sqrt(sum((a - b)^2))
+
+## store lambdaS output: 8 species (7+mean),4 scenarios
+n_draws<-10
+lambdaS_mat<-array(NA,dim=c(4,7,n_draws))
+lambdaS_mat_extreme<-array(NA,dim=c(4,7,n_draws))
+
+for(d in 1:n_draws){
+#d=1 ## pick one posterior sample
+## list of transition years that we observed
+A_t_obs<-list()
+  for(s in 1:7){
+    eminus_list <- eplus_list <- eplus_mean_only_list <- eplus_var_only_list <- list()
+    for(y in 1:years_obs){ ## 13 transitions matrices (2008-09 through 2020-21)
+      eminus_list[[y]] <- bigmatrix(make_params(species=s,
+                                                endo_mean=0,
+                                                endo_var=0,
+                                                original = 1, # should be =1 to represent recruit
+                                                draw=post_draws[d],
+                                                max_size=max_size,
+                                                rfx=T,
+                                                year=y+1,
+                                                surv_par=surv_par,
+                                                surv_sdlg_par = surv_sdlg_par,
+                                                grow_par=grow_par,
+                                                grow_sdlg_par = grow_sdlg_par,
+                                                flow_par=flow_par,
+                                                fert_par=fert_par,
+                                                spike_par=spike_par,
+                                                seed_par=seed_par,
+                                                recruit_par=recruit_par),
+                                    extension = 100)$MPMmat
+      eplus_list[[y]] <- bigmatrix(make_params(species=s,
+                                               endo_mean=1,
+                                               endo_var=1,
+                                               original = 1, # should be =1 to represent recruit
+                                               draw=post_draws[d],
+                                               max_size=max_size,
+                                               rfx=T,
+                                               year=y+1,
+                                               surv_par=surv_par,
+                                               surv_sdlg_par = surv_sdlg_par,
+                                               grow_par=grow_par,
+                                               grow_sdlg_par = grow_sdlg_par,
+                                               flow_par=flow_par,
+                                               fert_par=fert_par,
+                                               spike_par=spike_par,
+                                               seed_par=seed_par,
+                                               recruit_par=recruit_par),
+                                   extension = 100)$MPMmat
+      eplus_mean_only_list[[y]] <- bigmatrix(make_params(species=s,
+                                                          endo_mean=1,
+                                                          endo_var=0,
+                                                          original = 1, # should be =1 to represent recruit
+                                                          draw=post_draws[d],
+                                                          max_size=max_size,
+                                                          rfx=T,
+                                                          year=y+1,
+                                                          surv_par=surv_par,
+                                                          surv_sdlg_par = surv_sdlg_par,
+                                                          grow_par=grow_par,
+                                                          grow_sdlg_par = grow_sdlg_par,
+                                                          flow_par=flow_par,
+                                                          fert_par=fert_par,
+                                                          spike_par=spike_par,
+                                                          seed_par=seed_par,
+                                                          recruit_par=recruit_par),
+                                              extension = 100)$MPMmat
+      eplus_var_only_list[[y]] <- bigmatrix(make_params(species=s,
+                                                         endo_mean=0,
+                                                         endo_var=1,
+                                                         original = 1, # should be =1 to represent recruit
+                                                         draw=post_draws[d],
+                                                         max_size=max_size,
+                                                         rfx=T,
+                                                         year=y+1,
+                                                         surv_par=surv_par,
+                                                         surv_sdlg_par = surv_sdlg_par,
+                                                         grow_par=grow_par,
+                                                         grow_sdlg_par = grow_sdlg_par,
+                                                         flow_par=flow_par,
+                                                         fert_par=fert_par,
+                                                         spike_par=spike_par,
+                                                         seed_par=seed_par,
+                                                         recruit_par=recruit_par),
+                                             extension = 100)$MPMmat
+    }#y loop
+    
+    ## store matrix lists in a list
+    A_t_obs[[s]]<-list(eminus=eminus_list,
+                   eplus_mean_only=eplus_mean_only_list,
+                   eplus_var_only=eplus_var_only_list,
+                   eplus=eplus_list)
+
+    ## get lambda by year for E+ and E-
+    lambda_t<-matrix(NA,2,13)
+    for(i in 1:13){
+      lambda_t[1,i]<-lambda(A_t_obs[[s]][[1]][[i]])
+      lambda_t[2,i]<-lambda(A_t_obs[[s]][[4]][[i]])
+    }
+    dist<-c()
+    for(i in 1:13){
+      dist[i] <- euclidean(c(lambda_t[1,i],lambda_t[2,i]),
+                           c(mean(lambda_t[1,]),mean(lambda_t[2,])))
+    }
+    topfour <- dist%in%rev(sort(dist))[1:4]
+
+    for(e in 1:4){
+      lambdaS_mat[e,s,d]<-lambdaSim(mat_list = A_t_obs[[s]][[e]],max_yrs = 500)$lambdaS
+      lambdaS_mat_extreme[e,s,d]<-lambdaSim(mat_list = A_t_obs[[s]][[e]][topfour],max_yrs = 500)$lambdaS
+    }
+    
+  }#s loop
+}#end d loop
+
+## one random draw
+par(mfrow=c(1,2))
+barplot(apply(lambdaS_mat,c(1,2),mean,na.rm=T),beside=T,main="normal")
+barplot(apply(lambdaS_mat_extreme,c(1,2),mean,na.rm=T),beside=T,main="extreme")
+
+
+normal<-apply(lambdaS_mat,c(1,2),mean,na.rm=T)
+extreme<-apply(lambdaS_mat_extreme,c(1,2),mean,na.rm=T)
+
+barplot(rbind(normal[c(1,4),]),beside=T)
+barplot(rbind(extreme[c(1,4),]),beside=T)
+
+tot.endo<-normal[4,]-normal[1,]
+mean.endo<-normal[2,]-normal[1,]
+var.endo<-normal[3,]-normal[1,]
+intx.endo<-tot.endo-(mean.endo+var.endo)
+
+
+(tot.endo)
+colSums(rbind(mean.endo,var.endo,intx.endo))
+
+tot.endo.ex<-extreme[4,]-extreme[1,]
+mean.endo.ex<-extreme[2,]-extreme[1,]
+var.endo.ex<-extreme[3,]-extreme[1,]
+intx.endo.ex<-tot.endo.ex-(mean.endo.ex+var.endo.ex)
+
+barplot(rbind(tot.endo,mean.endo,var.endo,intx.endo),beside=T,main="normal")
+barplot(rbind(tot.endo.ex,mean.endo.ex,var.endo.ex,intx.endo.ex),beside=T,main="extreme")
+
+
+## if we wanted to skew the sampling to worst and best years
+lambdaS_mat_extreme<-array(NA,dim=c(4,7,n_draws))
+## get E+ and E- lambdas by year 
+
+## E- lambda_t
+s<-2
+lambda_t<-matrix(NA,2,13)
+for(i in 1:13){
+  lambda_t[1,i]<-lambda(A_t_obs[[s]][[1]][[i]])
+  lambda_t[2,i]<-lambda(A_t_obs[[s]][[4]][[i]])
+}
+
+plot(lambda_t[1,],lambda_t[2,])
+euc.cent <- c(mean(lambda_t[1,]),mean(lambda_t[2,]))
+points(x=euc.cent[1],y=euc.cent[2],pch=16,col="red")
+#euclidian center
+euclidean <- function(a, b) sqrt(sum((a - b)^2))
+dist<-c()
+for(i in 1:13){
+  dist[i] <- euclidean(c(lambda_t[1,i],lambda_t[2,i]),
+          c(mean(lambda_t[1,]),mean(lambda_t[2,])))
+}
+topfour <- dist%in%rev(sort(dist))[1:4]
+points(lambda_t[1,topfour],lambda_t[2,topfour],col="blue",pch=16)
+
+for(e in 1:4){
+  lambdaS_mat_extreme[e,s,d]<-lambdaSim(mat_list = A_t_obs[[s]][[e]][topfour],max_yrs = 500)$lambdaS
+}
+
+

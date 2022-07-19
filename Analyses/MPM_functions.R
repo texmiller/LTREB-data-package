@@ -17,9 +17,9 @@ make_params <- function(species,endo_mean,endo_var,original=0,draw,rfx=F,year=NU
     rfx_surv_sdlg <-surv_sdlg_par$tau_year[draw,species,(endo_var+1),(year)];
     rfx_grow <- grow_par$tau_year[draw,species,(endo_var+1),(year)];
     rfx_grow_sdlg <- grow_sdlg_par$tau_year[draw,species,(endo_var+1),(year)];
-    rfx_flow <- flow_par$tau_year[draw,species,(endo_var+1),year-1]; # fitting 
-    rfx_fert <- fert_par$tau_year[draw,species,(endo_var+1),year-1]; 
-    rfx_spike <- spike_par$tau_year[draw,species,(endo_var+1),year-1];
+    rfx_flow <- flow_par$tau_year[draw,species,(endo_var+1),(year-1)]; # fitting 
+    rfx_fert <- fert_par$tau_year[draw,species,(endo_var+1),(year-1)]; 
+    rfx_spike <- spike_par$tau_year[draw,species,(endo_var+1),(year-1)];
     rfx_rct <- recruit_par$tau_year[draw,species,(endo_var+1),year];
   }
   
@@ -156,7 +156,7 @@ bigmatrix<-function(params,extension=0){
 
 # lambdaS function##########################################################
 lambdaSim<-function(mat_list, ## a list of transition matrices, each corresponding to a study year
-                    max_yrs=500 ## how many years the simulation runs (arbitrarily large)
+                    max_yrs=1000 ## how many years the simulation runs (arbitrarily large)
 ){
   ## grab the dimension of the projection matrix
   matdim<-dim(mat_list[[1]])[1]

@@ -2177,7 +2177,7 @@ LTREB_full <- LTREB_full_climate %>%
 
 ## Tom is loading this in, bypassing above code
 # tompath <- "C:/Users/tm9/Dropbox/EndodemogData/"
-# # LTREB_full <- read_csv(paste0(tompath,"Fulldataplusmetadata/LTREB_full.csv"))
+# LTREB_full <- read_csv(paste0(tompath,"Fulldataplusmetadata/LTREB_full.csv"))
 # 
 # LTREB_findtypo <- LTREB_full %>% 
 #   filter(species == "ELRI", plot_fixed == 109)
