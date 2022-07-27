@@ -57,7 +57,7 @@ source("Analyses/MPM_functions.R")
 #############################################################################################
 tompath <- "C:/Users/tm9/Dropbox/EndodemogData/"
 joshpath <- "~/Dropbox/EndodemogData/"
-path<-tompath
+path<-joshpath
 
 surv_fit_seedling <- read_rds(paste0(path,"/Model_Runs/endo_seedling_surv.rds"))
 surv_fit <- read_rds(paste0(path,"/Model_Runs/endo_spp_surv_woseedling.rds"))
@@ -118,10 +118,12 @@ lambda_year_obs <- array(dim = c(years_obs,(n_spp+1),n_endo,n_draws))
 # sampled years
 n_years_samp <- 50
 lambda_year_samp <- array(dim = c(n_years_samp,(n_spp+1),n_endo,n_draws))
+lambda_year_samp_extr <- array(dim = c(n_years_samp,(n_spp+1),n_endo,n_draws))
+
 # store mean and variance outputs for observed and sampled years
-lambda_mean_obs <- lambda_mean_samp <- array(dim = c((n_spp+1),n_endo,n_draws))
-lambda_sd_obs <- lambda_sd_samp <- array(dim = c((n_spp+1),n_endo,n_draws))
-lambda_cv_obs <- lambda_cv_samp <- array(dim = c((n_spp+1),n_endo,n_draws))
+lambda_mean_obs <- lambda_mean_samp <- lambda_mean_samp_extr <- array(dim = c((n_spp+1),n_endo,n_draws))
+lambda_sd_obs <- lambda_sd_samp <- lambda_sd_samp_extr <- array(dim = c((n_spp+1),n_endo,n_draws))
+lambda_cv_obs <- lambda_cv_samp <- lambda_cv_samp_extr <- array(dim = c((n_spp+1),n_endo,n_draws))
 
 for(i in 1:n_draws){
   for(e in 1:n_endo){
@@ -151,7 +153,7 @@ for(i in 1:n_draws){
       lambda_sd_obs[s,e,i] <- sd(lambda_year_obs[,s,e,i])
       lambda_cv_obs[s,e,i] <- lambda_sd_obs[s,e,i]/lambda_mean_obs[s,e,i]
     
-      # 2.Sample many hypothetical years from fitted year variances  
+      # 2.Sample many hypothetical years from fitted year variances  and for hypothetical years with increased variance
       for(yi in 1:n_years_samp){
         lambda_year_samp[yi,s,e,i] <- lambda(bigmatrix(make_params(species=s,
                                                                   endo_mean=(e-1),
@@ -172,10 +174,34 @@ for(i in 1:n_draws){
                                                                   seed_par=seed_par,
                                                                   recruit_par=recruit_par),
                                                       extension = 100)$MPMmat)
+        lambda_year_samp_extr[yi,s,e,i] <- lambda(bigmatrix(make_params(species=s,
+                                                                   endo_mean=(e-1),
+                                                                   endo_var=(e-1),
+                                                                   original = 1, # should be =1 to represent recruit
+                                                                   draw=post_draws[i],
+                                                                   max_size=max_size,
+                                                                   rfx=T,
+                                                                   samp=T,
+                                                                   samp_extreme = 1, # this should be a 100% increase in the standard deviation
+                                                                   #year=y+1, ## this pulls the t to t1 growth-surv transition and t1 reproduction -- see make_params()
+                                                                   surv_par=surv_par,
+                                                                   surv_sdlg_par = surv_sdlg_par,
+                                                                   grow_par=grow_par,
+                                                                   grow_sdlg_par = grow_sdlg_par,
+                                                                   flow_par=flow_par,
+                                                                   fert_par=fert_par,
+                                                                   spike_par=spike_par,
+                                                                   seed_par=seed_par,
+                                                                   recruit_par=recruit_par),
+                                                       extension = 100)$MPMmat)
       }
       lambda_mean_samp[s,e,i] <- mean(lambda_year_samp[,s,e,i])
       lambda_sd_samp[s,e,i] <- sd(lambda_year_samp[,s,e,i])
       lambda_cv_samp[s,e,i] <- lambda_sd_samp[s,e,i]/lambda_mean_samp[s,e,i]
+      
+      lambda_mean_samp_extr[s,e,i] <- mean(lambda_year_samp_extr[,s,e,i])
+      lambda_sd_samp_extr[s,e,i] <- sd(lambda_year_samp_extr[,s,e,i])
+      lambda_cv_samp_extr[s,e,i] <- lambda_sd_samp_extr[s,e,i]/lambda_mean_samp_extr[s,e,i]
     }
     #calculating overall species means
     lambda_mean_obs[8,e,i] <- mean(lambda_mean_obs[1:7,e,i])
@@ -185,21 +211,33 @@ for(i in 1:n_draws){
     lambda_mean_samp[8,e,i] <- mean(lambda_mean_samp[1:7,e,i])
     lambda_sd_samp[8,e,i] <- sd(lambda_mean_samp[1:7,e,i])
     lambda_cv_samp[8,e,i] <- lambda_sd_samp[8,e,i]/lambda_mean_samp[8,e,i]
+    
+    lambda_mean_samp_extr[8,e,i] <- mean(lambda_mean_samp_extr[1:7,e,i])
+    lambda_sd_samp_extr[8,e,i] <- sd(lambda_mean_samp_extr[1:7,e,i])
+    lambda_cv_samp_extr[8,e,i] <- lambda_sd_samp_extr[8,e,i]/lambda_mean_samp_extr[8,e,i]
   }
 }
 
 # Saving all of the simulations
-#saveRDS(lambda_year_obs, file = paste0(path,"/Model_Runs/MPM_output/lambda_year_obs.rds"))
+# saveRDS(lambda_year_obs, file = paste0(path,"/Model_Runs/MPM_output/lambda_year_obs.rds"))
+# 
+# saveRDS(lambda_mean_obs, file = paste0(path,"/Model_Runs/MPM_output/lambda_mean_obs.rds"))
+# saveRDS(lambda_sd_obs, file = paste0(path,"/Model_Runs/MPM_output/lambda_sd_obs.rds"))
+# saveRDS(lambda_cv_obs, file = paste0(path,"/Model_Runs/MPM_output/lambda_cv_obs.rds"))
+# 
+# saveRDS(lambda_year_samp, file = paste0(path,"/Model_Runs/MPM_output/lambda_year_samp.rds"))
+# 
+# saveRDS(lambda_mean_samp, file = paste0(path,"/Model_Runs/MPM_output/lambda_mean_samp.rds"))
+# saveRDS(lambda_sd_samp, file = paste0(path,"/Model_Runs/MPM_output/lambda_sd_samp.rds"))
+# saveRDS(lambda_cv_samp, file = paste0(path,"/Model_Runs/MPM_output/lambda_cv_samp.rds"))
+# 
+# saveRDS(lambda_year_samp_extr, file = paste0(path,"/Model_Runs/MPM_output/lambda_year_samp_extr.rds"))
+# 
+# saveRDS(lambda_mean_samp_extr, file = paste0(path,"/Model_Runs/MPM_output/lambda_mean_samp_extr.rds"))
+# saveRDS(lambda_sd_samp_extr, file = paste0(path,"/Model_Runs/MPM_output/lambda_sd_samp_extr.rds"))
+# saveRDS(lambda_cv_samp_extr, file = paste0(path,"/Model_Runs/MPM_output/lambda_cv_samp_extr.rds"))
 
-#saveRDS(lambda_mean_obs, file = paste0(path,"/Model_Runs/MPM_output/lambda_mean_obs.rds"))
-#saveRDS(lambda_sd_obs, file = paste0(path,"/Model_Runs/MPM_output/lambda_sd_obs.rds"))
-#saveRDS(lambda_cv_obs, file = paste0(path,"/Model_Runs/MPM_output/lambda_cv_obs.rds"))
 
-#saveRDS(lambda_year_samp, file = paste0(path,"/Model_Runs/MPM_output/lambda_year_samp.rds"))
-
-#saveRDS(lambda_mean_samp, file = paste0(path,"/Model_Runs/MPM_output/lambda_mean_samp.rds"))
-#saveRDS(lambda_sd_samp, file = paste0(path,"/Model_Runs/MPM_output/lambda_sd_samp.rds"))
-#saveRDS(lambda_cv_samp, file = paste0(path,"/Model_Runs/MPM_output/lambda_cv_samp.rds"))
 
 
 # reading back in the simulations
@@ -215,7 +253,13 @@ for(i in 1:n_draws){
  lambda_sd_samp <- read_rds(paste0(path,"/Model_Runs/MPM_output/lambda_sd_samp.rds"))
  lambda_cv_samp <- read_rds(paste0(path,"/Model_Runs/MPM_output/lambda_cv_samp.rds"))
 
-
+ lambda_year_samp_extr <- read_rds(paste0(path,"/Model_Runs/MPM_output/lambda_year_samp_extr.rds"))
+ 
+ lambda_mean_samp_extr <- read_rds(paste0(path,"/Model_Runs/MPM_output/lambda_mean_samp_extr.rds"))
+ lambda_sd_samp_extr <- read_rds(paste0(path,"/Model_Runs/MPM_output/lambda_sd_samp_extr.rds"))
+ lambda_cv_samp_extr <- read_rds(paste0(path,"/Model_Runs/MPM_output/lambda_cv_samp_extr.rds"))
+ 
+ 
 # Turning the sampled lambdas into a dataframe
 dimnames(lambda_mean_samp) <- list(species = paste0("s",1:8), Endo = paste0("e",1:2), Iteration= paste0("i",1:n_draws))
 dimnames(lambda_sd_samp) <- list(species = paste0("s",1:8), Endo = paste0("e",1:2), Iteration= paste0("i",1:n_draws))
@@ -311,10 +355,58 @@ lambda_cv_obs_df <- as_tibble(lambda_cv_obs_cube) %>%
                              species == "s8" ~ "Species Mean")) %>% 
   mutate(sampling = "obs")
 
-lambda_mean_df <- rbind(lambda_mean_obs_df, lambda_mean_samp_df)
-lambda_sd_df <- rbind(lambda_sd_obs_df, lambda_sd_samp_df)
-lambda_cv_df <- rbind(lambda_cv_obs_df, lambda_cv_samp_df)
+# Turning the extreme sampled lambdas into a dataframe
+dimnames(lambda_mean_samp_extr) <- list(species = paste0("s",1:8), Endo = paste0("e",1:2), Iteration= paste0("i",1:n_draws))
+dimnames(lambda_sd_samp_extr) <- list(species = paste0("s",1:8), Endo = paste0("e",1:2), Iteration= paste0("i",1:n_draws))
+dimnames(lambda_cv_samp_extr) <- list(species = paste0("s",1:8), Endo = paste0("e",1:2), Iteration= paste0("i",1:n_draws))
 
+lambda_mean_samp_extr_cube <- cubelyr::as.tbl_cube(lambda_mean_samp_extr)
+lambda_sd_samp_extr_cube <- cubelyr::as.tbl_cube(lambda_sd_samp_extr)
+lambda_cv_samp_extr_cube <- cubelyr::as.tbl_cube(lambda_cv_samp_extr)
+
+lambda_mean_samp_extr_df <- as_tibble(lambda_mean_samp_extr_cube) %>% 
+  pivot_wider(names_from = Endo, values_from = lambda_mean_samp_extr) %>% 
+  mutate(lambda_diff = e2-e1) %>% 
+  mutate(Species = case_when(species == "s1" ~ "Agrostis perennans",
+                             species == "s2" ~ "Elymus villosus",
+                             species == "s3" ~ "Elymus virginicus",
+                             species == "s4" ~ "Festuca subverticillata",
+                             species == "s5" ~ "Lolium arundinaceum",
+                             species == "s6" ~ "Poa alsodes",
+                             species == "s7" ~ "Poa sylvestris",
+                             species == "s8" ~ "Species Mean"))  %>% 
+  mutate(sampling = "samp_extr")
+
+lambda_sd_samp_extr_df <- as_tibble(lambda_sd_samp_extr_cube) %>% 
+  pivot_wider(names_from = Endo, values_from = lambda_sd_samp_extr) %>% 
+  mutate(lambda_diff = e2-e1) %>% 
+  mutate(Species = case_when(species == "s1" ~ "Agrostis perennans",
+                             species == "s2" ~ "Elymus villosus",
+                             species == "s3" ~ "Elymus virginicus",
+                             species == "s4" ~ "Festuca subverticillata",
+                             species == "s5" ~ "Lolium arundinaceum",
+                             species == "s6" ~ "Poa alsodes",
+                             species == "s7" ~ "Poa sylvestris",
+                             species == "s8" ~ "Species Mean"))  %>% 
+  mutate(sampling = "samp_extr")
+
+lambda_cv_samp_extr_df <- as_tibble(lambda_cv_samp_extr_cube) %>% 
+  pivot_wider(names_from = Endo, values_from = lambda_cv_samp_extr) %>% 
+  mutate(lambda_diff = e2-e1) %>% 
+  mutate(Species = case_when(species == "s1" ~ "Agrostis perennans",
+                             species == "s2" ~ "Elymus villosus",
+                             species == "s3" ~ "Elymus virginicus",
+                             species == "s4" ~ "Festuca subverticillata",
+                             species == "s5" ~ "Lolium arundinaceum",
+                             species == "s6" ~ "Poa alsodes",
+                             species == "s7" ~ "Poa sylvestris",
+                             species == "s8" ~ "Species Mean"))  %>% 
+  mutate(sampling = "samp_extr")
+
+# Combining the dataframes
+lambda_mean_df <- rbind(lambda_mean_obs_df, lambda_mean_samp_df, lambda_mean_samp_extr_df)
+lambda_sd_df <- rbind(lambda_sd_obs_df, lambda_sd_samp_df, lambda_sd_samp_extr_df)
+lambda_cv_df <- rbind(lambda_cv_obs_df, lambda_cv_samp_df, lambda_cv_samp_extr_df)
 # Plots of endo effects on mean, sd and cv
 meanlambda_plot <- ggplot(data = lambda_mean_df) +
   geom_hline(yintercept = 0, col = "black") + 
@@ -398,7 +490,7 @@ lambdaS_mat<-array(NA,dim=c(4,7,n_draws))
 lambdaS_mat_extreme<-array(NA,dim=c(4,7,n_draws))
 
 for(d in 1:n_draws){
-#d=1 ## pick one posterior sample
+# d=1 ## pick one posterior sample
 ## list of transition years that we observed
 A_t_obs<-list()
   for(s in 1:7){
@@ -495,11 +587,14 @@ A_t_obs<-list()
       dist[i] <- euclidean(c(lambda_t[1,i],lambda_t[2,i]),
                            c(mean(lambda_t[1,]),mean(lambda_t[2,])))
     }
-    topfour <- dist%in%rev(sort(dist))[1:4]
 
+    topsix <- dist%in%rev(sort(dist))[1:6]
+
+    
+      
     for(e in 1:4){
       lambdaS_mat[e,s,d]<-lambdaSim(mat_list = A_t_obs[[s]][[e]],max_yrs = 500)$lambdaS
-      lambdaS_mat_extreme[e,s,d]<-lambdaSim(mat_list = A_t_obs[[s]][[e]][topfour],max_yrs = 500)$lambdaS
+      lambdaS_mat_extreme[e,s,d]<-lambdaSim(mat_list = A_t_obs[[s]][[e]][topsix],max_yrs = 500)$lambdaS
     }
     
   }#s loop
@@ -535,12 +630,16 @@ barplot(rbind(tot.endo,mean.endo,var.endo,intx.endo),beside=T,main="normal")
 barplot(rbind(tot.endo.ex,mean.endo.ex,var.endo.ex,intx.endo.ex),beside=T,main="extreme")
 
 
+
+
+
+
 ## if we wanted to skew the sampling to worst and best years
 lambdaS_mat_extreme<-array(NA,dim=c(4,7,n_draws))
 ## get E+ and E- lambdas by year 
 
 ## E- lambda_t
-s<-2
+s<-1
 lambda_t<-matrix(NA,2,13)
 for(i in 1:13){
   lambda_t[1,i]<-lambda(A_t_obs[[s]][[1]][[i]])
@@ -557,11 +656,45 @@ for(i in 1:13){
   dist[i] <- euclidean(c(lambda_t[1,i],lambda_t[2,i]),
           c(mean(lambda_t[1,]),mean(lambda_t[2,])))
 }
-topfour <- dist%in%rev(sort(dist))[1:4]
+topfour <- dist%in%rev(sort(dist))[1:6]
+# getting ranks of E+ and E- lambdas to try to get a top three and bottom three separately
+recentered <-lambda_t-c(mean(lambda_t[1,]),mean(lambda_t[2,])) #recentering the points around (0,0)
+positive <- (atan2(x=recentered[1,], y = recentered[2,])) # calculating the angle in radians between the points and the x axis where negattive values are less than the mean. 
+
+
 points(lambda_t[1,topfour],lambda_t[2,topfour],col="blue",pch=16)
+points(lambda_t[1,topfour & positive>0], lambda_t[2,topfour & positive>0], col = "green", pch = 16)
+#euclidian center of the extreme points
+euc.cent_extreme <- c(c(mean(lambda_t[1,topfour]),mean(lambda_t[2,topfour])))
+points(x=euc.cent_extreme[1],y=euc.cent_extreme[2],pch=16,col="green")
+
 
 for(e in 1:4){
   lambdaS_mat_extreme[e,s,d]<-lambdaSim(mat_list = A_t_obs[[s]][[e]][topfour],max_yrs = 500)$lambdaS
 }
 
+# getting ranks of E+ and E- lambdas to try to get a top three and bottom three separately
+recentered <-lambda_t-c(mean(lambda_t[1,]),mean(lambda_t[2,])) #recentering the points around (0,0)
+
+positive <- (atan2(x=recentered[1,], y = recentered[2,])) # calculating the angle in radians between the points and the x axis where negattive values are less than the mean. 
+
+
+topsix
+euclidean(c(-1,-1),c(0,0))
+
+origin_dist <- c()
+for(i in 1:13){
+  origin_dist[i] <- euclidean(c(recentered[1,i],recentered[2,i]),
+                              c(mean(recentered[1,]),mean(recentered[2,])))
+}
+  
+
+
+# trying to figure out how to sample from the full posterior just 5 and 95% quantiles
+qnorm(p = .95, mean = 0, sd = 1)
+
+hist(sample(prob = dnorm(x = 10, mean = 0, sd = 2), x = 1:2))
+points(sample(x = dnorm(x = qnorm(p = .95, mean = 0, sd = 1):10, mean = 0, sd = 2),size = 100, replace = T), col = "red")
+# Could do this in the vital rates, but maybe better to just increase the sd by 10 percent
+rfx_surv <- sample(qnorm(p=c(seq(.9,1,.001),seq(0,.1,.001)),mean = 0, sd=surv_par$sigma_year[draw,species,(endo_var+1)]),size = 1) # sample the tenth and ninetieth percentiles
 
