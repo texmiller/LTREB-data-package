@@ -206,22 +206,22 @@ LTREB_data_forfert <- LTREB_full %>%
 # dim(LTREB_data_forfert)
 
 
-# LTREB_data_forspike <- LTREB_full %>%
-#   dplyr::select(-FLW_COUNT_T1, -FLW_STAT_T1, -SPIKE_A_T1, -SPIKE_B_T1, -SPIKE_C_T1, -SPIKE_D_T1, -SPIKE_AGPE_MEAN_T1, -endo_status_from_check, -plot_endo_for_check, -endo_mismatch, -dist_a, -dist_b) %>% 
-#   filter(!is.na(FLW_STAT_T)) %>% 
-#   filter(FLW_STAT_T>0) %>% 
-#   melt(id.var = c("plot_fixed" ,   "plot_index",         "pos"         ,           "id",
-#                   "species"       ,         "species_index"  ,        "endo_01",
-#                   "endo_index"  ,           "origin_01"       ,       "birth" ,
-#                   "year_t1"         ,       "year_t1_index"       ,   "surv_t1" ,
-#                   "size_t1"         ,       "logsize_t1"       ,
-#                   "year_t",
-#                   "year_t_index"     ,      "size_t"           ,      "logsize_t"  ,
-#                   "FLW_COUNT_T"      ,      "FLW_STAT_T"),
-#        value.name = "spike_count_t") %>% 
-#   rename(spikelet_id = variable) %>% 
-#   filter(!is.na(spike_count_t), spike_count_t > 0) %>% 
-#   mutate(spike_count_t = as.integer(spike_count_t))
+LTREB_data_forspike <- LTREB_full %>%
+  dplyr::select(-FLW_COUNT_T, -FLW_STAT_T, -SPIKE_A_T, -SPIKE_B_T, -SPIKE_C_T, -SPIKE_D_T, -SPIKE_AGPE_MEAN_T, -census_month, -year, -spei1,-spei24, -annual_temp, -annual_precip, -endo_status_from_check, -plot_endo_for_check, -endo_mismatch, -dist_a, -dist_b) %>% 
+  filter(!is.na(FLW_STAT_T1)) %>% 
+  filter(FLW_STAT_T1>0) %>% 
+  melt(id.var = c("plot_fixed" ,   "plot_index",         "pos"         ,           "id",
+                  "species"       ,         "species_index"  ,        "endo_01",
+                  "endo_index"  ,           "origin_01"       ,       "birth" , "spei12",
+                  "year_t1"         ,       "year_t1_index"       ,   "surv_t1" ,
+                  "size_t1"         ,       "logsize_t1"       ,
+                  "year_t",
+                  "year_t_index"     ,      "size_t"           ,      "logsize_t"  ,
+                  "FLW_COUNT_T1"      ,      "FLW_STAT_T1"),
+       value.name = "spike_count_t1") %>% 
+  rename(spikelet_id = variable) %>% 
+  filter(!is.na(spike_count_t1), spike_count_t1 > 0) %>% 
+  mutate(spike_count_t1 = as.integer(spike_count_t1))
 # 
 # # ggplot(LTREB_data_forspike)+
 #   geom_histogram(aes(x=spike_count_t))+
@@ -336,22 +336,24 @@ fert_data_list <- list(y = as.integer(LTREB_data_forfert$FLW_COUNT_T1),
                        nPlot = max(unique(LTREB_data_forfert$plot_index)),
                        nEndo =   length(unique(LTREB_data_forfert$endo_01)))
 str(fert_data_list)
-# 
-# 
-# spike_data_list <- list(nYear = max(unique(LTREB_data_forspike$year_t_index)),
-#                         nPlot = max(unique(LTREB_data_forspike$plot_index)),
-#                         nSpp = length(unique(LTREB_data_forspike$species)),
-#                         nEndo=length(unique(LTREB_data_forspike$endo_01)),
-#                         N = nrow(LTREB_data_forspike),
-#                         year_t = as.integer(LTREB_data_forspike$year_t_index),
-#                         plot = as.integer(LTREB_data_forspike$plot_index),
-#                         spp = as.integer(as.numeric(as.factor(LTREB_data_forspike$species))),
-#                         y = LTREB_data_forspike$spike_count_t,
-#                         logsize_t = LTREB_data_forspike$logsize_t,
-#                         endo_01 = LTREB_data_forspike$endo_01,
-#                         origin_01 = LTREB_data_forspike$origin_01)
-# str(spike_data_list)
 
+
+
+spike_data_list <- list(nYear = max(unique(LTREB_data_forspike$year_t_index)),
+                        nPlot = max(unique(LTREB_data_forspike$plot_index)),
+                        nSpp = length(unique(LTREB_data_forspike$species)),
+                        nEndo=length(unique(LTREB_data_forspike$endo_01)),
+                        N = nrow(LTREB_data_forspike),
+                        year_t = as.integer(LTREB_data_forspike$year_t_index),
+                        plot = as.integer(LTREB_data_forspike$plot_index),
+                        spp = as.integer(LTREB_data_forspike$species_index),
+                        y = LTREB_data_forspike$spike_count_t1,
+                        logsize = LTREB_data_forspike$logsize_t1,
+                        endo_01 = LTREB_data_forspike$endo_01,
+                        origin_01 = LTREB_data_forspike$origin_01, 
+                        spei = as.numeric(LTREB_data_forspike$spei12),
+                        spei_nl = as.numeric(LTREB_data_forspike$spei12^2))
+str(spike_data_list)
 #########################################################################################################
 # Stan model runs------------------------------
 #########################################################################################################
@@ -373,7 +375,7 @@ sm_surv <- stan(file = "Analyses/climate_endo_spp_surv_flw.stan", data = surv_da
                 warmup = mcmc_pars$warmup,
                 chains = mcmc_pars$chains, 
                 thin = mcmc_pars$thin)
-# saveRDS(sm_surv, file = "~/Dropbox/EndodemogData/Model_Runs/climate_endo_spp_surv_woseedling.rds")
+saveRDS(sm_surv, file = "~/Dropbox/EndodemogData/Model_Runs/climate_endo_spp_surv_woseedling_linear.rds")
 # The model with squared climate terrms gives max_treedepth warnings but otherwise converges okay but without non-linear terms does not have wraning.
 
 #Running the seedling survival model for 10000 iterations running for only 5000 led to low effective sample size warnings, most likely in sigma0 parameter
@@ -454,9 +456,10 @@ pred0 <- pred %>%
 
 seedlingsurv_climate_plot <- ggplot(data = LTREB_seedlingsurv_means)+
   geom_point(aes(x = spei12, y = mean_surv, color = species, shape = endo, size = count))+ 
-  geom_line(data = filter(pred0,effect == "lin"), aes(x = spei, y = value, color = species, lty = endo))+
-  facet_wrap(~species)+
-  # facet_wrap(~species+effect) +
+  geom_line(data = pred0, aes(x = spei, y = value, color = species, lty = endo))+
+  # geom_line(data = filter(pred0,effect == "lin"), aes(x = spei, y = value, color = species, lty = endo))+
+  # facet_wrap(~species)+
+  facet_wrap(~species+effect) +
   scale_color_manual(values = c("#dbdb42", "#b8e3a0", "#7fcdbb", "#41b6c4", "#1d91c0", "#225ea8", "#0c2c84")) +
   scale_shape_manual(values = c(16,1))+
   ylab("Mean Seedling Survival") + xlab("SPEI (12 month)") +
@@ -468,14 +471,17 @@ ggsave(seedlingsurv_climate_plot, filename = "seedlingsurv_climate_plot.png", wi
 
 
 
-
+# running the flowering model with just linear SPEI term fits without errors
+# fitting the fowering model with the polynomial SPEI term gives max_treedepth errors
 sm_flw <- stan(file = "Analyses/climate_endo_spp_surv_flw.stan", data = flw_data_list,
                 iter = mcmc_pars$iter,
                 warmup = mcmc_pars$warmup,
                 chains = mcmc_pars$chains, 
                 thin = mcmc_pars$thin)
-saveRDS(sm_flw, file = "~/Dropbox/EndodemogData/Model_Runs/climate_endo_spp_flw.rds")
-# gave the same max_treedepth warning, but otherwise ran okay
+# saveRDS(sm_flw, file = "~/Dropbox/EndodemogData/Model_Runs/climate_endo_spp_flw.rds")
+saveRDS(sm_flw, file = "~/Dropbox/EndodemogData/Model_Runs/climate_endo_spp_flw_nonlinear.rds")
+
+# gave the same max_treedepth warning, but otherwise ran okay when run with polynomial term.
 
 
 # Running the growth model with the PIG with climate effects
@@ -486,27 +492,43 @@ sm_grow <- stan(file = "Analyses/climate_endo_spp_grow_fert_PIG.stan", data = gr
                warmup = mcmc_pars$warmup,
                chains = mcmc_pars$chains, 
                thin = mcmc_pars$thin)
-saveRDS(sm_grow, file = "~/Dropbox/EndodemogData/Model_Runs/climate_endo_grow_fert_PIG_nonlinear.rds")
+# saveRDS(sm_grow, file = "~/Dropbox/EndodemogData/Model_Runs/climate_endo_grow_PIG_linear.rds")
+# saveRDS(sm_grow, file = "~/Dropbox/EndodemogData/Model_Runs/climate_endo_grow_PIG_nonlinear.rds")
 # gave the same max_treedepth warning, but otherwise ran okay
 
 # fitting linear model with 5000 iterations gives low bulk and tail ESS, rerunning with 10000 (this is what we had to do for non-climate model as well)
 # ftting linear model for 10000 iteration fits with no errors or warnings
+# fitting non-linear model for 10000 iterations fits with no errors or warnings
 sm_seedgrow <- stan(file = "Analyses/climate_seedling_grow_PIG.stan", data = seed_grow_data_list,
                 iter = mcmc_pars$iter*2,
                 warmup = mcmc_pars$warmup*2,
                 chains = mcmc_pars$chains, 
                 thin = mcmc_pars$thin)
-saveRDS(sm_seedgrow, file = "~/Dropbox/EndodemogData/Model_Runs/climate_seedling_grow_linear_10000iterations.rds")
+saveRDS(sm_seedgrow, file = "~/Dropbox/EndodemogData/Model_Runs/climate_seedling_grow_nonlinear_10000iterations.rds")
 # sm_seedgrow_linear <- readRDS(file = "~/Dropbox/EndodemogData/Model_Runs/climate_endo_seedling_grow_linear.rds")
 
+# linear fert model fits with no warnings or errors
+# nonlinear fert model fits with no warnings or errors
 sm_fert <- stan(file = "Analyses/climate_endo_spp_grow_fert_PIG.stan", data =fert_data_list,
                 iter = mcmc_pars$iter,
                 warmup = mcmc_pars$warmup,
                 chains = mcmc_pars$chains, 
                 thin = mcmc_pars$thin)
+# saveRDS(sm_fert, file = "~/Dropbox/EndodemogData/Model_Runs/climate_endo_fert_PIG_linear.rds")
 saveRDS(sm_fert, file = "~/Dropbox/EndodemogData/Model_Runs/climate_endo_fert_PIG_nonlinear.rds")
+
+#fitting the spike data as negative binomial with just linear spei term
+# fitting the spide data with nonlinear term gives tree-depth warnings
+sm_spike_nb <- stan(file = "Analyses/climate_endo_spp_spike_nb.stan", data = spike_data_list,
+                    iter = mcmc_pars$iter,
+                    warmup = mcmc_pars$warmup,
+                    chains = mcmc_pars$chains, 
+                    thin = mcmc_pars$thin)
+saveRDS(sm_spike_nb, file = "~/Dropbox/EndodemogData/Model_Runs/climate_endo_spp_spike_linear.rds")
+saveRDS(sm_spike_nb, file = "~/Dropbox/EndodemogData/Model_Runs/climate_endo_spp_spike_nonlinear.rds")
+
 #########################################################################################################
-# Model Diagnostics ------------------------------
+# Linear Model Diagnostics ------------------------------
 #########################################################################################################
 # Function for looking at binned size_t fits, particularly important for the growth kernel as this determines the transitions through the matrix model
 size_moments_ppc <- function(data,y_name,sim, n_bins, title = NA){
@@ -564,19 +586,20 @@ size_moments_ppc <- function(data,y_name,sim, n_bins, title = NA){
 
 
 #### survival ppc ####
-surv_fit <- sm_surv
-surv_fit <- read_rds("~/Dropbox/EndodemogData/Model_Runs/climate_endo_spp_surv_woseedling.rds")
+surv_fit <- read_rds("~/Dropbox/EndodemogData/Model_Runs/climate_endo_spp_surv_woseedling_linear.rds")
 predS <- rstan::extract(surv_fit, pars = c("p"))$p # extract the linear predictor
-n_post_draws <- 100
+n_post_draws <- 500
 post_draws <- sample.int(dim(predS)[1], n_post_draws) # draw samples from the posterior of the linear predictor
 y_s_sim <- matrix(NA,n_post_draws,length(surv_data_list$y))
 for(i in 1:n_post_draws){
   y_s_sim[i,] <- rbinom(n=length(surv_data_list$y), size=1, prob = invlogit(predS[post_draws[i],]))
 }
+saveRDS(y_s_sim, file = "yrep_climatesurvivalmodel_linear.rds")
+y_s_sim <- readRDS(file = "yrep_climatesurvivalmodel_linear.rds")
 # ppc_dens_overlay(surv_data_list$y, y_s_sim)
 surv_densplot <- ppc_dens_overlay(surv_data_list$y, y_s_sim) + theme_classic() + labs(title = "Adult Survival", x = "Survival status", y = "Density")
 surv_densplot
-# ggsave(surv_densplot, filename = "surv_densplot.png", width = 4, height = 4)
+ggsave(surv_densplot, filename = "climate_surv_densplot.png", width = 4, height = 4)
 
 traceplot(surv_fit, pars = "sigma0")
 
@@ -584,7 +607,8 @@ mean_s_plot <-   ppc_stat(surv_data_list$y, y_s_sim, stat = "mean")
 sd_s_plot <- ppc_stat(surv_data_list$y, y_s_sim, stat = "sd")
 skew_s_plot <- ppc_stat(surv_data_list$y, y_s_sim, stat = "skewness")
 kurt_s_plot <- ppc_stat(surv_data_list$y, y_s_sim, stat = "Lkurtosis")
-grid.arrange(mean_s_plot,sd_s_plot,skew_s_plot,kurt_s_plot,  top = "Survival")
+surv_moments <- grid.arrange(mean_s_plot,sd_s_plot,skew_s_plot,kurt_s_plot,  top = "Survival")
+# ggsave(surv_moments, filename = "climate_surv_momentplot.png", width = 4, height = 4)
 
 
 # now we want to look at how the the model is fitting across sizes
@@ -594,48 +618,50 @@ surv_size_ppc <- size_moments_ppc(data = LTREB_data_forsurv,
                                   sim = y_s_sim, 
                                   n_bins = 4, 
                                   title = "Survival")
+# ggsave(surv_size_ppc, filename = "climate_surv_size_ppc.png", width = 4, height = 4)
+
 
 #### seedling survival ppc ####
 surv_seed_fit <- read_rds("~/Dropbox/EndodemogData/Model_Runs/climate_endo_seedling_surv_withoutquadraticterm.rds")
 predseedS <- rstan::extract(surv_seed_fit, pars = c("p"))$p
-n_post_draws <- 100
+n_post_draws <- 500
 post_draws <- sample.int(dim(predseedS)[1], n_post_draws)
 y_seed_s_sim <- matrix(NA,n_post_draws,length(seed_surv_data_list$y))
 for(i in 1:n_post_draws){
   y_seed_s_sim[i,] <- rbinom(n=length(seed_surv_data_list$y), size=1, prob = invlogit(predseedS[post_draws[i],]))
 }
-# saveRDS(y_seed_s_sim, file = "yrep_spei_seedlingsurvivalmodel.rds")
-# y_seed_s_sim <- readRDS(file = "yrer_spei_seedlingsurvivalmodel.rds")
+saveRDS(y_seed_s_sim, file = "yrep_climate_seedlingsurvivalmodel_linear.rds")
+y_seed_s_sim <- readRDS(file = "yrep_climate_seedlingsurvivalmodel_linear.rds")
 # ppc_dens_overlay(seed_surv_data_list$y, y_s_sim)
 seedsurv_densplot <- ppc_dens_overlay(seed_surv_data_list$y, y_seed_s_sim) + theme_classic() + labs(title = "Seedling Survival", x = "Survival status", y = "Density")
-seedsurv_densplot
-# ggsave(seedsurv_densplot, filename = "seedsurv_densplot.png", width = 4, height = 4)
+# seedsurv_densplot
+# ggsave(seedsurv_densplot, filename = "climate_seedsurv_densplot.png", width = 4, height = 4)
 
 mean_s_plot <-   ppc_stat(seed_surv_data_list$y, y_seed_s_sim, stat = "mean")
 sd_s_plot <- ppc_stat(seed_surv_data_list$y, y_seed_s_sim, stat = "sd")
 skew_s_plot <- ppc_stat(seed_surv_data_list$y, y_seed_s_sim, stat = "skewness")
 kurt_s_plot <- ppc_stat(seed_surv_data_list$y, y_seed_s_sim, stat = "Lkurtosis")
 climate_seedsurv_moments <- mean_s_plot+sd_s_plot+skew_s_plot+kurt_s_plot + plot_annotation(title = "Seedling Survival")
-climate_seedsurv_moments
+# climate_seedsurv_moments
 # ggsave(climate_seedsurv_moments, filename = "climate_seedsurv_momentsplot.png", width = 4, height = 4)
 
 
 #### flowering ppc ####
 flow_fit <- read_rds("~/Dropbox/EndodemogData/Model_Runs/climate_endo_spp_flw.rds")
 predF <- rstan::extract(flow_fit, pars = c("p"))$p
-n_post_draws <- 100
+n_post_draws <- 500
 post_draws <- sample.int(dim(predF)[1], n_post_draws)
 y_f_sim <- matrix(NA,n_post_draws,length(flw_data_list$y))
 for(i in 1:n_post_draws){
   y_f_sim[i,] <- rbinom(n=length(flw_data_list$y), size=1, prob = invlogit(predF[post_draws[i],]))
 }
-# saveRDS(y_f_sim, file = "yrep_spei_floweringmodel.rds")
-# y_f_sim <- readRDS(file = "yrep_spei_floweringmodel.rds")
+saveRDS(y_f_sim, file = "yrep_climate_floweringmodel_linear.rds")
+# y_f_sim <- readRDS(file = "yrep_climate_floweringmodel_linear.rds")
 
 # ppc_dens_overlay(flw_data_list$y, y_f_sim)
 flw_densplot <- ppc_dens_overlay(flw_data_list$y, y_f_sim) + theme_classic() + labs(title = "Flowering", x = "Flowering status", y = "Density")
 flw_densplot
-ggsave(flw_densplot, filename = "flw_densplot.png", width = 4, height = 4)
+ggsave(flw_densplot, filename = "climate_flw_densplot.png", width = 4, height = 4)
 
 
 mean_f_plot <-   ppc_stat(flw_data_list$y, y_f_sim, stat = "mean")
@@ -644,7 +670,7 @@ skew_f_plot <- ppc_stat(flw_data_list$y, y_f_sim, stat = "skewness")
 kurt_f_plot <- ppc_stat(flw_data_list$y, y_f_sim, stat = "Lkurtosis")
 flw_moments <- mean_f_plot+sd_f_plot+skew_f_plot+kurt_f_plot +plot_annotation(title = "Flowering")
 flw_moments
-# ggsave(flw_moments, filename = "flw_momentsplot.png", width = 4, height = 4)
+# ggsave(flw_moments, filename = "climate_flw_momentsplot.png", width = 4, height = 4)
 
 # now we want to look at how the the model is fitting across sizes
 flw_size_ppc <- size_moments_ppc(data = LTREB_data_forflw,
@@ -652,6 +678,201 @@ flw_size_ppc <- size_moments_ppc(data = LTREB_data_forflw,
                                  sim = y_f_sim, 
                                  n_bins = 2, 
                                  title = "Flowering")
-# ggsave(flw_size_ppc, filename = "flw_size_ppc.png", width = 4, height = 4)
+# ggsave(flw_size_ppc, filename = "climate_flw_size_ppc.png", width = 4, height = 4)
 
+#### Growth ppc ####
+#growth PIG distribution
+grow_fit <- read_rds("~/Dropbox/EndodemogData/Model_Runs/climate_endo_grow_PIG_linear.rds")
+# pairs(grow_fit, pars = c("beta0"))
+grow_par <- rstan::extract(grow_fit, pars = c("predG","beta0","betasize","betaendo","betaorigin","tau_year","tau_plot","theta", "sigma"))
+predG <- grow_par$predG
+theta <- grow_par$theta
+n_post_draws <- 500
+post_draws <- sample.int(dim(predG)[1], n_post_draws)
+y_g_sim   <-  matrix(NA,n_post_draws,length(grow_data_list$y))
+
+# simulate data
+for(i in 1:n_post_draws){
+  ## sample growth data (zero-truncated PIG)
+  for(j in 1:length(grow_data_list$y)){
+    # probability without truncation
+    prob_v <- dpois( 1:1000, 
+                     lambda = (predG[i,j] * theta[i,j]) )
+    # probability for trunctation (denominator)
+    prob_t <- (1 - dpois(0, lambda = (predG[i,j] * theta[i,j]) ) )
+    
+    y_g_sim[i,j] <- sample( x=1:1000, 
+                            size = 1, replace = T,
+                            prob = prob_v / prob_t )
+  }
+}
+saveRDS(y_g_sim, file = "yrep_climate_growthPIGmodel_linear.rds")
+y_g_sim <- readRDS(file = "yrep_climate_growthPIGmodel_linear.rds")
+
+# Posterior predictive check
+ppc_dens_overlay(grow_data_list$y, y_g_sim)
+ppc_dens_overlay(grow_data_list$y, y_g_sim) + xlim(0,60) + ggtitle("growth w/o seedling PIG")
+ppc_dens_overlay(grow_data_list$y, y_g_sim) + xlim(50,120)
+
+grow_densplot <- ppc_dens_overlay(grow_data_list$y, y_g_sim) + xlim(0,60) + theme_classic() + labs(title = "Growth w/o seedling PIG", x = "No. of Tillers", y = "Density")
+grow_densplot
+ggsave(grow_densplot, filename = "climate_grow_densplot.png", width = 4, height = 4)
+
+
+
+mean_g_plot <-   ppc_stat(grow_data_list$y, y_g_sim, stat = "mean")
+sd_g_plot <- ppc_stat(grow_data_list$y, y_g_sim, stat = "sd")
+skew_g_plot <- ppc_stat(grow_data_list$y, y_g_sim, stat = "skewness")
+kurt_g_plot <- ppc_stat(grow_data_list$y, y_g_sim, stat = "Lkurtosis")
+grow_moments <- mean_g_plot+sd_g_plot+skew_g_plot+kurt_g_plot+ plot_annotation(title = "Growth PIG")
+grow_moments
+ggsave(grow_moments, filename = "climate_grow_momentsplot.png", width = 4, height = 4)
+
+
+# now we want to look at how the the growth model is fitting especially across sizes, as this determines the transitions through the matrix model
+PIG_growth_size_ppc <- size_moments_ppc(data = LTREB_data_forgrow,
+                                        y_name = "size_t1",
+                                        sim = y_g_sim, 
+                                        n_bins = 6, 
+                                        title = "Growth PIG")
+ggsave(PIG_growth_size_ppc, filename = "PIG_climate_growth_size_pcc.png", width = 4, height = 4)
+
+
+#### Seedling Growth ppc ####
+#seedling growth PIG distribution
+s_grow_fit <- read_rds("~/Dropbox/EndodemogData/Model_Runs/climate_seedling_grow_linear_10000iterations.rds")
+# pairs(grow_fit, pars = c("beta0"))
+s_grow_par <- rstan::extract(s_grow_fit, pars = c("predG","beta0","betaendo","tau_year","tau_plot","theta", "sigma"))
+predseedG <- s_grow_par$predG
+seed_theta <- s_grow_par$theta
+n_post_draws <- 500
+post_draws <- sample.int(dim(predseedG)[1], n_post_draws)
+y_seed_g_sim   <-  matrix(NA,n_post_draws,length(seed_grow_data_list$y))
+
+# simulate data
+for(i in 1:n_post_draws){
+  ## sample growth data (zero-truncated PIG)
+  for(j in 1:length(seed_grow_data_list$y)){
+    # probability without truncation
+    prob_v <- dpois( 1:1000, 
+                     lambda = (predseedG[i,j] * seed_theta[i,j]) )
+    # probability for trunctation (denominator)
+    prob_t <- (1 - dpois(0, lambda = (predseedG[i,j] * seed_theta[i,j]) ) )
+    
+    y_seed_g_sim[i,j] <- sample( x=1:1000, 
+                                 size = 1, replace = T,
+                                 prob = prob_v / prob_t )
+  }
+}
+
+saveRDS(y_seed_g_sim, file = "yrep_climate_seedlinggrowthPIGmodel_linear.rds")
+y_seed_g_sim <- readRDS(file = "yrep_climate_seedlinggrowthPIGmodel_linear.rds")
+
+# Posterior predictive check
+ppc_dens_overlay(seed_grow_data_list$y, y_seed_g_sim)
+ppc_dens_overlay(seed_grow_data_list$y, y_seed_g_sim) + xlim(0,20) + ggtitle("seedling growth w/ PIG")
+ppc_dens_overlay(seed_grow_data_list$y, y_seed_g_sim) + xlim(50,120)
+
+seedgrow_densplot <- ppc_dens_overlay(seed_grow_data_list$y, y_seed_g_sim) + xlim(0,60) + theme_classic() + labs(title = "Seedling Growth with PIG", x = "No. of Tillers", y = "Density")
+seedgrow_densplot
+ggsave(seedgrow_densplot, filename = "seed_grow_densplot.png", width = 4, height = 4)
+
+
+
+mean_seed_g_plot <-   ppc_stat(seed_grow_data_list$y, y_seed_g_sim, stat = "mean")
+sd_seed_g_plot <- ppc_stat(seed_grow_data_list$y, y_seed_g_sim, stat = "sd")
+skew_seed_g_plot <- ppc_stat(seed_grow_data_list$y, y_seed_g_sim, stat = "skewness")
+kurt_seed_g_plot <- ppc_stat(seed_grow_data_list$y, y_seed_g_sim, stat = "Lkurtosis")
+seedgrow_moments <- mean_seed_g_plot+sd_seed_g_plot+skew_seed_g_plot+kurt_seed_g_plot+ plot_annotation(title = "Seedling Growth PIG")
+seedgrow_moments
+ggsave(seedgrow_moments, filename = "seedgrow_momentsplot.png", width = 4, height = 4)
+
+
+#### Fertility ppc ####
+# Fert fit with Poisson inverse Gaussian
+
+fert_fit_pig <- read_rds("~/Dropbox/EndodemogData/Model_Runs/climate_endo_fert_PIG_linear.rds")
+fert_par <- rstan::extract(fert_fit_pig, pars = c("predG","beta0","betasize","betaendo","betaorigin","tau_year","tau_plot","theta", "sigma"))
+predG <- fert_par$predG
+theta <- fert_par$theta
+n_post_draws <- 500
+post_draws <- sample.int(dim(predG)[1], n_post_draws)
+y_fert_sim   <-  matrix(NA,n_post_draws,length(fert_data_list$y))
+
+# simulate data
+for(i in 1:n_post_draws){
+  ## sample fertilty data (zero-truncated PIG)
+  for(j in 1:length(fert_data_list$y)){
+    # probability without truncation
+    prob_v <- dpois( 1:1000, 
+                     lambda = (predG[i,j] * theta[i,j]) )
+    # probability for trunctation (denominator)
+    prob_t <- (1 - dpois(0, lambda = (predG[i,j] * theta[i,j]) ) )
+    
+    y_fert_sim[i,j] <- sample( x=1:1000, 
+                               size = 1, replace = T,
+                               prob = prob_v / prob_t )
+  }
+}
+saveRDS(y_fert_sim, file = "yrep_climate_fertilityPIGmodel_linear.rds")
+y_fert_sim <- readRDS(file = "yrep_climate_fertilityPIGmodel_linear.rds")
+
+
+# Posterior predictive check
+ppc_dens_overlay(fert_data_list$y, y_fert_sim)
+ppc_dens_overlay(fert_data_list$y, y_fert_sim) + xlim(50,120)
+fert_densplot <- ppc_dens_overlay(fert_data_list$y, y_fert_sim) + xlim(0,40) + ggtitle("Fertility with PIG")
+fert_densplot
+ggsave(fert_densplot, filename = "fert_densplot_withPIG.png", width = 4, height = 4)
+
+# This doesn't fit all the moments quite as well, but it's likely good enough
+mean_fert_plot <-   ppc_stat(fert_data_list$y, y_fert_sim, stat = "mean")
+sd_fert_plot <- ppc_stat(fert_data_list$y, y_fert_sim, stat = "sd")
+skew_fert_plot <- ppc_stat(fert_data_list$y, y_fert_sim, stat = "skewness")
+kurt_fert_plot <- ppc_stat(fert_data_list$y, y_fert_sim, stat = "Lkurtosis")
+fert_moments <- mean_fert_plot+sd_fert_plot+skew_fert_plot+kurt_fert_plot + plot_annotation(title = "Fertility with PIG")
+fert_moments
+ggsave(fert_moments, filename = "fert_momentsplot_withPIG.png", width = 4, height = 4)
+
+# Now we can look at the binned size fit for fertility
+fert_size_ppc <- size_moments_ppc(data = LTREB_data_forfert,
+                                  y_name = "FLW_COUNT_T1",
+                                  sim = y_fert_sim, 
+                                  n_bins = 3, 
+                                  title = "Inflorescence Count")
+ggsave(fert_size_ppc, filename = "fert_size_ppc.png", width = 4, height = 4)
+
+
+#### spikelet ppc ####
+# looking at the negative binomial fit, fits really nicely
+spike_fit <- read_rds("~/Dropbox/EndodemogData/Model_Runs/climate_endo_spp_spike_linear.rds")
+spike_par <- rstan::extract(spike_fit, pars = c("lambda","beta0","betasize","betaendo","betaorigin","tau_year","tau_plot", "phi", "od"))
+predSpike <- spike_par$lambda
+phiSpike <- spike_par$phi
+odSpike <- spike_par$od
+
+n_post_draws <- 500
+post_draws <- sample.int(dim(predSpike)[1], n_post_draws)
+y_spike_sim <- matrix(NA,n_post_draws,length(spike_data_list$y))
+for(i in 1:n_post_draws){
+  for(j in 1:length(spike_data_list$y)){
+    y_spike_sim[i,j] <- sample(x = 1:max(spike_data_list$y), size = 1, replace = T, prob = dnbinom(1:max(spike_data_list$y), mu = exp(predSpike[post_draws[i],j]), size = odSpike[post_draws[i],j]))
+  }
+}
+saveRDS(y_spike_sim, file = "yrep_climate_spikeletNBmodel_linear.rds")
+y_spike_sim <- readRDS(file = "yrep_climate_spikeletNBmodel_linear.rds")
+
+ppc_dens_overlay(spike_data_list$y, y_spike_sim)
+ppc_dens_overlay(spike_data_list$y, y_spike_sim) + xlim(0,250) + ggtitle("Spikelet Count")
+spike_densplot <- ppc_dens_overlay(spike_data_list$y, y_spike_sim) + xlim(0,250) + ggtitle("Spikelet Count")
+spike_densplot
+ggsave(spike_densplot, filename = "spike_densplot.png", width = 4, height = 4)
+
+mean_spike_plot <-   ppc_stat(spike_data_list$y, y_spike_sim, stat = "mean")
+sd_spike_plot <- ppc_stat(spike_data_list$y, y_spike_sim, stat = "sd")
+skew_spike_plot <- ppc_stat(spike_data_list$y, y_spike_sim, stat = "skewness")
+kurt_spike_plot <- ppc_stat(spike_data_list$y, y_spike_sim, stat = "Lkurtosis")
+spike_moments <- mean_spike_plot+sd_spike_plot+skew_spike_plot+kurt_spike_plot+ plot_annotation(title = "Spikelets per Infl. ZTNB")
+spike_moments
+ggsave(spike_moments, filename = "spike_momentsplot.png", width = 4, height = 4)
 
