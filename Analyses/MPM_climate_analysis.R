@@ -35,7 +35,7 @@ max_size <- LTREB_full %>%
             max_size = quantile(size_t,probs=0.975),
             max_size_99 = quantile(size_t,probs=0.99)) # The mean and sd effects plots look basically identical with either max size
 
-spei_range_df <- LTREB_full %>% 
+spei_minmax <- LTREB_full %>% 
   dplyr::select(species,species_index, spei12) %>% 
   filter(!is.na(spei12)) %>% 
   group_by(species, species_index) %>% 
@@ -96,7 +96,7 @@ spei_recruit_par <- rstan::extract(spei_stos_fit, pars = quote_bare(beta0,betaen
 
 ## SET-UP
 # make the list of parameters and calculate mean lambdas
-n_draws <- 10 # the means are the same whether we do 500 or 1000 draws
+n_draws <- 500# the means are the same whether we do 500 or 1000 draws
 post_draws <- sample.int(7500,size=n_draws) # The models except for seedling growth have 7500 iterations. That one has more (15000 iterations) to help it converge.
 n_spp <- length(unique(LTREB_full$species))
 n_endo <- 2
@@ -104,7 +104,7 @@ n_endo <- 2
 spei_steps <- 10
 spei_range <- array(dim = c(n_spp,spei_steps))
 for(s in 1:n_spp){
-spei_range[s,] <- seq(from = spei_range_df$min_spei[s], to = spei_range_df$max_spei[s], length.out = 10)
+spei_range[s,] <- seq(from = spei_minmax$min_spei[s], to = spei_minmax$max_spei[s], length.out = 10)
 }
 lambda_spei <- array(dim = c(spei_steps,(n_spp+1),n_endo,n_draws))
 
@@ -134,17 +134,23 @@ for(i in 1:n_draws){
                                                      extension = 100)$MPMmat) # the extension parameter is used to fit the growth kernel to sizes larger than max size without losing probability density
       } # endo of spei loop
     } # endo of species loop
-    # calculating overall species mean
-    lambda_spei[,8,e,i] <- mean(lambda_spei[,1:7,e,i])
   }# endo of endo loop
 } # end of iteration loop
 
-dimnames(lambda_spei) <- list(spei = paste0("spei",1:spei_steps),species = paste0("s",1:nspp+1), Endo = paste0("e",1:2), Iteration= paste0("i",1:n_draws))
+# calculating overall species mean
+for(i in 1:n_draws){
+  for(e in 1:n_endo){
+    lambda_spei[,8,e,i] <- rowMeans(lambda_spei[,1:7,e,i])
+  }
+}
+
+saveRDS(lambda_spei, file = "~/Dropbox/EndodemogData/Model_Runs/MPM_output/lambda_spei.rds")
+lambda_spei <- read_rds(file = "~/Dropbox/EndodemogData/Model_Runs/MPM_output/lambda_spei.rds")
+
+dimnames(lambda_spei) <- list(spei = paste0("spei",1:spei_steps),species = paste0("s",1:(n_spp+1)), Endo = paste0("e",1:2), Iteration= paste0("i",1:n_draws))
 lambda_spei_cube <- cubelyr::as.tbl_cube(lambda_spei)
 
 lambda_spei_df <- as_tibble(lambda_spei_cube) %>% 
-  pivot_wider(names_from = Endo, values_from = lambda_spei) %>% 
-  mutate(lambda_diff = e2-e1) %>% 
   mutate(Species = case_when(species == "s1" ~ "Agrostis perennans",
                              species == "s2" ~ "Elymus villosus",
                              species == "s3" ~ "Elymus virginicus",
@@ -152,6 +158,40 @@ lambda_spei_df <- as_tibble(lambda_spei_cube) %>%
                              species == "s5" ~ "Lolium arundinaceum",
                              species == "s6" ~ "Poa alsodes",
                              species == "s7" ~ "Poa sylvestris",
-                             species == "s8" ~ "Species Mean")) 
+                             species == "s8" ~ "Species Mean"),
+         Endo = case_when(Endo == "e1" ~ "E-",
+                          Endo == "e2" ~ "E+")) 
+
+dimnames(spei_range) <- list(species = paste0("s",1:(n_spp)), spei = paste0("spei",1:spei_steps))
+spei_range_cube <- cubelyr::as.tbl_cube(spei_range)
+spei_range_df <- as_tibble(spei_range_cube) %>% 
+  rename(spei_value = spei_range)
+
+lambda_spei_df <- lambda_spei_df %>% 
+  left_join(spei_range_df)
+
+lambda_spei_mean <- lambda_spei_df %>% 
+  left_join(spei_range_df) %>% 
+  group_by(spei_value,species,Endo,Species) %>% 
+  summarize(lambda_spei_mean = mean(lambda_spei)) %>% 
+  left_join(spei_range_df)
+
+# Set color scheme based on analine blue
+endophyte_color_scheme <- c("#fdedd3","#f3c8a8", "#5a727b", "#4986c7", "#181914",  "#163381")
+color_scheme_set(endophyte_color_scheme)
+# color_scheme_view()
+# And creating a color palette for each year
+yearcount = length(unique(LTREB_full$year_t))
+yearcolors<- colorRampPalette(brewer.pal(8,"Dark2"))(yearcount)
+# scales::show_col(yearcolors)
+species_list <- c("AGPE", "ELRI", "ELVI", "FESU", "LOAR", "POAL", "POSY")
 
 
+spei_lambda_plot <- ggplot(data = lambda_spei_df)+
+  geom_path(aes(x = spei_value, y = lambda_spei, group = interaction(Endo,Iteration), color = Endo), alpha = .05, lwd = .4)+
+  geom_path(data = lambda_spei_mean, aes(x = spei_value, y = lambda_spei_mean, group = Endo, color = Endo),lwd = 1)+
+  facet_wrap(~Species, scales = "free")+
+  scale_color_manual(values = endophyte_color_scheme[c(2,6)])+
+  theme_classic()+ theme(strip.background = element_blank()) + labs(title = "Population Growth", subtitle = "Mean endophyte effect with 500 posteriors draws")
+spei_lambda_plot
+ggsave(spei_lambda_plot, filename = "spei_lamda_plot.png", width = 6, height = 6 )
