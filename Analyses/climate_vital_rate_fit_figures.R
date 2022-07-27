@@ -80,19 +80,19 @@ LTREB_grow_seedling <- LTREB_full %>%
 dim(LTREB_grow_seedling)
 
 
-LTREB_data_forfert <- LTREB_full %>% 
-  filter(!is.na(FLW_COUNT_T1)) %>% 
-  filter(FLW_COUNT_T1 > 0) %>% 
+LTREB_data_forfert <- LTREB_full %>%
+  filter(!is.na(FLW_COUNT_T1)) %>%
+  filter(FLW_COUNT_T1 > 0) %>%
   filter(!is.na(logsize_t1))
 dim(LTREB_data_forfert)
 
 LTREB_data_forspike <- LTREB_full %>%
-  dplyr::select(-FLW_COUNT_T, -FLW_STAT_T, -SPIKE_A_T, -SPIKE_B_T, -SPIKE_C_T, -SPIKE_D_T, -SPIKE_AGPE_MEAN_T, -census_month, -year, -spei1, -spei12, -spei24, -annual_temp, -annual_precip, -endo_status_from_check, -plot_endo_for_check, -endo_mismatch, -dist_a, -dist_b) %>% 
+  dplyr::select(-FLW_COUNT_T, -FLW_STAT_T, -SPIKE_A_T, -SPIKE_B_T, -SPIKE_C_T, -SPIKE_D_T, -SPIKE_AGPE_MEAN_T, -census_month, -year, -spei1,-spei24, -annual_temp, -annual_precip, -endo_status_from_check, -plot_endo_for_check, -endo_mismatch, -dist_a, -dist_b) %>% 
   filter(!is.na(FLW_STAT_T1)) %>% 
   filter(FLW_STAT_T1>0) %>% 
   melt(id.var = c("plot_fixed" ,   "plot_index",         "pos"         ,           "id",
                   "species"       ,         "species_index"  ,        "endo_01",
-                  "endo_index"  ,           "origin_01"       ,       "birth" ,
+                  "endo_index"  ,           "origin_01"       ,       "birth" , "spei12",
                   "year_t1"         ,       "year_t1_index"       ,   "surv_t1" ,
                   "size_t1"         ,       "logsize_t1"       ,
                   "year_t",
@@ -390,7 +390,7 @@ spei_y_recruit_sim <- readRDS(file = "yrep_climate_stosmodel_linear.rds")
 # Set color scheme based on analine blue
 endophyte_color_scheme <- c("#fdedd3","#f3c8a8", "#5a727b", "#4986c7", "#181914",  "#163381")
 color_scheme_set(endophyte_color_scheme)
-color_scheme_view()
+# color_scheme_view()
 
 # And creating a color palette for each year
 yearcount = length(unique(LTREB_full$year_t))
@@ -829,6 +829,14 @@ max_size <- LTREB_full %>%
             mean_size = mean(size_t,na.rm = T),
             max_size = quantile(size_t,probs=0.975))
 
+reprod_max_size <- LTREB_data_forfert %>% 
+  dplyr::select(species,species_index, size_t) %>% 
+  filter(!is.na(size_t)) %>% 
+  group_by(species, species_index) %>% 
+  summarise(actual_max_size = max(size_t),
+            mean_size = mean(size_t,na.rm = T),
+            max_size = quantile(size_t,probs=0.975))
+
 spei_minmax <- LTREB_full %>% 
   dplyr::select(species,species_index, spei12) %>% 
   filter(!is.na(spei12)) %>% 
@@ -845,6 +853,7 @@ for(s in 1:7){
   x_seq[,s] <-  seq(from = 1, to = filter(max_size, species_index == s)$actual_max_size, length.out = x_seq_length)
 }
 x_mean <- max_size$mean_size # the mean size for each species
+repro_x_mean <- reprod_max_size$mean_size # looking at this separately because they fertility model looks like it's underfitting
 
 # stepsize of spei values
 spei_steps <- 10
@@ -993,7 +1002,6 @@ fert_iter_df <- as_tibble(fert_iter_cube) %>%
   left_join(spei_range_df)
 spike_iter_df <- as_tibble(spike_iter_cube) %>% 
   left_join(spei_range_df)
-surv_iter_df <- filter(surv_iter_df, Iteration == "iter1")
 
 surv_spei_mean <- surv_iter_df %>% 
   group_by(spei_value,Endo,Species) %>% 
@@ -1003,7 +1011,7 @@ grow_spei_mean <- grow_iter_df %>%
   summarize(mean_value = mean(grow_iter))
 flw_spei_mean <- flw_iter_df %>% 
   group_by(spei_value,Endo,Species) %>% 
-  summarize(mean_value = mean(surv_iter))
+  summarize(mean_value = mean(flw_iter))
 fert_spei_mean <- fert_iter_df %>% 
   group_by(spei_value,Endo,Species) %>% 
   summarize(mean_value = mean(fert_iter))
@@ -1011,23 +1019,79 @@ spike_spei_mean <- spike_iter_df %>%
   group_by(spei_value,Endo,Species) %>% 
   summarize(mean_value = mean(spike_iter))
 
+bin_by_year_spei <- function(df_raw, vr, nbins){
+  require(tidyverse)
+  df_raw <- ungroup(df_raw)
+  spei_bin_df <- df_raw %>% 
+    rename(Endo = endo_01, Year = year_t, Species = species) %>%
+    group_by(Year, Endo, Species) %>% 
+    summarise(mean_spei = mean((spei12),na.rm=T),
+              mean_vr = mean({{vr}},na.rm=T),
+              samplesize = n()) %>% 
+    mutate(Endo = case_when(Endo == 0 ~ "Eminus", 
+                            Endo == 1 ~ "Eplus"))
+  
+  return(spei_bin_df)
+}
+
+surv_spei_binned <- bin_by_year_spei(LTREB_data_forsurv, surv_t1)
+grow_spei_binned <- bin_by_year_spei(LTREB_data_forgrow, size_t1)
+flw_spei_binned <- bin_by_year_spei(LTREB_data_forflw, FLW_STAT_T1)
+fert_spei_binned <- bin_by_year_spei(LTREB_data_forfert, FLW_COUNT_T1)
+spike_spei_binned <- bin_by_year_spei(LTREB_data_forspike, spike_count_t1)
 
 #The plots
 surv_speiplot <- ggplot()+
-  geom_line(data = surv_iter_df, aes(x = spei_value, y = surv_iter, color = Endo, group = interaction(Endo,Iteration)), alpha = .05) +
+  geom_line(data = surv_iter_df, aes(x = spei_value, y = surv_iter, color = Endo, group = interaction(Endo,Iteration)), alpha = .1) +
   geom_line(data = surv_spei_mean, aes(x = spei_value, y = mean_value, color = Endo, group = Endo), lwd = 1)+
+  geom_point(data = surv_spei_binned, aes(x = mean_spei, y = mean_vr, color = Endo, lwd = samplesize))+
   scale_color_manual(values =  endophyte_color_scheme[c(2,4)])+
   facet_wrap(~Species, scales = "free",ncol = 1) +
-  theme_classic() + theme(strip.background = element_blank()) + labs(title = "Adult Survival", subtitle = "Mean endophyte effect with 80% credible intervals")
-surv_speiplot
+  theme_classic() + theme(strip.background = element_blank()) + labs(title = "Adult Survival", subtitle = "Mean endophyte effect with 500 posteriors draws")
+# surv_speiplot
 
 grow_speiplot <- ggplot()+
   geom_line(data = grow_iter_df, aes(x = spei_value, y = grow_iter, color = Endo, group = interaction(Endo,Iteration)), alpha = .05) +
   geom_line(data = grow_spei_mean, aes(x = spei_value, y = mean_value, color = Endo, group = Endo), lwd = 1)+
+  geom_point(data = grow_spei_binned, aes(x = mean_spei, y = mean_vr, color = Endo, lwd = samplesize))+
   scale_color_manual(values =  endophyte_color_scheme[c(2,4)])+
   facet_wrap(~Species, scales = "free",ncol = 1) +
-  theme_classic() + theme(strip.background = element_blank()) + labs(title = "Adult Growth", subtitle = "Mean endophyte effect with 80% credible intervals")
-grow_speiplot
+  theme_classic() + theme(strip.background = element_blank()) + labs(title = "Adult Growth", subtitle = "Mean endophyte effect with 500 posteriors draws")
+# grow_speiplot
+
+flw_speiplot <- ggplot()+
+  geom_line(data = flw_iter_df, aes(x = spei_value, y = flw_iter, color = Endo, group = interaction(Endo,Iteration)), alpha = .1) +
+  geom_line(data = flw_spei_mean, aes(x = spei_value, y = mean_value, color = Endo, group = Endo), lwd = 1)+
+  geom_point(data = flw_spei_binned, aes(x = mean_spei, y = mean_vr, color = Endo, lwd = samplesize))+
+  scale_color_manual(values =  endophyte_color_scheme[c(2,4)])+
+  facet_wrap(~Species, scales = "free",ncol = 1) +
+  theme_classic() + theme(strip.background = element_blank()) + labs(title = "Flowering Probability", subtitle = "Mean endophyte effect with 500 posteriors draws")
+# flw_speiplot
+
+
+fert_speiplot <- ggplot()+
+  geom_line(data = fert_iter_df, aes(x = spei_value, y = fert_iter, color = Endo, group = interaction(Endo,Iteration)), alpha = .05) +
+  geom_line(data = fert_spei_mean, aes(x = spei_value, y = mean_value, color = Endo, group = Endo), lwd = 1)+
+  geom_point(data = fert_spei_binned, aes(x = mean_spei, y = mean_vr, color = Endo, lwd = samplesize))+
+  scale_color_manual(values =  endophyte_color_scheme[c(2,4)])+
+  facet_wrap(~Species, scales = "free",ncol = 1) +
+  theme_classic() + theme(strip.background = element_blank()) + labs(title = "# of Flw Tillers", subtitle = "Mean endophyte effect with 500 posteriors draws")
+# fert_speiplot
+
+spike_speiplot <- ggplot()+
+  geom_line(data = spike_iter_df, aes(x = spei_value, y = spike_iter, color = Endo, group = interaction(Endo,Iteration)), alpha = .05) +
+  geom_line(data = spike_spei_mean, aes(x = spei_value, y = mean_value, color = Endo, group = Endo), lwd = 1)+
+  geom_point(data = spike_spei_binned, aes(x = mean_spei, y = mean_vr, color = Endo, lwd = samplesize))+
+  scale_color_manual(values =  endophyte_color_scheme[c(2,4)])+
+  facet_wrap(~Species, scales = "free",ncol = 1) +
+  theme_classic() + theme(strip.background = element_blank()) + labs(title = "# of Spikelets/Infl.", subtitle = "Mean endophyte effect with 500 posteriors draws")
+# spike_speiplot
+
+
+spei_effect_fitplot <- surv_speiplot+grow_speiplot+flw_speiplot+fert_speiplot+spike_speiplot + plot_layout( nrow  = 1)
+ggsave(spei_effect_fitplot, filename = "spei_effect_fitplot.png", width = 20, height = 25 )
+
+
 
 
 
