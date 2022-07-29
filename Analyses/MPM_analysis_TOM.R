@@ -711,20 +711,20 @@ A_t_obs <- A_t_samp <-list()
     topsix_samp <- dist_samp%in%rev(sort(dist_samp))[1:6]
       
     for(e in 1:4){
-      lambdaS_mat[e,s,d]<-lambdaSim(mat_list = A_t_obs[[s]][[e]],max_yrs = 500)$lambdaS
-      lambdaS_mat_extreme2[e,s,d]<-lambdaSim(mat_list = A_t_obs[[s]][[e]][toptwo],max_yrs = 500)$lambdaS
-      lambdaS_mat_extreme4[e,s,d]<-lambdaSim(mat_list = A_t_obs[[s]][[e]][topfour],max_yrs = 500)$lambdaS
-      lambdaS_mat_extreme6[e,s,d]<-lambdaSim(mat_list = A_t_obs[[s]][[e]][topsix],max_yrs = 500)$lambdaS
+      lambdaS_obs[e,s,d]<-lambdaSim(mat_list = A_t_obs[[s]][[e]],max_yrs = 500)$lambdaS
+      lambdaS_obs_extreme2[e,s,d]<-lambdaSim(mat_list = A_t_obs[[s]][[e]][toptwo],max_yrs = 500)$lambdaS
+      lambdaS_obs_extreme4[e,s,d]<-lambdaSim(mat_list = A_t_obs[[s]][[e]][topfour],max_yrs = 500)$lambdaS
+      lambdaS_obs_extreme6[e,s,d]<-lambdaSim(mat_list = A_t_obs[[s]][[e]][topsix],max_yrs = 500)$lambdaS
       
       save_lambda_obs[,e,s,d] <- sapply(A_t_obs[[s]][[e]], FUN = lambda)
       save_lambda_obs_extreme2[,e,s,d] <- sapply(A_t_obs[[s]][[e]][toptwo], FUN = lambda)
       save_lambda_obs_extreme4[,e,s,d] <- sapply(A_t_obs[[s]][[e]][topfour], FUN = lambda)
       save_lambda_obs_extreme6[,e,s,d] <- sapply(A_t_obs[[s]][[e]][topsix], FUN = lambda)
       
-      lambdaS_mat_samp[e,s,d]<-lambdaSim(mat_list = A_t_samp[[s]][[e]],max_yrs = 500)$lambdaS
-      lambdaS_mat_samp_extreme2[e,s,d]<-lambdaSim(mat_list = A_t_samp[[s]][[e]][toptwo_samp],max_yrs = 500)$lambdaS
-      lambdaS_mat_samp_extreme4[e,s,d]<-lambdaSim(mat_list = A_t_samp[[s]][[e]][topfour_samp],max_yrs = 500)$lambdaS
-      lambdaS_mat_samp_extreme6[e,s,d]<-lambdaSim(mat_list = A_t_samp[[s]][[e]][topsix_samp],max_yrs = 500)$lambdaS
+      lambdaS_samp[e,s,d]<-lambdaSim(mat_list = A_t_samp[[s]][[e]],max_yrs = 500)$lambdaS
+      lambdaS_samp_extreme2[e,s,d]<-lambdaSim(mat_list = A_t_samp[[s]][[e]][toptwo_samp],max_yrs = 500)$lambdaS
+      lambdaS_samp_extreme4[e,s,d]<-lambdaSim(mat_list = A_t_samp[[s]][[e]][topfour_samp],max_yrs = 500)$lambdaS
+      lambdaS_samp_extreme6[e,s,d]<-lambdaSim(mat_list = A_t_samp[[s]][[e]][topsix_samp],max_yrs = 500)$lambdaS
       
       save_lambda_samp[,e,s,d] <- sapply(A_t_samp[[s]][[e]], FUN = lambda)
       save_lambda_samp_extreme2[,e,s,d] <- sapply(A_t_samp[[s]][[e]][toptwo_samp], FUN = lambda)
@@ -733,43 +733,76 @@ A_t_obs <- A_t_samp <-list()
     }
     
   }#s loop
+# Calculating cross species means
+lambdaS_obs[1,8,d] <- mean(lambdaS_obs[1,1:7,d]) # species mean eminus
+lambdaS_obs[2,8,d] <- mean(lambdaS_obs[2,1:7,d]) # species mean eplus mean only
+lambdaS_obs[3,8,d] <- mean(lambdaS_obs[3,1:7,d]) # species mean eplus var only
+lambdaS_obs[4,8,d] <- mean(lambdaS_obs[4,1:7,d]) # species mean eplus
+lambdaS_obs_extreme2[1,8,d] <- mean(lambdaS_obs_extreme2[1,1:7,d]) # species mean eminus
+lambdaS_obs_extreme2[2,8,d] <- mean(lambdaS_obs_extreme2[2,1:7,d]) # species mean eplus mean only
+lambdaS_obs_extreme2[3,8,d] <- mean(lambdaS_obs_extreme2[3,1:7,d]) # species mean eplus var only
+lambdaS_obs_extreme2[4,8,d] <- mean(lambdaS_obs_extreme2[4,1:7,d]) # species mean eplus
+lambdaS_obs_extreme4[1,8,d] <- mean(lambdaS_obs_extreme4[1,1:7,d]) # species mean eminus
+lambdaS_obs_extreme4[2,8,d] <- mean(lambdaS_obs_extreme4[2,1:7,d]) # species mean eplus mean only
+lambdaS_obs_extreme4[3,8,d] <- mean(lambdaS_obs_extreme4[3,1:7,d]) # species mean eplus var only
+lambdaS_obs_extreme4[4,8,d] <- mean(lambdaS_obs_extreme4[4,1:7,d]) # species mean eplus
+lambdaS_obs_extreme6[1,8,d] <- mean(lambdaS_obs_extreme6[1,1:7,d]) # species mean eminus
+lambdaS_obs_extreme6[2,8,d] <- mean(lambdaS_obs_extreme6[2,1:7,d]) # species mean eplus mean only
+lambdaS_obs_extreme6[3,8,d] <- mean(lambdaS_obs_extreme6[3,1:7,d]) # species mean eplus var only
+lambdaS_obs_extreme6[4,8,d] <- mean(lambdaS_obs_extreme6[4,1:7,d]) # species mean eplus
+lambdaS_samp[1,8,d] <- mean(lambdaS_samp[1,1:7,d]) # species mean eminus
+lambdaS_samp[2,8,d] <- mean(lambdaS_samp[2,1:7,d]) # species mean eplus mean only
+lambdaS_samp[3,8,d] <- mean(lambdaS_samp[3,1:7,d]) # species mean eplus var only
+lambdaS_samp[4,8,d] <- mean(lambdaS_samp[4,1:7,d]) # species mean eplus
+lambdaS_samp_extreme2[1,8,d] <- mean(lambdaS_samp_extreme2[1,1:7,d]) # species mean eminus
+lambdaS_samp_extreme2[2,8,d] <- mean(lambdaS_samp_extreme2[2,1:7,d]) # species mean eplus mean only
+lambdaS_samp_extreme2[3,8,d] <- mean(lambdaS_samp_extreme2[3,1:7,d]) # species mean eplus var only
+lambdaS_samp_extreme2[4,8,d] <- mean(lambdaS_samp_extreme2[4,1:7,d]) # species mean eplus
+lambdaS_samp_extreme4[1,8,d] <- mean(lambdaS_samp_extreme4[1,1:7,d]) # species mean eminus
+lambdaS_samp_extreme4[2,8,d] <- mean(lambdaS_samp_extreme4[2,1:7,d]) # species mean eplus mean only
+lambdaS_samp_extreme4[3,8,d] <- mean(lambdaS_samp_extreme4[3,1:7,d]) # species mean eplus var only
+lambdaS_samp_extreme4[4,8,d] <- mean(lambdaS_samp_extreme4[4,1:7,d]) # species mean eplus
+lambdaS_samp_extreme6[1,8,d] <- mean(lambdaS_samp_extreme6[1,1:7,d]) # species mean eminus
+lambdaS_samp_extreme6[2,8,d] <- mean(lambdaS_samp_extreme6[2,1:7,d]) # species mean eplus mean only
+lambdaS_samp_extreme6[3,8,d] <- mean(lambdaS_samp_extreme6[3,1:7,d]) # species mean eplus var only
+lambdaS_samp_extreme6[4,8,d] <- mean(lambdaS_samp_extreme6[4,1:7,d]) # species mean eplus
 }#end d loop
 
 # # Saving all of the simulations
-# saveRDS(lambdaS_mat, file = paste0(path,"/Model_Runs/MPM_output/lambdaS_mat.rds"))
-# saveRDS(lambdaS_mat_extreme2, file = paste0(path,"/Model_Runs/MPM_output/lambdaS_mat_extreme2.rds"))
-# saveRDS(lambdaS_mat_extreme4, file = paste0(path,"/Model_Runs/MPM_output/lambdaS_mat_extreme4.rds"))
-# saveRDS(lambdaS_mat_extreme6, file = paste0(path,"/Model_Runs/MPM_output/lambdaS_mat_extreme6.rds"))
+# saveRDS(lambdaS_obs, file = paste0(path,"/Model_Runs/MPM_output/lambdaS_mat.rds"))
+# saveRDS(lambdaS_obs_extreme2, file = paste0(path,"/Model_Runs/MPM_output/lambdaS_mat_extreme2.rds"))
+# saveRDS(lambdaS_obs_extreme4, file = paste0(path,"/Model_Runs/MPM_output/lambdaS_mat_extreme4.rds"))
+# saveRDS(lambdaS_obs_extreme6, file = paste0(path,"/Model_Runs/MPM_output/lambdaS_mat_extreme6.rds"))
 # 
 # saveRDS(save_lambda_obs, file = paste0(path,"/Model_Runs/MPM_output/save_lambda_obs.rds"))
 # saveRDS(save_lambda_obs_extreme2, file = paste0(path,"/Model_Runs/MPM_output/save_lambda_obs_extreme2.rds"))
 # saveRDS(save_lambda_obs_extreme4, file = paste0(path,"/Model_Runs/MPM_output/save_lambda_obs_extreme4.rds"))
 # saveRDS(save_lambda_obs_extreme6, file = paste0(path,"/Model_Runs/MPM_output/save_lambda_obs_extreme6.rds"))
 # 
-# saveRDS(lambdaS_mat_samp, file = paste0(path,"/Model_Runs/MPM_output/lambdaS_mat_samp.rds"))
-# saveRDS(lambdaS_mat_samp_extreme2, file = paste0(path,"/Model_Runs/MPM_output/lambdaS_mat_samp_extreme2.rds"))
-# saveRDS(lambdaS_mat_samp_extreme4, file = paste0(path,"/Model_Runs/MPM_output/lambdaS_mat_samp_extreme4.rds"))
-# saveRDS(lambdaS_mat_samp_extreme6, file = paste0(path,"/Model_Runs/MPM_output/lambdaS_mat_samp_extreme6.rds"))
+# saveRDS(lambdaS_samp, file = paste0(path,"/Model_Runs/MPM_output/lambdaS_mat_samp.rds"))
+# saveRDS(lambdaS_samp_extreme2, file = paste0(path,"/Model_Runs/MPM_output/lambdaS_mat_samp_extreme2.rds"))
+# saveRDS(lambdaS_samp_extreme4, file = paste0(path,"/Model_Runs/MPM_output/lambdaS_mat_samp_extreme4.rds"))
+# saveRDS(lambdaS_samp_extreme6, file = paste0(path,"/Model_Runs/MPM_output/lambdaS_mat_samp_extreme6.rds"))
 # 
 # saveRDS(save_lambda_samp, file = paste0(path,"/Model_Runs/MPM_output/save_lambda_samp.rds"))
 # saveRDS(save_lambda_samp_extreme2, file = paste0(path,"/Model_Runs/MPM_output/save_lambda_samp_extreme2.rds"))
 # saveRDS(save_lambda_samp_extreme4, file = paste0(path,"/Model_Runs/MPM_output/save_lambda_samp_extreme4.rds"))
 # saveRDS(save_lambda_samp_extreme6, file = paste0(path,"/Model_Runs/MPM_output/save_lambda_samp_extreme6.rds"))
 
-lambdaS_mat <- read_rds(paste0(path,"/Model_Runs/MPM_output/lambdaS_mat.rds"))
-lambdaS_mat_extreme2 <- read_rds(paste0(path,"/Model_Runs/MPM_output/lambdaS_mat_extreme2.rds"))
-lambdaS_mat_extreme4 <- read_rds(paste0(path,"/Model_Runs/MPM_output/lambdaS_mat_extreme4.rds"))
-lambdaS_mat_extreme6 <- read_rds(paste0(path,"/Model_Runs/MPM_output/lambdaS_mat_extreme6.rds"))
+lambdaS_obs <- read_rds(paste0(path,"/Model_Runs/MPM_output/lambdaS_obs.rds"))
+lambdaS_obs_extreme2 <- read_rds(paste0(path,"/Model_Runs/MPM_output/lambdaS_obs_extreme2.rds"))
+lambdaS_obs_extreme4 <- read_rds(paste0(path,"/Model_Runs/MPM_output/lambdaS_obs_extreme4.rds"))
+lambdaS_obs_extreme6 <- read_rds(paste0(path,"/Model_Runs/MPM_output/lambdaS_obs_extreme6.rds"))
 
 save_lambda_obs <- read_rds(paste0(path,"/Model_Runs/MPM_output/save_lambda_obs.rds"))
 save_lambda_obs_extreme2 <- read_rds(paste0(path,"/Model_Runs/MPM_output/save_lambda_obs_extreme2.rds"))
 save_lambda_obs_extreme4 <- read_rds(paste0(path,"/Model_Runs/MPM_output/save_lambda_obs_extreme4.rds"))
 save_lambda_obs_extreme6 <- read_rds(paste0(path,"/Model_Runs/MPM_output/save_lambda_obs_extreme6.rds"))
 
-lambdaS_mat_samp <- read_rds(paste0(path,"/Model_Runs/MPM_output/lambdaS_mat_samp.rds"))
-lambdaS_mat_samp_extreme2 <- read_rds(paste0(path,"/Model_Runs/MPM_output/lambdaS_mat_samp_extreme2.rds"))
-lambdaS_mat_samp_extreme4 <- read_rds(paste0(path,"/Model_Runs/MPM_output/lambdaS_mat_samp_extreme4.rds"))
-lambdaS_mat_samp_extreme6 <- read_rds(paste0(path,"/Model_Runs/MPM_output/lambdaS_mat_samp_extreme6.rds"))
+lambdaS_samp <- read_rds(paste0(path,"/Model_Runs/MPM_output/lambdaS_samp.rds"))
+lambdaS_samp_extreme2 <- read_rds(paste0(path,"/Model_Runs/MPM_output/lambdaS_samp_extreme2.rds"))
+lambdaS_samp_extreme4 <- read_rds(paste0(path,"/Model_Runs/MPM_output/lambdaS_samp_extreme4.rds"))
+lambdaS_samp_extreme6 <- read_rds(paste0(path,"/Model_Runs/MPM_output/lambdaS_samp_extreme6.rds"))
 
 save_lambda_samp <- read_rds(paste0(path,"/Model_Runs/MPM_output/save_lambda_samp.rds"))
 save_lambda_samp_extreme2 <- read_rds(paste0(path,"/Model_Runs/MPM_output/save_lambda_samp_extreme2.rds"))
@@ -780,59 +813,59 @@ save_lambda_samp_extreme6 <- read_rds(paste0(path,"/Model_Runs/MPM_output/save_l
 lambdaS_obs_diff <- lambdaS_samp_diff <- array(NA,dim=c(4,4,8,7))
 for(s in 1:8){
   # eplus-eminus
-  lambdaS_obs_diff[1,1,s,1] = mean(lambdaS_mat[4,s,]-lambdaS_mat[1,s,], na.rm = T) # eplus-eminus
-  lambdaS_obs_diff[1,1,s,2:7] = quantile(lambdaS_mat[4,s,]-lambdaS_mat[1,s,], probs = c(0.05, 0.125,0.25,0.75,0.875,0.95), na.rm = T)
-  lambdaS_obs_diff[2,1,s,1] = mean(lambdaS_mat_extreme2[4,s,]-lambdaS_mat_extreme2[1,s,], na.rm = T) # eplus-eminus for extreme2
-  lambdaS_obs_diff[2,1,s,2:7] = quantile(lambdaS_mat_extreme2[4,s,]-lambdaS_mat_extreme2[1,s,], probs = c(0.05, 0.125,0.25,0.75,0.875,0.95), na.rm = T)
-  lambdaS_obs_diff[3,1,s,1] = mean(lambdaS_mat_extreme4[4,s,]-lambdaS_mat_extreme4[1,s,], na.rm = T) # eplus-eminus for extreme4
-  lambdaS_obs_diff[3,1,s,2:7] = quantile(lambdaS_mat_extreme4[4,s,]-lambdaS_mat_extreme4[1,s,], probs = c(0.05, 0.125,0.25,0.75,0.875,0.95), na.rm = T)
-  lambdaS_obs_diff[4,1,s,1] = mean(lambdaS_mat_extreme6[4,s,]-lambdaS_mat_extreme6[1,s,], na.rm = T) # eplus-eminus for extreme6
-  lambdaS_obs_diff[4,1,s,2:7] = quantile(lambdaS_mat_extreme6[4,s,]-lambdaS_mat_extreme6[1,s,], probs = c(0.05, 0.125,0.25,0.75,0.875,0.95), na.rm = T)
+  lambdaS_obs_diff[1,1,s,1] = mean(lambdaS_obs[4,s,]-lambdaS_obs[1,s,], na.rm = T) # eplus-eminus
+  lambdaS_obs_diff[1,1,s,2:7] = quantile(lambdaS_obs[4,s,]-lambdaS_obs[1,s,], probs = c(0.05, 0.125,0.25,0.75,0.875,0.95), na.rm = T)
+  lambdaS_obs_diff[2,1,s,1] = mean(lambdaS_obs_extreme2[4,s,]-lambdaS_obs_extreme2[1,s,], na.rm = T) # eplus-eminus for extreme2
+  lambdaS_obs_diff[2,1,s,2:7] = quantile(lambdaS_obs_extreme2[4,s,]-lambdaS_obs_extreme2[1,s,], probs = c(0.05, 0.125,0.25,0.75,0.875,0.95), na.rm = T)
+  lambdaS_obs_diff[3,1,s,1] = mean(lambdaS_obs_extreme4[4,s,]-lambdaS_obs_extreme4[1,s,], na.rm = T) # eplus-eminus for extreme4
+  lambdaS_obs_diff[3,1,s,2:7] = quantile(lambdaS_obs_extreme4[4,s,]-lambdaS_obs_extreme4[1,s,], probs = c(0.05, 0.125,0.25,0.75,0.875,0.95), na.rm = T)
+  lambdaS_obs_diff[4,1,s,1] = mean(lambdaS_obs_extreme6[4,s,]-lambdaS_obs_extreme6[1,s,], na.rm = T) # eplus-eminus for extreme6
+  lambdaS_obs_diff[4,1,s,2:7] = quantile(lambdaS_obs_extreme6[4,s,]-lambdaS_obs_extreme6[1,s,], probs = c(0.05, 0.125,0.25,0.75,0.875,0.95), na.rm = T)
   
-  lambdaS_samp_diff[1,1,s,1] = mean(lambdaS_mat_samp[4,s,]-lambdaS_mat_samp[1,s,], na.rm = T) # eplus-eminus
-  lambdaS_samp_diff[1,1,s,2:7] = quantile(lambdaS_mat_samp[4,s,]-lambdaS_mat_samp[1,s,], probs = c(0.05, 0.125,0.25,0.75,0.875,0.95), na.rm = T)
-  lambdaS_samp_diff[2,1,s,1] = mean(lambdaS_mat_samp_extreme2[4,s,]-lambdaS_mat_samp_extreme2[1,s,], na.rm = T) # eplus-eminus for extreme2
-  lambdaS_samp_diff[2,1,s,2:7] = quantile(lambdaS_mat_samp_extreme2[4,s,]-lambdaS_mat_samp_extreme2[1,s,], probs = c(0.05, 0.125,0.25,0.75,0.875,0.95), na.rm = T)
-  lambdaS_samp_diff[3,1,s,1] = mean(lambdaS_mat_samp_extreme4[4,s,]-lambdaS_mat_samp_extreme4[1,s,], na.rm = T) # eplus-eminus for extreme4
-  lambdaS_samp_diff[3,1,s,2:7] = quantile(lambdaS_mat_samp_extreme4[4,s,]-lambdaS_mat_samp_extreme4[1,s,], probs = c(0.05, 0.125,0.25,0.75,0.875,0.95), na.rm = T)
-  lambdaS_samp_diff[4,1,s,1] = mean(lambdaS_mat_samp_extreme6[4,s,]-lambdaS_mat_samp_extreme6[1,s,], na.rm = T) # eplus-eminus for extreme6
-  lambdaS_samp_diff[4,1,s,2:7] = quantile(lambdaS_mat_samp_extreme6[4,s,]-lambdaS_mat_samp_extreme6[1,s,], probs = c(0.05, 0.125,0.25,0.75,0.875,0.95), na.rm = T)
+  lambdaS_samp_diff[1,1,s,1] = mean(lambdaS_samp[4,s,]-lambdaS_samp[1,s,], na.rm = T) # eplus-eminus
+  lambdaS_samp_diff[1,1,s,2:7] = quantile(lambdaS_samp[4,s,]-lambdaS_samp[1,s,], probs = c(0.05, 0.125,0.25,0.75,0.875,0.95), na.rm = T)
+  lambdaS_samp_diff[2,1,s,1] = mean(lambdaS_samp_extreme2[4,s,]-lambdaS_samp_extreme2[1,s,], na.rm = T) # eplus-eminus for extreme2
+  lambdaS_samp_diff[2,1,s,2:7] = quantile(lambdaS_samp_extreme2[4,s,]-lambdaS_samp_extreme2[1,s,], probs = c(0.05, 0.125,0.25,0.75,0.875,0.95), na.rm = T)
+  lambdaS_samp_diff[3,1,s,1] = mean(lambdaS_samp_extreme4[4,s,]-lambdaS_samp_extreme4[1,s,], na.rm = T) # eplus-eminus for extreme4
+  lambdaS_samp_diff[3,1,s,2:7] = quantile(lambdaS_samp_extreme4[4,s,]-lambdaS_samp_extreme4[1,s,], probs = c(0.05, 0.125,0.25,0.75,0.875,0.95), na.rm = T)
+  lambdaS_samp_diff[4,1,s,1] = mean(lambdaS_samp_extreme6[4,s,]-lambdaS_samp_extreme6[1,s,], na.rm = T) # eplus-eminus for extreme6
+  lambdaS_samp_diff[4,1,s,2:7] = quantile(lambdaS_samp_extreme6[4,s,]-lambdaS_samp_extreme6[1,s,], probs = c(0.05, 0.125,0.25,0.75,0.875,0.95), na.rm = T)
   # eplus mean only - eminus
-  lambdaS_obs_diff[1,2,s,1] = mean(lambdaS_mat[2,s,]-lambdaS_mat[1,s,], na.rm = T) # eplus mean only - eminus
-  lambdaS_obs_diff[1,2,s,2:7] = quantile(lambdaS_mat[2,s,]-lambdaS_mat[1,s,], probs = c(0.05, 0.125,0.25,0.75,0.875,0.95), na.rm = T)
-  lambdaS_obs_diff[2,2,s,1] = mean(lambdaS_mat_extreme2[2,s,]-lambdaS_mat_extreme2[1,s,], na.rm = T) # eplus mean only - eminus for extreme2
-  lambdaS_obs_diff[2,2,s,2:7] = quantile(lambdaS_mat_extreme2[2,s,]-lambdaS_mat_extreme2[1,s,], probs = c(0.05, 0.125,0.25,0.75,0.875,0.95), na.rm = T)
-  lambdaS_obs_diff[3,2,s,1] = mean(lambdaS_mat_extreme4[2,s,]-lambdaS_mat_extreme4[1,s,], na.rm = T) # eplus mean only - eminus for extreme4
-  lambdaS_obs_diff[3,2,s,2:7] = quantile(lambdaS_mat_extreme4[2,s,]-lambdaS_mat_extreme4[1,s,], probs = c(0.05, 0.125,0.25,0.75,0.875,0.95), na.rm = T)
-  lambdaS_obs_diff[4,2,s,1] = mean(lambdaS_mat_extreme6[2,s,]-lambdaS_mat_extreme6[1,s,], na.rm = T)# eplus mean only - eminus for extreme6
-  lambdaS_obs_diff[4,2,s,2:7] = quantile(lambdaS_mat_extreme6[2,s,]-lambdaS_mat_extreme6[1,s,], probs = c(0.05, 0.125,0.25,0.75,0.875,0.95), na.rm = T)
+  lambdaS_obs_diff[1,2,s,1] = mean(lambdaS_obs[2,s,]-lambdaS_obs[1,s,], na.rm = T) # eplus mean only - eminus
+  lambdaS_obs_diff[1,2,s,2:7] = quantile(lambdaS_obs[2,s,]-lambdaS_obs[1,s,], probs = c(0.05, 0.125,0.25,0.75,0.875,0.95), na.rm = T)
+  lambdaS_obs_diff[2,2,s,1] = mean(lambdaS_obs_extreme2[2,s,]-lambdaS_obs_extreme2[1,s,], na.rm = T) # eplus mean only - eminus for extreme2
+  lambdaS_obs_diff[2,2,s,2:7] = quantile(lambdaS_obs_extreme2[2,s,]-lambdaS_obs_extreme2[1,s,], probs = c(0.05, 0.125,0.25,0.75,0.875,0.95), na.rm = T)
+  lambdaS_obs_diff[3,2,s,1] = mean(lambdaS_obs_extreme4[2,s,]-lambdaS_obs_extreme4[1,s,], na.rm = T) # eplus mean only - eminus for extreme4
+  lambdaS_obs_diff[3,2,s,2:7] = quantile(lambdaS_obs_extreme4[2,s,]-lambdaS_obs_extreme4[1,s,], probs = c(0.05, 0.125,0.25,0.75,0.875,0.95), na.rm = T)
+  lambdaS_obs_diff[4,2,s,1] = mean(lambdaS_obs_extreme6[2,s,]-lambdaS_obs_extreme6[1,s,], na.rm = T)# eplus mean only - eminus for extreme6
+  lambdaS_obs_diff[4,2,s,2:7] = quantile(lambdaS_obs_extreme6[2,s,]-lambdaS_obs_extreme6[1,s,], probs = c(0.05, 0.125,0.25,0.75,0.875,0.95), na.rm = T)
   
-  lambdaS_samp_diff[1,2,s,1] = mean(lambdaS_mat_samp[2,s,]-lambdaS_mat_samp[1,s,], na.rm = T) # eplus mean only - eminus
-  lambdaS_samp_diff[1,2,s,2:7] = quantile(lambdaS_mat_samp[2,s,]-lambdaS_mat_samp[1,s,], probs = c(0.05, 0.125,0.25,0.75,0.875,0.95), na.rm = T)
-  lambdaS_samp_diff[2,2,s,1] = mean(lambdaS_mat_samp_extreme2[2,s,]-lambdaS_mat_samp_extreme2[1,s,], na.rm = T) # eplus mean only - eminus for extreme2
-  lambdaS_samp_diff[2,2,s,2:7] = quantile(lambdaS_mat_samp_extreme2[2,s,]-lambdaS_mat_samp_extreme2[1,s,], probs = c(0.05, 0.125,0.25,0.75,0.875,0.95), na.rm = T)
-  lambdaS_samp_diff[3,2,s,1] = mean(lambdaS_mat_samp_extreme4[2,s,]-lambdaS_mat_samp_extreme4[1,s,], na.rm = T) # eplus mean only - eminus for extreme4
-  lambdaS_samp_diff[3,2,s,2:7] = quantile(lambdaS_mat_samp_extreme4[2,s,]-lambdaS_mat_samp_extreme4[1,s,], probs = c(0.05, 0.125,0.25,0.75,0.875,0.95), na.rm = T)
-  lambdaS_samp_diff[4,2,s,1] = mean(lambdaS_mat_samp_extreme6[2,s,]-lambdaS_mat_samp_extreme6[1,s,], na.rm = T)# eplus mean only - eminus for extreme6
-  lambdaS_samp_diff[4,2,s,2:7] = quantile(lambdaS_mat_samp_extreme6[2,s,]-lambdaS_mat_samp_extreme6[1,s,], probs = c(0.05, 0.125,0.25,0.75,0.875,0.95), na.rm = T)
+  lambdaS_samp_diff[1,2,s,1] = mean(lambdaS_samp[2,s,]-lambdaS_samp[1,s,], na.rm = T) # eplus mean only - eminus
+  lambdaS_samp_diff[1,2,s,2:7] = quantile(lambdaS_samp[2,s,]-lambdaS_samp[1,s,], probs = c(0.05, 0.125,0.25,0.75,0.875,0.95), na.rm = T)
+  lambdaS_samp_diff[2,2,s,1] = mean(lambdaS_samp_extreme2[2,s,]-lambdaS_samp_extreme2[1,s,], na.rm = T) # eplus mean only - eminus for extreme2
+  lambdaS_samp_diff[2,2,s,2:7] = quantile(lambdaS_samp_extreme2[2,s,]-lambdaS_samp_extreme2[1,s,], probs = c(0.05, 0.125,0.25,0.75,0.875,0.95), na.rm = T)
+  lambdaS_samp_diff[3,2,s,1] = mean(lambdaS_samp_extreme4[2,s,]-lambdaS_samp_extreme4[1,s,], na.rm = T) # eplus mean only - eminus for extreme4
+  lambdaS_samp_diff[3,2,s,2:7] = quantile(lambdaS_samp_extreme4[2,s,]-lambdaS_samp_extreme4[1,s,], probs = c(0.05, 0.125,0.25,0.75,0.875,0.95), na.rm = T)
+  lambdaS_samp_diff[4,2,s,1] = mean(lambdaS_samp_extreme6[2,s,]-lambdaS_samp_extreme6[1,s,], na.rm = T)# eplus mean only - eminus for extreme6
+  lambdaS_samp_diff[4,2,s,2:7] = quantile(lambdaS_samp_extreme6[2,s,]-lambdaS_samp_extreme6[1,s,], probs = c(0.05, 0.125,0.25,0.75,0.875,0.95), na.rm = T)
   # eplus var only - eminus
-  lambdaS_obs_diff[1,3,s,1] = mean(lambdaS_mat[3,s,]-lambdaS_mat[1,s,], na.rm = T) #  eplus var only - eminus
-  lambdaS_obs_diff[1,3,s,2:7] = quantile(lambdaS_mat[3,s,]-lambdaS_mat[1,s,], probs = c(0.05, 0.125,0.25,0.75,0.875,0.95), na.rm = T)
-  lambdaS_obs_diff[2,3,s,1] = mean(lambdaS_mat_extreme2[3,s,]-lambdaS_mat_extreme2[1,s,], na.rm = T) #  eplus var only - eminusfor extreme2
-  lambdaS_obs_diff[2,3,s,2:7] = quantile(lambdaS_mat_extreme2[3,s,]-lambdaS_mat_extreme2[1,s,], probs = c(0.05, 0.125,0.25,0.75,0.875,0.95), na.rm = T)
-  lambdaS_obs_diff[3,3,s,1] = mean(lambdaS_mat_extreme4[3,s,]-lambdaS_mat_extreme4[1,s,], na.rm = T) #  eplus var only - eminus for extreme4
-  lambdaS_obs_diff[3,3,s,2:7] = quantile(lambdaS_mat_extreme4[3,s,]-lambdaS_mat_extreme4[1,s,], probs = c(0.05, 0.125,0.25,0.75,0.875,0.95), na.rm = T)
-  lambdaS_obs_diff[4,3,s,1] = mean(lambdaS_mat_extreme6[3,s,]-lambdaS_mat_extreme6[1,s,], na.rm = T)#  eplus var only - eminus for extreme6
-  lambdaS_obs_diff[4,3,s,2:7] = quantile(lambdaS_mat_extreme6[3,s,]-lambdaS_mat_extreme6[1,s,], probs = c(0.05, 0.125,0.25,0.75,0.875,0.95), na.rm = T)
+  lambdaS_obs_diff[1,3,s,1] = mean(lambdaS_obs[3,s,]-lambdaS_obs[1,s,], na.rm = T) #  eplus var only - eminus
+  lambdaS_obs_diff[1,3,s,2:7] = quantile(lambdaS_obs[3,s,]-lambdaS_obs[1,s,], probs = c(0.05, 0.125,0.25,0.75,0.875,0.95), na.rm = T)
+  lambdaS_obs_diff[2,3,s,1] = mean(lambdaS_obs_extreme2[3,s,]-lambdaS_obs_extreme2[1,s,], na.rm = T) #  eplus var only - eminusfor extreme2
+  lambdaS_obs_diff[2,3,s,2:7] = quantile(lambdaS_obs_extreme2[3,s,]-lambdaS_obs_extreme2[1,s,], probs = c(0.05, 0.125,0.25,0.75,0.875,0.95), na.rm = T)
+  lambdaS_obs_diff[3,3,s,1] = mean(lambdaS_obs_extreme4[3,s,]-lambdaS_obs_extreme4[1,s,], na.rm = T) #  eplus var only - eminus for extreme4
+  lambdaS_obs_diff[3,3,s,2:7] = quantile(lambdaS_obs_extreme4[3,s,]-lambdaS_obs_extreme4[1,s,], probs = c(0.05, 0.125,0.25,0.75,0.875,0.95), na.rm = T)
+  lambdaS_obs_diff[4,3,s,1] = mean(lambdaS_obs_extreme6[3,s,]-lambdaS_obs_extreme6[1,s,], na.rm = T)#  eplus var only - eminus for extreme6
+  lambdaS_obs_diff[4,3,s,2:7] = quantile(lambdaS_obs_extreme6[3,s,]-lambdaS_obs_extreme6[1,s,], probs = c(0.05, 0.125,0.25,0.75,0.875,0.95), na.rm = T)
   
-  lambdaS_samp_diff[1,3,s,1] = mean(lambdaS_mat_samp[3,s,]-lambdaS_mat_samp[1,s,], na.rm = T) #  eplus var only - eminus
-  lambdaS_samp_diff[1,3,s,2:7] = quantile(lambdaS_mat_samp[3,s,]-lambdaS_mat_samp[1,s,], probs = c(0.05, 0.125,0.25,0.75,0.875,0.95), na.rm = T)
-  lambdaS_samp_diff[2,3,s,1] = mean(lambdaS_mat_samp_extreme2[3,s,]-lambdaS_mat_samp_extreme2[1,s,], na.rm = T) #  eplus var only - eminusfor extreme2
-  lambdaS_samp_diff[2,3,s,2:7] = quantile(lambdaS_mat_samp_extreme2[3,s,]-lambdaS_mat_samp_extreme2[1,s,], probs = c(0.05, 0.125,0.25,0.75,0.875,0.95), na.rm = T)
-  lambdaS_samp_diff[3,3,s,1] = mean(lambdaS_mat_samp_extreme4[3,s,]-lambdaS_mat_samp_extreme4[1,s,], na.rm = T) #  eplus var only - eminus for extreme4
-  lambdaS_samp_diff[3,3,s,2:7] = quantile(lambdaS_mat_samp_extreme4[3,s,]-lambdaS_mat_samp_extreme4[1,s,], probs = c(0.05, 0.125,0.25,0.75,0.875,0.95), na.rm = T)
-  lambdaS_samp_diff[4,3,s,1] = mean(lambdaS_mat_samp_extreme6[3,s,]-lambdaS_mat_samp_extreme6[1,s,], na.rm = T)#  eplus var only - eminus for extreme6
-  lambdaS_samp_diff[4,3,s,2:7] = quantile(lambdaS_mat_samp_extreme6[3,s,]-lambdaS_mat_samp_extreme6[1,s,], probs = c(0.05, 0.125,0.25,0.75,0.875,0.95), na.rm = T)
+  lambdaS_samp_diff[1,3,s,1] = mean(lambdaS_samp[3,s,]-lambdaS_samp[1,s,], na.rm = T) #  eplus var only - eminus
+  lambdaS_samp_diff[1,3,s,2:7] = quantile(lambdaS_samp[3,s,]-lambdaS_samp[1,s,], probs = c(0.05, 0.125,0.25,0.75,0.875,0.95), na.rm = T)
+  lambdaS_samp_diff[2,3,s,1] = mean(lambdaS_samp_extreme2[3,s,]-lambdaS_samp_extreme2[1,s,], na.rm = T) #  eplus var only - eminusfor extreme2
+  lambdaS_samp_diff[2,3,s,2:7] = quantile(lambdaS_samp_extreme2[3,s,]-lambdaS_samp_extreme2[1,s,], probs = c(0.05, 0.125,0.25,0.75,0.875,0.95), na.rm = T)
+  lambdaS_samp_diff[3,3,s,1] = mean(lambdaS_samp_extreme4[3,s,]-lambdaS_samp_extreme4[1,s,], na.rm = T) #  eplus var only - eminus for extreme4
+  lambdaS_samp_diff[3,3,s,2:7] = quantile(lambdaS_samp_extreme4[3,s,]-lambdaS_samp_extreme4[1,s,], probs = c(0.05, 0.125,0.25,0.75,0.875,0.95), na.rm = T)
+  lambdaS_samp_diff[4,3,s,1] = mean(lambdaS_samp_extreme6[3,s,]-lambdaS_samp_extreme6[1,s,], na.rm = T)#  eplus var only - eminus for extreme6
+  lambdaS_samp_diff[4,3,s,2:7] = quantile(lambdaS_samp_extreme6[3,s,]-lambdaS_samp_extreme6[1,s,], probs = c(0.05, 0.125,0.25,0.75,0.875,0.95), na.rm = T)
   # mean var interaction
   lambdaS_obs_diff[1,4,s,] = lambdaS_obs_diff[1,1,s,]-lambdaS_obs_diff[1,2,s,]-lambdaS_obs_diff[1,3,s,]# mean variance interaction
   lambdaS_obs_diff[2,4,s,] = lambdaS_obs_diff[2,1,s,]-lambdaS_obs_diff[2,2,s,]-lambdaS_obs_diff[2,3,s,]# mean variance interaction for extreme2
@@ -845,6 +878,9 @@ for(s in 1:8){
   lambdaS_samp_diff[4,4,s,] = lambdaS_samp_diff[4,1,s,]-lambdaS_samp_diff[4,2,s,]-lambdaS_samp_diff[4,3,s,]# mean variance interaction for extreme6
 }
 
+################################################################
+##### Plot of stochastic lambda contributions
+################################################################
 dimnames(lambdaS_obs_diff) <- list(Scenario = c("normal","extreme2","extreme4","extreme6"), Contribution = c("Full Effect","Mean only","Variance only","Interaction"), Species = paste0("species",1:8), Quantile = c("mean","fifth","twelvepointfive","twentyfifth","seventyfifth","eightysevenpointfive","ninetyfifth"))
 lambdaS_obs_diff_cube <- cubelyr::as.tbl_cube(lambdaS_obs_diff)
 lambdaS_obs_diff_df <- as_tibble(lambdaS_obs_diff_cube) %>% 
