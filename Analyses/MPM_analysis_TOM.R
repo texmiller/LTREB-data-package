@@ -407,7 +407,20 @@ lambda_cv_samp_extr_df <- as_tibble(lambda_cv_samp_extr_cube) %>%
 lambda_mean_df <- rbind(lambda_mean_obs_df, lambda_mean_samp_df, lambda_mean_samp_extr_df)
 lambda_sd_df <- rbind(lambda_sd_obs_df, lambda_sd_samp_df, lambda_sd_samp_extr_df)
 lambda_cv_df <- rbind(lambda_cv_obs_df, lambda_cv_samp_df, lambda_cv_samp_extr_df)
+
+
 # Plots of endo effects on mean, sd and cv
+
+# Set color scheme based on analine blue
+endophyte_color_scheme <- c("#fdedd3","#f3c8a8", "#5a727b", "#4986c7", "#181914",  "#163381")
+color_scheme_set(endophyte_color_scheme)
+color_scheme_view()
+# And creating a color palette for each year
+yearcount = length(unique(LTREB_full$year_t))
+yearcolors<- colorRampPalette(brewer.pal(8,"Dark2"))(yearcount)
+# scales::show_col(yearcolors)
+species_list <- c("AGPE", "ELRI", "ELVI", "FESU", "LOAR", "POAL", "POSY")
+
 meanlambda_plot <- ggplot(data = lambda_mean_df) +
   geom_hline(yintercept = 0, col = "black") + 
   # geom_linerange(data = lambda_mean_diff_df, aes(x = species, y = mean, ymin = 0, ymax = mean, color = species)) + 
@@ -485,16 +498,25 @@ LTREB_full %>%
 euclidean <- function(a, b) sqrt(sum((a - b)^2))
 
 ## store lambdaS output: 8 species (7+mean),4 scenarios
-n_draws<-10
+n_draws<-500
 lambdaS_mat<-array(NA,dim=c(4,7,n_draws))
-lambdaS_mat_extreme<-array(NA,dim=c(4,7,n_draws))
+lambdaS_mat_extreme2<-lambdaS_mat_extreme4<-lambdaS_mat_extreme6<-array(NA,dim=c(4,7,n_draws))
 
+lambdaS_mat_samp<-array(NA,dim=c(4,7,n_draws))
+lambdaS_mat_samp_extreme2<-lambdaS_mat_samp_extreme4<-lambdaS_mat_samp_extreme6<-array(NA,dim=c(4,7,n_draws))
+
+save_lambda_obs <- array(NA,dim=c(years_obs,4,7,n_draws))
+save_lambda_samp <- array(NA,dim=c(n_years_samp,4,7,n_draws))
+save_lambda_obs_extreme2 <- save_lambda_samp_extreme2 <- array(NA,dim=c(2,4,7,n_draws))
+save_lambda_obs_extreme4 <- save_lambda_samp_extreme4 <- array(NA,dim=c(4,4,7,n_draws))
+save_lambda_obs_extreme6 <- save_lambda_samp_extreme6 <- array(NA,dim=c(6,4,7,n_draws))
 for(d in 1:n_draws){
-# d=1 ## pick one posterior sample
 ## list of transition years that we observed
-A_t_obs<-list()
+A_t_obs <- A_t_samp <-list()
   for(s in 1:7){
     eminus_list <- eplus_list <- eplus_mean_only_list <- eplus_var_only_list <- list()
+    eminus_list_samp <- eplus_list_samp <- eplus_mean_only_list_samp <- eplus_var_only_list_samp <- list()
+    # 1: sample observed years
     for(y in 1:years_obs){ ## 13 transitions matrices (2008-09 through 2020-21)
       eminus_list[[y]] <- bigmatrix(make_params(species=s,
                                                 endo_mean=0,
@@ -569,36 +591,331 @@ A_t_obs<-list()
                                                          recruit_par=recruit_par),
                                              extension = 100)$MPMmat
     }#y loop
-    
+    # 2: Sample many hypothetical years from fitted year variances
+    for(yi in 1:n_years_samp){
+      eminus_list_samp[[yi]] <- bigmatrix(make_params(species=s,
+                                                endo_mean=0,
+                                                endo_var=0,
+                                                original = 1, # should be =1 to represent recruit
+                                                draw=post_draws[d],
+                                                max_size=max_size,
+                                                rfx=T,
+                                                samp=T,
+                                                # year=y+1,
+                                                surv_par=surv_par,
+                                                surv_sdlg_par = surv_sdlg_par,
+                                                grow_par=grow_par,
+                                                grow_sdlg_par = grow_sdlg_par,
+                                                flow_par=flow_par,
+                                                fert_par=fert_par,
+                                                spike_par=spike_par,
+                                                seed_par=seed_par,
+                                                recruit_par=recruit_par),
+                                    extension = 100)$MPMmat
+      eplus_list_samp[[yi]] <- bigmatrix(make_params(species=s,
+                                               endo_mean=1,
+                                               endo_var=1,
+                                               original = 1, # should be =1 to represent recruit
+                                               draw=post_draws[d],
+                                               max_size=max_size,
+                                               rfx=T,
+                                               samp=T,
+                                               # year=y+1,
+                                               surv_par=surv_par,
+                                               surv_sdlg_par = surv_sdlg_par,
+                                               grow_par=grow_par,
+                                               grow_sdlg_par = grow_sdlg_par,
+                                               flow_par=flow_par,
+                                               fert_par=fert_par,
+                                               spike_par=spike_par,
+                                               seed_par=seed_par,
+                                               recruit_par=recruit_par),
+                                   extension = 100)$MPMmat
+      eplus_mean_only_list_samp[[yi]] <- bigmatrix(make_params(species=s,
+                                                         endo_mean=1,
+                                                         endo_var=0,
+                                                         original = 1, # should be =1 to represent recruit
+                                                         draw=post_draws[d],
+                                                         max_size=max_size,
+                                                         rfx=T,
+                                                         samp=T,
+                                                         # year=y+1,
+                                                         surv_par=surv_par,
+                                                         surv_sdlg_par = surv_sdlg_par,
+                                                         grow_par=grow_par,
+                                                         grow_sdlg_par = grow_sdlg_par,
+                                                         flow_par=flow_par,
+                                                         fert_par=fert_par,
+                                                         spike_par=spike_par,
+                                                         seed_par=seed_par,
+                                                         recruit_par=recruit_par),
+                                             extension = 100)$MPMmat
+      eplus_var_only_list_samp[[yi]] <- bigmatrix(make_params(species=s,
+                                                        endo_mean=0,
+                                                        endo_var=1,
+                                                        original = 1, # should be =1 to represent recruit
+                                                        draw=post_draws[d],
+                                                        max_size=max_size,
+                                                        rfx=T,
+                                                        samp=T,
+                                                        # year=y+1,
+                                                        surv_par=surv_par,
+                                                        surv_sdlg_par = surv_sdlg_par,
+                                                        grow_par=grow_par,
+                                                        grow_sdlg_par = grow_sdlg_par,
+                                                        flow_par=flow_par,
+                                                        fert_par=fert_par,
+                                                        spike_par=spike_par,
+                                                        seed_par=seed_par,
+                                                        recruit_par=recruit_par),
+                                            extension = 100)$MPMmat
+    }#yi loop
     ## store matrix lists in a list
     A_t_obs[[s]]<-list(eminus=eminus_list,
                    eplus_mean_only=eplus_mean_only_list,
                    eplus_var_only=eplus_var_only_list,
                    eplus=eplus_list)
+    A_t_samp[[s]]<-list(eminus=eminus_list_samp,
+                       eplus_mean_only=eplus_mean_only_list_samp,
+                       eplus_var_only=eplus_var_only_list_samp,
+                       eplus=eplus_list_samp)
 
     ## get lambda by year for E+ and E-
-    lambda_t<-matrix(NA,2,13)
-    for(i in 1:13){
+    lambda_t<-matrix(NA,2,years_obs)
+    lambda_t_samp <- matrix(NA,2,n_years_samp)
+    
+    for(i in 1:years_obs){
       lambda_t[1,i]<-lambda(A_t_obs[[s]][[1]][[i]])
       lambda_t[2,i]<-lambda(A_t_obs[[s]][[4]][[i]])
     }
-    dist<-c()
-    for(i in 1:13){
+    for(i in 1:n_years_samp){
+      lambda_t_samp[1,i]<-lambda(A_t_samp[[s]][[1]][[i]])
+      lambda_t_samp[2,i]<-lambda(A_t_samp[[s]][[4]][[i]])
+    }
+    
+    dist <- dist_samp <- c()
+    for(i in 1:years_obs){
       dist[i] <- euclidean(c(lambda_t[1,i],lambda_t[2,i]),
                            c(mean(lambda_t[1,]),mean(lambda_t[2,])))
     }
-
+    for(i in 1:n_years_samp){
+      dist_samp[i] <- euclidean(c(lambda_t_samp[1,i],lambda_t_samp[2,i]),
+                           c(mean(lambda_t_samp[1,]),mean(lambda_t_samp[2,])))
+    }
+    toptwo <- dist%in%rev(sort(dist))[1:2]
+    topfour <- dist%in%rev(sort(dist))[1:4]
     topsix <- dist%in%rev(sort(dist))[1:6]
-
     
+    toptwo_samp <- dist_samp%in%rev(sort(dist_samp))[1:2]
+    topfour_samp <- dist_samp%in%rev(sort(dist_samp))[1:4]
+    topsix_samp <- dist_samp%in%rev(sort(dist_samp))[1:6]
       
     for(e in 1:4){
       lambdaS_mat[e,s,d]<-lambdaSim(mat_list = A_t_obs[[s]][[e]],max_yrs = 500)$lambdaS
-      lambdaS_mat_extreme[e,s,d]<-lambdaSim(mat_list = A_t_obs[[s]][[e]][topsix],max_yrs = 500)$lambdaS
+      lambdaS_mat_extreme2[e,s,d]<-lambdaSim(mat_list = A_t_obs[[s]][[e]][toptwo],max_yrs = 500)$lambdaS
+      lambdaS_mat_extreme4[e,s,d]<-lambdaSim(mat_list = A_t_obs[[s]][[e]][topfour],max_yrs = 500)$lambdaS
+      lambdaS_mat_extreme6[e,s,d]<-lambdaSim(mat_list = A_t_obs[[s]][[e]][topsix],max_yrs = 500)$lambdaS
+      
+      save_lambda_obs[,e,s,d] <- sapply(A_t_obs[[s]][[e]], FUN = lambda)
+      save_lambda_obs_extreme2[,e,s,d] <- sapply(A_t_obs[[s]][[e]][toptwo], FUN = lambda)
+      save_lambda_obs_extreme4[,e,s,d] <- sapply(A_t_obs[[s]][[e]][topfour], FUN = lambda)
+      save_lambda_obs_extreme6[,e,s,d] <- sapply(A_t_obs[[s]][[e]][topsix], FUN = lambda)
+      
+      lambdaS_mat_samp[e,s,d]<-lambdaSim(mat_list = A_t_samp[[s]][[e]],max_yrs = 500)$lambdaS
+      lambdaS_mat_samp_extreme2[e,s,d]<-lambdaSim(mat_list = A_t_samp[[s]][[e]][toptwo_samp],max_yrs = 500)$lambdaS
+      lambdaS_mat_samp_extreme4[e,s,d]<-lambdaSim(mat_list = A_t_samp[[s]][[e]][topfour_samp],max_yrs = 500)$lambdaS
+      lambdaS_mat_samp_extreme6[e,s,d]<-lambdaSim(mat_list = A_t_samp[[s]][[e]][topsix_samp],max_yrs = 500)$lambdaS
+      
+      save_lambda_samp[,e,s,d] <- sapply(A_t_samp[[s]][[e]], FUN = lambda)
+      save_lambda_samp_extreme2[,e,s,d] <- sapply(A_t_samp[[s]][[e]][toptwo_samp], FUN = lambda)
+      save_lambda_samp_extreme4[,e,s,d] <- sapply(A_t_samp[[s]][[e]][topfour_samp], FUN = lambda)
+      save_lambda_samp_extreme6[,e,s,d] <- sapply(A_t_samp[[s]][[e]][topsix_samp], FUN = lambda)
     }
     
   }#s loop
 }#end d loop
+
+# # Saving all of the simulations
+# saveRDS(lambdaS_mat, file = paste0(path,"/Model_Runs/MPM_output/lambdaS_mat.rds"))
+# saveRDS(lambdaS_mat_extreme2, file = paste0(path,"/Model_Runs/MPM_output/lambdaS_mat_extreme2.rds"))
+# saveRDS(lambdaS_mat_extreme4, file = paste0(path,"/Model_Runs/MPM_output/lambdaS_mat_extreme4.rds"))
+# saveRDS(lambdaS_mat_extreme6, file = paste0(path,"/Model_Runs/MPM_output/lambdaS_mat_extreme6.rds"))
+# 
+# saveRDS(save_lambda_obs, file = paste0(path,"/Model_Runs/MPM_output/save_lambda_obs.rds"))
+# saveRDS(save_lambda_obs_extreme2, file = paste0(path,"/Model_Runs/MPM_output/save_lambda_obs_extreme2.rds"))
+# saveRDS(save_lambda_obs_extreme4, file = paste0(path,"/Model_Runs/MPM_output/save_lambda_obs_extreme4.rds"))
+# saveRDS(save_lambda_obs_extreme6, file = paste0(path,"/Model_Runs/MPM_output/save_lambda_obs_extreme6.rds"))
+# 
+# saveRDS(lambdaS_mat_samp, file = paste0(path,"/Model_Runs/MPM_output/lambdaS_mat_samp.rds"))
+# saveRDS(lambdaS_mat_samp_extreme2, file = paste0(path,"/Model_Runs/MPM_output/lambdaS_mat_samp_extreme2.rds"))
+# saveRDS(lambdaS_mat_samp_extreme4, file = paste0(path,"/Model_Runs/MPM_output/lambdaS_mat_samp_extreme4.rds"))
+# saveRDS(lambdaS_mat_samp_extreme6, file = paste0(path,"/Model_Runs/MPM_output/lambdaS_mat_samp_extreme6.rds"))
+# 
+# saveRDS(save_lambda_samp, file = paste0(path,"/Model_Runs/MPM_output/save_lambda_samp.rds"))
+# saveRDS(save_lambda_samp_extreme2, file = paste0(path,"/Model_Runs/MPM_output/save_lambda_samp_extreme2.rds"))
+# saveRDS(save_lambda_samp_extreme4, file = paste0(path,"/Model_Runs/MPM_output/save_lambda_samp_extreme4.rds"))
+# saveRDS(save_lambda_samp_extreme6, file = paste0(path,"/Model_Runs/MPM_output/save_lambda_samp_extreme6.rds"))
+
+lambdaS_mat <- read_rds(paste0(path,"/Model_Runs/MPM_output/lambdaS_mat.rds"))
+lambdaS_mat_extreme2 <- read_rds(paste0(path,"/Model_Runs/MPM_output/lambdaS_mat_extreme2.rds"))
+lambdaS_mat_extreme4 <- read_rds(paste0(path,"/Model_Runs/MPM_output/lambdaS_mat_extreme4.rds"))
+lambdaS_mat_extreme6 <- read_rds(paste0(path,"/Model_Runs/MPM_output/lambdaS_mat_extreme6.rds"))
+
+save_lambda_obs <- read_rds(paste0(path,"/Model_Runs/MPM_output/save_lambda_obs.rds"))
+save_lambda_obs_extreme2 <- read_rds(paste0(path,"/Model_Runs/MPM_output/save_lambda_obs_extreme2.rds"))
+save_lambda_obs_extreme4 <- read_rds(paste0(path,"/Model_Runs/MPM_output/save_lambda_obs_extreme4.rds"))
+save_lambda_obs_extreme6 <- read_rds(paste0(path,"/Model_Runs/MPM_output/save_lambda_obs_extreme6.rds"))
+
+lambdaS_mat_samp <- read_rds(paste0(path,"/Model_Runs/MPM_output/lambdaS_mat_samp.rds"))
+lambdaS_mat_samp_extreme2 <- read_rds(paste0(path,"/Model_Runs/MPM_output/lambdaS_mat_samp_extreme2.rds"))
+lambdaS_mat_samp_extreme4 <- read_rds(paste0(path,"/Model_Runs/MPM_output/lambdaS_mat_samp_extreme4.rds"))
+lambdaS_mat_samp_extreme6 <- read_rds(paste0(path,"/Model_Runs/MPM_output/lambdaS_mat_samp_extreme6.rds"))
+
+save_lambda_samp <- read_rds(paste0(path,"/Model_Runs/MPM_output/save_lambda_samp.rds"))
+save_lambda_samp_extreme2 <- read_rds(paste0(path,"/Model_Runs/MPM_output/save_lambda_samp_extreme2.rds"))
+save_lambda_samp_extreme4 <- read_rds(paste0(path,"/Model_Runs/MPM_output/save_lambda_samp_extreme4.rds"))
+save_lambda_samp_extreme6 <- read_rds(paste0(path,"/Model_Runs/MPM_output/save_lambda_samp_extreme6.rds"))
+
+# calculate cross species mean and the posterior means
+lambdaS_obs_diff <- lambdaS_samp_diff <- array(NA,dim=c(4,4,8,7))
+for(s in 1:8){
+  # eplus-eminus
+  lambdaS_obs_diff[1,1,s,1] = mean(lambdaS_mat[4,s,]-lambdaS_mat[1,s,], na.rm = T) # eplus-eminus
+  lambdaS_obs_diff[1,1,s,2:7] = quantile(lambdaS_mat[4,s,]-lambdaS_mat[1,s,], probs = c(0.05, 0.125,0.25,0.75,0.875,0.95), na.rm = T)
+  lambdaS_obs_diff[2,1,s,1] = mean(lambdaS_mat_extreme2[4,s,]-lambdaS_mat_extreme2[1,s,], na.rm = T) # eplus-eminus for extreme2
+  lambdaS_obs_diff[2,1,s,2:7] = quantile(lambdaS_mat_extreme2[4,s,]-lambdaS_mat_extreme2[1,s,], probs = c(0.05, 0.125,0.25,0.75,0.875,0.95), na.rm = T)
+  lambdaS_obs_diff[3,1,s,1] = mean(lambdaS_mat_extreme4[4,s,]-lambdaS_mat_extreme4[1,s,], na.rm = T) # eplus-eminus for extreme4
+  lambdaS_obs_diff[3,1,s,2:7] = quantile(lambdaS_mat_extreme4[4,s,]-lambdaS_mat_extreme4[1,s,], probs = c(0.05, 0.125,0.25,0.75,0.875,0.95), na.rm = T)
+  lambdaS_obs_diff[4,1,s,1] = mean(lambdaS_mat_extreme6[4,s,]-lambdaS_mat_extreme6[1,s,], na.rm = T) # eplus-eminus for extreme6
+  lambdaS_obs_diff[4,1,s,2:7] = quantile(lambdaS_mat_extreme6[4,s,]-lambdaS_mat_extreme6[1,s,], probs = c(0.05, 0.125,0.25,0.75,0.875,0.95), na.rm = T)
+  
+  lambdaS_samp_diff[1,1,s,1] = mean(lambdaS_mat_samp[4,s,]-lambdaS_mat_samp[1,s,], na.rm = T) # eplus-eminus
+  lambdaS_samp_diff[1,1,s,2:7] = quantile(lambdaS_mat_samp[4,s,]-lambdaS_mat_samp[1,s,], probs = c(0.05, 0.125,0.25,0.75,0.875,0.95), na.rm = T)
+  lambdaS_samp_diff[2,1,s,1] = mean(lambdaS_mat_samp_extreme2[4,s,]-lambdaS_mat_samp_extreme2[1,s,], na.rm = T) # eplus-eminus for extreme2
+  lambdaS_samp_diff[2,1,s,2:7] = quantile(lambdaS_mat_samp_extreme2[4,s,]-lambdaS_mat_samp_extreme2[1,s,], probs = c(0.05, 0.125,0.25,0.75,0.875,0.95), na.rm = T)
+  lambdaS_samp_diff[3,1,s,1] = mean(lambdaS_mat_samp_extreme4[4,s,]-lambdaS_mat_samp_extreme4[1,s,], na.rm = T) # eplus-eminus for extreme4
+  lambdaS_samp_diff[3,1,s,2:7] = quantile(lambdaS_mat_samp_extreme4[4,s,]-lambdaS_mat_samp_extreme4[1,s,], probs = c(0.05, 0.125,0.25,0.75,0.875,0.95), na.rm = T)
+  lambdaS_samp_diff[4,1,s,1] = mean(lambdaS_mat_samp_extreme6[4,s,]-lambdaS_mat_samp_extreme6[1,s,], na.rm = T) # eplus-eminus for extreme6
+  lambdaS_samp_diff[4,1,s,2:7] = quantile(lambdaS_mat_samp_extreme6[4,s,]-lambdaS_mat_samp_extreme6[1,s,], probs = c(0.05, 0.125,0.25,0.75,0.875,0.95), na.rm = T)
+  # eplus mean only - eminus
+  lambdaS_obs_diff[1,2,s,1] = mean(lambdaS_mat[2,s,]-lambdaS_mat[1,s,], na.rm = T) # eplus mean only - eminus
+  lambdaS_obs_diff[1,2,s,2:7] = quantile(lambdaS_mat[2,s,]-lambdaS_mat[1,s,], probs = c(0.05, 0.125,0.25,0.75,0.875,0.95), na.rm = T)
+  lambdaS_obs_diff[2,2,s,1] = mean(lambdaS_mat_extreme2[2,s,]-lambdaS_mat_extreme2[1,s,], na.rm = T) # eplus mean only - eminus for extreme2
+  lambdaS_obs_diff[2,2,s,2:7] = quantile(lambdaS_mat_extreme2[2,s,]-lambdaS_mat_extreme2[1,s,], probs = c(0.05, 0.125,0.25,0.75,0.875,0.95), na.rm = T)
+  lambdaS_obs_diff[3,2,s,1] = mean(lambdaS_mat_extreme4[2,s,]-lambdaS_mat_extreme4[1,s,], na.rm = T) # eplus mean only - eminus for extreme4
+  lambdaS_obs_diff[3,2,s,2:7] = quantile(lambdaS_mat_extreme4[2,s,]-lambdaS_mat_extreme4[1,s,], probs = c(0.05, 0.125,0.25,0.75,0.875,0.95), na.rm = T)
+  lambdaS_obs_diff[4,2,s,1] = mean(lambdaS_mat_extreme6[2,s,]-lambdaS_mat_extreme6[1,s,], na.rm = T)# eplus mean only - eminus for extreme6
+  lambdaS_obs_diff[4,2,s,2:7] = quantile(lambdaS_mat_extreme6[2,s,]-lambdaS_mat_extreme6[1,s,], probs = c(0.05, 0.125,0.25,0.75,0.875,0.95), na.rm = T)
+  
+  lambdaS_samp_diff[1,2,s,1] = mean(lambdaS_mat_samp[2,s,]-lambdaS_mat_samp[1,s,], na.rm = T) # eplus mean only - eminus
+  lambdaS_samp_diff[1,2,s,2:7] = quantile(lambdaS_mat_samp[2,s,]-lambdaS_mat_samp[1,s,], probs = c(0.05, 0.125,0.25,0.75,0.875,0.95), na.rm = T)
+  lambdaS_samp_diff[2,2,s,1] = mean(lambdaS_mat_samp_extreme2[2,s,]-lambdaS_mat_samp_extreme2[1,s,], na.rm = T) # eplus mean only - eminus for extreme2
+  lambdaS_samp_diff[2,2,s,2:7] = quantile(lambdaS_mat_samp_extreme2[2,s,]-lambdaS_mat_samp_extreme2[1,s,], probs = c(0.05, 0.125,0.25,0.75,0.875,0.95), na.rm = T)
+  lambdaS_samp_diff[3,2,s,1] = mean(lambdaS_mat_samp_extreme4[2,s,]-lambdaS_mat_samp_extreme4[1,s,], na.rm = T) # eplus mean only - eminus for extreme4
+  lambdaS_samp_diff[3,2,s,2:7] = quantile(lambdaS_mat_samp_extreme4[2,s,]-lambdaS_mat_samp_extreme4[1,s,], probs = c(0.05, 0.125,0.25,0.75,0.875,0.95), na.rm = T)
+  lambdaS_samp_diff[4,2,s,1] = mean(lambdaS_mat_samp_extreme6[2,s,]-lambdaS_mat_samp_extreme6[1,s,], na.rm = T)# eplus mean only - eminus for extreme6
+  lambdaS_samp_diff[4,2,s,2:7] = quantile(lambdaS_mat_samp_extreme6[2,s,]-lambdaS_mat_samp_extreme6[1,s,], probs = c(0.05, 0.125,0.25,0.75,0.875,0.95), na.rm = T)
+  # eplus var only - eminus
+  lambdaS_obs_diff[1,3,s,1] = mean(lambdaS_mat[3,s,]-lambdaS_mat[1,s,], na.rm = T) #  eplus var only - eminus
+  lambdaS_obs_diff[1,3,s,2:7] = quantile(lambdaS_mat[3,s,]-lambdaS_mat[1,s,], probs = c(0.05, 0.125,0.25,0.75,0.875,0.95), na.rm = T)
+  lambdaS_obs_diff[2,3,s,1] = mean(lambdaS_mat_extreme2[3,s,]-lambdaS_mat_extreme2[1,s,], na.rm = T) #  eplus var only - eminusfor extreme2
+  lambdaS_obs_diff[2,3,s,2:7] = quantile(lambdaS_mat_extreme2[3,s,]-lambdaS_mat_extreme2[1,s,], probs = c(0.05, 0.125,0.25,0.75,0.875,0.95), na.rm = T)
+  lambdaS_obs_diff[3,3,s,1] = mean(lambdaS_mat_extreme4[3,s,]-lambdaS_mat_extreme4[1,s,], na.rm = T) #  eplus var only - eminus for extreme4
+  lambdaS_obs_diff[3,3,s,2:7] = quantile(lambdaS_mat_extreme4[3,s,]-lambdaS_mat_extreme4[1,s,], probs = c(0.05, 0.125,0.25,0.75,0.875,0.95), na.rm = T)
+  lambdaS_obs_diff[4,3,s,1] = mean(lambdaS_mat_extreme6[3,s,]-lambdaS_mat_extreme6[1,s,], na.rm = T)#  eplus var only - eminus for extreme6
+  lambdaS_obs_diff[4,3,s,2:7] = quantile(lambdaS_mat_extreme6[3,s,]-lambdaS_mat_extreme6[1,s,], probs = c(0.05, 0.125,0.25,0.75,0.875,0.95), na.rm = T)
+  
+  lambdaS_samp_diff[1,3,s,1] = mean(lambdaS_mat_samp[3,s,]-lambdaS_mat_samp[1,s,], na.rm = T) #  eplus var only - eminus
+  lambdaS_samp_diff[1,3,s,2:7] = quantile(lambdaS_mat_samp[3,s,]-lambdaS_mat_samp[1,s,], probs = c(0.05, 0.125,0.25,0.75,0.875,0.95), na.rm = T)
+  lambdaS_samp_diff[2,3,s,1] = mean(lambdaS_mat_samp_extreme2[3,s,]-lambdaS_mat_samp_extreme2[1,s,], na.rm = T) #  eplus var only - eminusfor extreme2
+  lambdaS_samp_diff[2,3,s,2:7] = quantile(lambdaS_mat_samp_extreme2[3,s,]-lambdaS_mat_samp_extreme2[1,s,], probs = c(0.05, 0.125,0.25,0.75,0.875,0.95), na.rm = T)
+  lambdaS_samp_diff[3,3,s,1] = mean(lambdaS_mat_samp_extreme4[3,s,]-lambdaS_mat_samp_extreme4[1,s,], na.rm = T) #  eplus var only - eminus for extreme4
+  lambdaS_samp_diff[3,3,s,2:7] = quantile(lambdaS_mat_samp_extreme4[3,s,]-lambdaS_mat_samp_extreme4[1,s,], probs = c(0.05, 0.125,0.25,0.75,0.875,0.95), na.rm = T)
+  lambdaS_samp_diff[4,3,s,1] = mean(lambdaS_mat_samp_extreme6[3,s,]-lambdaS_mat_samp_extreme6[1,s,], na.rm = T)#  eplus var only - eminus for extreme6
+  lambdaS_samp_diff[4,3,s,2:7] = quantile(lambdaS_mat_samp_extreme6[3,s,]-lambdaS_mat_samp_extreme6[1,s,], probs = c(0.05, 0.125,0.25,0.75,0.875,0.95), na.rm = T)
+  # mean var interaction
+  lambdaS_obs_diff[1,4,s,] = lambdaS_obs_diff[1,1,s,]-lambdaS_obs_diff[1,2,s,]-lambdaS_obs_diff[1,3,s,]# mean variance interaction
+  lambdaS_obs_diff[2,4,s,] = lambdaS_obs_diff[2,1,s,]-lambdaS_obs_diff[2,2,s,]-lambdaS_obs_diff[2,3,s,]# mean variance interaction for extreme2
+  lambdaS_obs_diff[3,4,s,] = lambdaS_obs_diff[3,1,s,]-lambdaS_obs_diff[3,2,s,]-lambdaS_obs_diff[3,3,s,]# mean variance interaction for extreme4
+  lambdaS_obs_diff[4,4,s,] = lambdaS_obs_diff[4,1,s,]-lambdaS_obs_diff[4,2,s,]-lambdaS_obs_diff[4,3,s,]# mean variance interaction for extreme6
+  
+  lambdaS_samp_diff[1,4,s,] = lambdaS_samp_diff[1,1,s,]-lambdaS_samp_diff[1,2,s,]-lambdaS_samp_diff[1,3,s,]# mean variance interaction
+  lambdaS_samp_diff[2,4,s,] = lambdaS_samp_diff[2,1,s,]-lambdaS_samp_diff[2,2,s,]-lambdaS_samp_diff[2,3,s,]# mean variance interaction for extreme2
+  lambdaS_samp_diff[3,4,s,] = lambdaS_samp_diff[3,1,s,]-lambdaS_samp_diff[3,2,s,]-lambdaS_samp_diff[3,3,s,]# mean variance interaction for extreme4
+  lambdaS_samp_diff[4,4,s,] = lambdaS_samp_diff[4,1,s,]-lambdaS_samp_diff[4,2,s,]-lambdaS_samp_diff[4,3,s,]# mean variance interaction for extreme6
+}
+
+dimnames(lambdaS_obs_diff) <- list(Scenario = c("normal","extreme2","extreme4","extreme6"), Contribution = c("Full Effect","Mean only","Variance only","Interaction"), Species = paste0("species",1:8), Quantile = c("mean","fifth","twelvepointfive","twentyfifth","seventyfifth","eightysevenpointfive","ninetyfifth"))
+lambdaS_obs_diff_cube <- cubelyr::as.tbl_cube(lambdaS_obs_diff)
+lambdaS_obs_diff_df <- as_tibble(lambdaS_obs_diff_cube) %>% 
+  pivot_wider(names_from = "Quantile", values_from = lambdaS_obs_diff) %>% 
+  mutate(Sampling = "observed")
+
+dimnames(lambdaS_samp_diff) <- list(Scenario = c("normal","extreme2","extreme4","extreme6"), Contribution = c("Full Effect","Mean only","Variance only","Interaction"), Species = paste0("species",1:8), Quantile = c("mean","fifth","twelvepointfive","twentyfifth","seventyfifth","eightysevenpointfive","ninetyfifth"))
+lambdaS_samp_diff_cube <- cubelyr::as.tbl_cube(lambdaS_samp_diff)
+lambdaS_samp_diff_df <- as_tibble(lambdaS_samp_diff_cube) %>% 
+  pivot_wider(names_from = "Quantile", values_from = lambdaS_samp_diff) %>% 
+  mutate(Sampling = "sampled")
+
+lambdaS_diff_df <- lambdaS_obs_diff_df %>% 
+  rbind(lambdaS_samp_diff_df)
+x_levels <- c( "Interaction", "Variance only", "Mean only", "Full Effect")
+contributions_obs_plot <- ggplot(data = lambdaS_obs_diff_df) +
+  geom_hline(yintercept = 0, col = "black") +
+  geom_linerange(aes(x = Contribution, ymin = twentyfifth, ymax = seventyfifth, color = Scenario),position = position_dodge(width = .6), lwd = 2) +
+  geom_linerange(aes(x = Contribution, ymin = twelvepointfive, ymax = eightysevenpointfive, color = Scenario),position = position_dodge(width = .6), lwd = 1) +
+  geom_linerange(aes(x = Contribution, ymin = fifth, ymax = ninetyfifth, color = Scenario),position = position_dodge(width = .6)) +
+  geom_point(aes(y = mean, x = Contribution, fill = Scenario, pch = Contribution), position = position_dodge(width = .6), lwd = 3) +
+  facet_wrap(~Species, nrow = 2, scales = "free") + coord_flip() +
+  scale_shape_manual(values = c(21, 22, 23,24))+
+  scale_fill_manual(values = c(endophyte_color_scheme[5],endophyte_color_scheme[6], endophyte_color_scheme[4], endophyte_color_scheme[3])) +
+  scale_color_manual(values = c(endophyte_color_scheme[5],endophyte_color_scheme[6], endophyte_color_scheme[4], endophyte_color_scheme[3]))+
+  scale_x_discrete(limits = x_levels)+
+  labs(title = "Observed Years", x = "", y = expression(paste("Endophyte effect on", " ", lambda["s"])))+
+  theme(panel.background = element_blank(),
+        plot.background = element_rect(color = "white"),
+        panel.grid.major.y = element_blank(),
+        panel.grid.major.x = element_blank(),
+        panel.grid.minor.x = element_blank(),
+        axis.line.x = element_line(size = .5, colour = "black"),
+        axis.ticks.y = element_blank(),
+        axis.text.y = element_text(size = rel(1.5), face = "bold"),
+        axis.text.x = element_text(size = rel(1.5), face = "bold"),
+        axis.title = element_text(size = rel(1.5)),
+        strip.background = element_blank())
+# contributions_obs_plot
+# ggsave(contributions_obs_plot, filename = "contributions_obs_plot.tiff", width = 15, height = 6)
+
+
+contributions_samp_plot <- ggplot(data = lambdaS_samp_diff_df) +
+  geom_hline(yintercept = 0, col = "black") +
+  geom_linerange(aes(x = Contribution, ymin = twentyfifth, ymax = seventyfifth, color = Scenario),position = position_dodge(width = .6), lwd = 2) +
+  geom_linerange(aes(x = Contribution, ymin = twelvepointfive, ymax = eightysevenpointfive, color = Scenario),position = position_dodge(width = .6), lwd = 1) +
+  geom_linerange(aes(x = Contribution, ymin = fifth, ymax = ninetyfifth, color = Scenario),position = position_dodge(width = .6)) +
+  geom_point(aes(y = mean, x = Contribution, fill = Scenario, pch = Contribution), position = position_dodge(width = .6), lwd = 3) +
+  facet_wrap(~Species, nrow = 2, scales = "free") + coord_flip() +
+  scale_shape_manual(values = c(21, 22, 23,24))+
+  scale_fill_manual(values = c(endophyte_color_scheme[5],endophyte_color_scheme[6], endophyte_color_scheme[4], endophyte_color_scheme[3])) +
+  scale_color_manual(values = c(endophyte_color_scheme[5],endophyte_color_scheme[6], endophyte_color_scheme[4], endophyte_color_scheme[3]))+
+  scale_x_discrete(limits = x_levels)+
+  labs(title = "Sampled Years", x = "", y = expression(paste("Endophyte effect on", " ", lambda["s"])))+
+  theme(panel.background = element_blank(),
+        plot.background = element_rect(color = "white"),
+        panel.grid.major.y = element_blank(),
+        panel.grid.major.x = element_blank(),
+        panel.grid.minor.x = element_blank(),
+        axis.line.x = element_line(size = .5, colour = "black"),
+        axis.ticks.y = element_blank(),
+        axis.text.y = element_text(size = rel(1.5), face = "bold"),
+        axis.text.x = element_text(size = rel(1.5), face = "bold"),
+        axis.title = element_text(size = rel(1.5)),
+        strip.background = element_blank())
+# contributions_samp_plot
+# ggsave(contributions_samp_plot, filename = "contributions_samp_plot.tiff", width = 15, height = 6)
+
+contributions_plot <- contributions_obs_plot+contributions_samp_plot + plot_layout(ncol = 1)
+ggsave(contributions_plot, filename = "contributions_plot.tiff", width = 15, height = 20)
+
 
 ## one random draw
 par(mfrow=c(1,2))
@@ -639,7 +956,7 @@ lambdaS_mat_extreme<-array(NA,dim=c(4,7,n_draws))
 ## get E+ and E- lambdas by year 
 
 ## E- lambda_t
-s<-1
+s<-2
 lambda_t<-matrix(NA,2,13)
 for(i in 1:13){
   lambda_t[1,i]<-lambda(A_t_obs[[s]][[1]][[i]])
@@ -656,17 +973,17 @@ for(i in 1:13){
   dist[i] <- euclidean(c(lambda_t[1,i],lambda_t[2,i]),
           c(mean(lambda_t[1,]),mean(lambda_t[2,])))
 }
-topfour <- dist%in%rev(sort(dist))[1:6]
+topsix <- dist%in%rev(sort(dist))[1:6]
 # getting ranks of E+ and E- lambdas to try to get a top three and bottom three separately
 recentered <-lambda_t-c(mean(lambda_t[1,]),mean(lambda_t[2,])) #recentering the points around (0,0)
 positive <- (atan2(x=recentered[1,], y = recentered[2,])) # calculating the angle in radians between the points and the x axis where negattive values are less than the mean. 
 
 
-points(lambda_t[1,topfour],lambda_t[2,topfour],col="blue",pch=16)
-points(lambda_t[1,topfour & positive>0], lambda_t[2,topfour & positive>0], col = "green", pch = 16)
+points(lambda_t[1,topsix],lambda_t[2,topsix],col="blue",pch=16)
+points(lambda_t[1,topsix & positive>0], lambda_t[2,topsix & positive>0], col = "green", pch = 16)
 #euclidian center of the extreme points
-euc.cent_extreme <- c(c(mean(lambda_t[1,topfour]),mean(lambda_t[2,topfour])))
-points(x=euc.cent_extreme[1],y=euc.cent_extreme[2],pch=16,col="green")
+euc.cent_extreme <- c(c(mean(lambda_t[1,topsix]),mean(lambda_t[2,topsix])))
+points(x=euc.cent_extreme[1],y=euc.cent_extreme[2],pch=16,col="orange")
 
 
 for(e in 1:4){
@@ -693,8 +1010,8 @@ for(i in 1:13){
 # trying to figure out how to sample from the full posterior just 5 and 95% quantiles
 qnorm(p = .95, mean = 0, sd = 1)
 
-hist(sample(prob = dnorm(x = 10, mean = 0, sd = 2), x = 1:2))
-points(sample(x = dnorm(x = qnorm(p = .95, mean = 0, sd = 1):10, mean = 0, sd = 2),size = 100, replace = T), col = "red")
+plot(sample(x = dnorm(x = -1:1, mean = 0, sd = 2), size = 100, replace = T))
+plot(sample(x = dnorm(x = qnorm(p = .95, mean = 0, sd = 1):10, mean = 0, sd = 2),size = 100, replace = T), col = "red")
 # Could do this in the vital rates, but maybe better to just increase the sd by 10 percent
 rfx_surv <- sample(qnorm(p=c(seq(.9,1,.001),seq(0,.1,.001)),mean = 0, sd=surv_par$sigma_year[draw,species,(endo_var+1)]),size = 1) # sample the tenth and ninetieth percentiles
 
