@@ -498,12 +498,12 @@ LTREB_full %>%
 euclidean <- function(a, b) sqrt(sum((a - b)^2))
 
 ## store lambdaS output: 8 species (7+mean),4 scenarios
-n_draws<-500
-lambdaS_mat<-array(NA,dim=c(4,7,n_draws))
-lambdaS_mat_extreme2<-lambdaS_mat_extreme4<-lambdaS_mat_extreme6<-array(NA,dim=c(4,7,n_draws))
+n_draws<-5
+lambdaS_obs<-array(NA,dim=c(4,n_spp+1,n_draws))
+lambdaS_obs_extreme2<-lambdaS_obs_extreme4<-lambdaS_obs_extreme6<-array(NA,dim=c(4,n_spp+1,n_draws))
 
-lambdaS_mat_samp<-array(NA,dim=c(4,7,n_draws))
-lambdaS_mat_samp_extreme2<-lambdaS_mat_samp_extreme4<-lambdaS_mat_samp_extreme6<-array(NA,dim=c(4,7,n_draws))
+lambdaS_samp<-array(NA,dim=c(4,n_spp+1,n_draws))
+lambdaS_samp_extreme2<-lambdaS_samp_extreme4<-lambdaS_samp_extreme6<-array(NA,dim=c(4,n_spp+1,n_draws))
 
 save_lambda_obs <- array(NA,dim=c(years_obs,4,7,n_draws))
 save_lambda_samp <- array(NA,dim=c(n_years_samp,4,7,n_draws))
@@ -513,7 +513,7 @@ save_lambda_obs_extreme6 <- save_lambda_samp_extreme6 <- array(NA,dim=c(6,4,7,n_
 for(d in 1:n_draws){
 ## list of transition years that we observed
 A_t_obs <- A_t_samp <-list()
-  for(s in 1:7){
+  for(s in 1:n_spp+1){
     eminus_list <- eplus_list <- eplus_mean_only_list <- eplus_var_only_list <- list()
     eminus_list_samp <- eplus_list_samp <- eplus_mean_only_list_samp <- eplus_var_only_list_samp <- list()
     # 1: sample observed years
