@@ -513,7 +513,7 @@ save_lambda_obs_extreme6 <- save_lambda_samp_extreme6 <- array(NA,dim=c(6,4,7,n_
 for(d in 1:n_draws){
 ## list of transition years that we observed
 A_t_obs <- A_t_samp <-list()
-  for(s in 1:n_spp+1){
+  for(s in 1:n_spp){
     eminus_list <- eplus_list <- eplus_mean_only_list <- eplus_var_only_list <- list()
     eminus_list_samp <- eplus_list_samp <- eplus_mean_only_list_samp <- eplus_var_only_list_samp <- list()
     # 1: sample observed years
