@@ -414,7 +414,7 @@ lambda_cv_df <- rbind(lambda_cv_obs_df, lambda_cv_samp_df, lambda_cv_samp_extr_d
 # Set color scheme based on analine blue
 endophyte_color_scheme <- c("#fdedd3","#f3c8a8", "#5a727b", "#4986c7", "#181914",  "#163381")
 color_scheme_set(endophyte_color_scheme)
-color_scheme_view()
+# color_scheme_view()
 # And creating a color palette for each year
 yearcount = length(unique(LTREB_full$year_t))
 yearcolors<- colorRampPalette(brewer.pal(8,"Dark2"))(yearcount)
@@ -498,7 +498,7 @@ LTREB_full %>%
 euclidean <- function(a, b) sqrt(sum((a - b)^2))
 
 ## store lambdaS output: 8 species (7+mean),4 scenarios
-n_draws<-5
+n_draws<-500
 lambdaS_obs<-array(NA,dim=c(4,n_spp+1,n_draws))
 lambdaS_obs_extreme2<-lambdaS_obs_extreme4<-lambdaS_obs_extreme6<-array(NA,dim=c(4,n_spp+1,n_draws))
 
@@ -769,26 +769,26 @@ lambdaS_samp_extreme6[4,8,d] <- mean(lambdaS_samp_extreme6[4,1:7,d]) # species m
 }#end d loop
 
 # # Saving all of the simulations
-# saveRDS(lambdaS_obs, file = paste0(path,"/Model_Runs/MPM_output/lambdaS_mat.rds"))
-# saveRDS(lambdaS_obs_extreme2, file = paste0(path,"/Model_Runs/MPM_output/lambdaS_mat_extreme2.rds"))
-# saveRDS(lambdaS_obs_extreme4, file = paste0(path,"/Model_Runs/MPM_output/lambdaS_mat_extreme4.rds"))
-# saveRDS(lambdaS_obs_extreme6, file = paste0(path,"/Model_Runs/MPM_output/lambdaS_mat_extreme6.rds"))
-# 
-# saveRDS(save_lambda_obs, file = paste0(path,"/Model_Runs/MPM_output/save_lambda_obs.rds"))
-# saveRDS(save_lambda_obs_extreme2, file = paste0(path,"/Model_Runs/MPM_output/save_lambda_obs_extreme2.rds"))
-# saveRDS(save_lambda_obs_extreme4, file = paste0(path,"/Model_Runs/MPM_output/save_lambda_obs_extreme4.rds"))
-# saveRDS(save_lambda_obs_extreme6, file = paste0(path,"/Model_Runs/MPM_output/save_lambda_obs_extreme6.rds"))
-# 
-# saveRDS(lambdaS_samp, file = paste0(path,"/Model_Runs/MPM_output/lambdaS_mat_samp.rds"))
-# saveRDS(lambdaS_samp_extreme2, file = paste0(path,"/Model_Runs/MPM_output/lambdaS_mat_samp_extreme2.rds"))
-# saveRDS(lambdaS_samp_extreme4, file = paste0(path,"/Model_Runs/MPM_output/lambdaS_mat_samp_extreme4.rds"))
-# saveRDS(lambdaS_samp_extreme6, file = paste0(path,"/Model_Runs/MPM_output/lambdaS_mat_samp_extreme6.rds"))
-# 
-# saveRDS(save_lambda_samp, file = paste0(path,"/Model_Runs/MPM_output/save_lambda_samp.rds"))
-# saveRDS(save_lambda_samp_extreme2, file = paste0(path,"/Model_Runs/MPM_output/save_lambda_samp_extreme2.rds"))
-# saveRDS(save_lambda_samp_extreme4, file = paste0(path,"/Model_Runs/MPM_output/save_lambda_samp_extreme4.rds"))
-# saveRDS(save_lambda_samp_extreme6, file = paste0(path,"/Model_Runs/MPM_output/save_lambda_samp_extreme6.rds"))
+saveRDS(lambdaS_obs, file = paste0(path,"/Model_Runs/MPM_output/lambdaS_mat.rds"))
+saveRDS(lambdaS_obs_extreme2, file = paste0(path,"/Model_Runs/MPM_output/lambdaS_mat_extreme2.rds"))
+saveRDS(lambdaS_obs_extreme4, file = paste0(path,"/Model_Runs/MPM_output/lambdaS_mat_extreme4.rds"))
+saveRDS(lambdaS_obs_extreme6, file = paste0(path,"/Model_Runs/MPM_output/lambdaS_mat_extreme6.rds"))
 
+saveRDS(save_lambda_obs, file = paste0(path,"/Model_Runs/MPM_output/save_lambda_obs.rds"))
+saveRDS(save_lambda_obs_extreme2, file = paste0(path,"/Model_Runs/MPM_output/save_lambda_obs_extreme2.rds"))
+saveRDS(save_lambda_obs_extreme4, file = paste0(path,"/Model_Runs/MPM_output/save_lambda_obs_extreme4.rds"))
+saveRDS(save_lambda_obs_extreme6, file = paste0(path,"/Model_Runs/MPM_output/save_lambda_obs_extreme6.rds"))
+
+saveRDS(lambdaS_samp, file = paste0(path,"/Model_Runs/MPM_output/lambdaS_mat_samp.rds"))
+saveRDS(lambdaS_samp_extreme2, file = paste0(path,"/Model_Runs/MPM_output/lambdaS_mat_samp_extreme2.rds"))
+saveRDS(lambdaS_samp_extreme4, file = paste0(path,"/Model_Runs/MPM_output/lambdaS_mat_samp_extreme4.rds"))
+saveRDS(lambdaS_samp_extreme6, file = paste0(path,"/Model_Runs/MPM_output/lambdaS_mat_samp_extreme6.rds"))
+
+saveRDS(save_lambda_samp, file = paste0(path,"/Model_Runs/MPM_output/save_lambda_samp.rds"))
+saveRDS(save_lambda_samp_extreme2, file = paste0(path,"/Model_Runs/MPM_output/save_lambda_samp_extreme2.rds"))
+saveRDS(save_lambda_samp_extreme4, file = paste0(path,"/Model_Runs/MPM_output/save_lambda_samp_extreme4.rds"))
+saveRDS(save_lambda_samp_extreme6, file = paste0(path,"/Model_Runs/MPM_output/save_lambda_samp_extreme6.rds"))
+# 
 lambdaS_obs <- read_rds(paste0(path,"/Model_Runs/MPM_output/lambdaS_obs.rds"))
 lambdaS_obs_extreme2 <- read_rds(paste0(path,"/Model_Runs/MPM_output/lambdaS_obs_extreme2.rds"))
 lambdaS_obs_extreme4 <- read_rds(paste0(path,"/Model_Runs/MPM_output/lambdaS_obs_extreme4.rds"))
