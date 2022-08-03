@@ -720,9 +720,9 @@ A_t_obs <- A_t_samp <-list()
     toptwo_em <- lambda_t[1,]%in%sort(lambda_t[1,])[c(1,years_obs)]
     topfour_em <- lambda_t[1,]%in%sort(lambda_t[1,])[c(1:2,(years_obs-1):years_obs)]
     topsix_em <- lambda_t[1,]%in%sort(lambda_t[1,])[c(1:3,(years_obs-2):years_obs)]
-    top10_samp_em <- lambda_t_samp[1,]%in%sort(lambda_t_samp[1,])[c(1:5,(years_obs-4):years_obs)]
-    top20_samp_em <- lambda_t_samp[1,]%in%sort(lambda_t_samp[1,])[c(1:10,(years_obs-9):years_obs)]
-    top30_samp_em <- lambda_t_samp[1,]%in%sort(lambda_t_samp[1,])[c(1:15,(years_obs-14):years_obs)]
+    top10_samp_em <- lambda_t_samp[1,]%in%sort(lambda_t_samp[1,])[c(1:5,(n_years_samp-4):n_years_samp)]
+    top20_samp_em <- lambda_t_samp[1,]%in%sort(lambda_t_samp[1,])[c(1:10,(n_years_samp-9):n_years_samp)]
+    top30_samp_em <- lambda_t_samp[1,]%in%sort(lambda_t_samp[1,])[c(1:15,(n_years_samp-14):n_years_samp)]
     
     for(e in 1:4){
       lambdaS_obs[e,s,d]<-lambdaSim(mat_list = A_t_obs[[s]][[e]],max_yrs = 500)$lambdaS
