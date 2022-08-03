@@ -18,6 +18,7 @@ library(patchwork) # for putting plots together
 # library(cowplot) # for pulling legend from ggplots
 # library(cubelyr) # for working between lists of matrixes and dataframes
 
+euclidean <- function(a, b) sqrt(sum((a - b)^2))
 
 quote_bare <- function( ... ){
   substitute( alist(...) ) %>% 
@@ -57,7 +58,7 @@ source("Analyses/MPM_functions.R")
 #############################################################################################
 tompath <- "C:/Users/tm9/Dropbox/EndodemogData/"
 joshpath <- "~/Dropbox/EndodemogData/"
-path<-joshpath
+path<-tompath
 
 surv_fit_seedling <- read_rds(paste0(path,"/Model_Runs/endo_seedling_surv.rds"))
 surv_fit <- read_rds(paste0(path,"/Model_Runs/endo_spp_surv_woseedling.rds"))
@@ -501,15 +502,21 @@ euclidean <- function(a, b) sqrt(sum((a - b)^2))
 n_draws<-5
 lambdaS_obs<-array(NA,dim=c(4,n_spp+1,n_draws))
 lambdaS_obs_extreme2<-lambdaS_obs_extreme4<-lambdaS_obs_extreme6<-array(NA,dim=c(4,n_spp+1,n_draws))
+lambdaS_obs_extreme2_em<-lambdaS_obs_extreme4_em<-lambdaS_obs_extreme6_em<-array(NA,dim=c(4,n_spp+1,n_draws))
 
 lambdaS_samp<-array(NA,dim=c(4,n_spp+1,n_draws))
-lambdaS_samp_extreme2<-lambdaS_samp_extreme4<-lambdaS_samp_extreme6<-array(NA,dim=c(4,n_spp+1,n_draws))
+lambdaS_samp_extreme10<-lambdaS_samp_extreme20<-lambdaS_samp_extreme30<-array(NA,dim=c(4,n_spp+1,n_draws))
+lambdaS_samp_extreme10_em<-lambdaS_samp_extreme20_em<-lambdaS_samp_extreme30_em<-array(NA,dim=c(4,n_spp+1,n_draws))
 
 save_lambda_obs <- array(NA,dim=c(years_obs,4,7,n_draws))
 save_lambda_samp <- array(NA,dim=c(n_years_samp,4,7,n_draws))
-save_lambda_obs_extreme2 <- save_lambda_samp_extreme2 <- array(NA,dim=c(2,4,7,n_draws))
-save_lambda_obs_extreme4 <- save_lambda_samp_extreme4 <- array(NA,dim=c(4,4,7,n_draws))
-save_lambda_obs_extreme6 <- save_lambda_samp_extreme6 <- array(NA,dim=c(6,4,7,n_draws))
+save_lambda_obs_extreme2 <- save_lambda_obs_extreme2_em <- array(NA,dim=c(2,4,7,n_draws))
+save_lambda_obs_extreme4 <- save_lambda_obs_extreme4_em <- array(NA,dim=c(4,4,7,n_draws))
+save_lambda_obs_extreme6 <- save_lambda_obs_extreme6_em <- array(NA,dim=c(6,4,7,n_draws))
+save_lambda_samp_extreme10 <- save_lambda_samp_extreme10_em <- array(NA,dim=c(10,4,7,n_draws))
+save_lambda_samp_extreme20 <- save_lambda_samp_extreme20_em <- array(NA,dim=c(20,4,7,n_draws))
+save_lambda_samp_extreme30 <- save_lambda_samp_extreme30_em <- array(NA,dim=c(30,4,7,n_draws))
+
 for(d in 1:n_draws){
 ## list of transition years that we observed
 A_t_obs <- A_t_samp <-list()
@@ -705,31 +712,50 @@ A_t_obs <- A_t_samp <-list()
     toptwo <- dist%in%rev(sort(dist))[1:2]
     topfour <- dist%in%rev(sort(dist))[1:4]
     topsix <- dist%in%rev(sort(dist))[1:6]
+    top10_samp <- dist_samp%in%rev(sort(dist_samp))[1:10]
+    top20_samp <- dist_samp%in%rev(sort(dist_samp))[1:20]
+    top30_samp <- dist_samp%in%rev(sort(dist_samp))[1:30]
     
-    toptwo_samp <- dist_samp%in%rev(sort(dist_samp))[1:2]
-    topfour_samp <- dist_samp%in%rev(sort(dist_samp))[1:4]
-    topsix_samp <- dist_samp%in%rev(sort(dist_samp))[1:6]
-      
+    ## alternative version that selects extreme years based on E- only
+    toptwo_em <- lambda_t[1,]%in%sort(lambda_t[1,])[c(1,years_obs)]
+    topfour_em <- lambda_t[1,]%in%sort(lambda_t[1,])[c(1:2,(years_obs-1):years_obs)]
+    topsix_em <- lambda_t[1,]%in%sort(lambda_t[1,])[c(1:3,(years_obs-2):years_obs)]
+    top10_samp_em <- lambda_t_samp[1,]%in%sort(lambda_t_samp[1,])[c(1:5,(years_obs-4):years_obs)]
+    top20_samp_em <- lambda_t_samp[1,]%in%sort(lambda_t_samp[1,])[c(1:10,(years_obs-9):years_obs)]
+    top30_samp_em <- lambda_t_samp[1,]%in%sort(lambda_t_samp[1,])[c(1:15,(years_obs-14):years_obs)]
+    
     for(e in 1:4){
       lambdaS_obs[e,s,d]<-lambdaSim(mat_list = A_t_obs[[s]][[e]],max_yrs = 500)$lambdaS
       lambdaS_obs_extreme2[e,s,d]<-lambdaSim(mat_list = A_t_obs[[s]][[e]][toptwo],max_yrs = 500)$lambdaS
       lambdaS_obs_extreme4[e,s,d]<-lambdaSim(mat_list = A_t_obs[[s]][[e]][topfour],max_yrs = 500)$lambdaS
       lambdaS_obs_extreme6[e,s,d]<-lambdaSim(mat_list = A_t_obs[[s]][[e]][topsix],max_yrs = 500)$lambdaS
+      lambdaS_obs_extreme2_em[e,s,d]<-lambdaSim(mat_list = A_t_obs[[s]][[e]][toptwo_em],max_yrs = 500)$lambdaS
+      lambdaS_obs_extreme4_em[e,s,d]<-lambdaSim(mat_list = A_t_obs[[s]][[e]][topfour_em],max_yrs = 500)$lambdaS
+      lambdaS_obs_extreme6_em[e,s,d]<-lambdaSim(mat_list = A_t_obs[[s]][[e]][topsix_em],max_yrs = 500)$lambdaS
       
       save_lambda_obs[,e,s,d] <- sapply(A_t_obs[[s]][[e]], FUN = lambda)
-      save_lambda_obs_extreme2[,e,s,d] <- sapply(A_t_obs[[s]][[e]][toptwo], FUN = lambda)
-      save_lambda_obs_extreme4[,e,s,d] <- sapply(A_t_obs[[s]][[e]][topfour], FUN = lambda)
-      save_lambda_obs_extreme6[,e,s,d] <- sapply(A_t_obs[[s]][[e]][topsix], FUN = lambda)
+      save_lambda_obs_extreme10[,e,s,d] <- sapply(A_t_obs[[s]][[e]][toptwo], FUN = lambda)
+      save_lambda_obs_extreme20[,e,s,d] <- sapply(A_t_obs[[s]][[e]][topfour], FUN = lambda)
+      save_lambda_obs_extreme30[,e,s,d] <- sapply(A_t_obs[[s]][[e]][topsix], FUN = lambda)
+      save_lambda_obs_extreme10_em[,e,s,d] <- sapply(A_t_obs[[s]][[e]][toptwo_em], FUN = lambda)
+      save_lambda_obs_extreme20_em[,e,s,d] <- sapply(A_t_obs[[s]][[e]][topfour_em], FUN = lambda)
+      save_lambda_obs_extreme30_em[,e,s,d] <- sapply(A_t_obs[[s]][[e]][topsix_em], FUN = lambda)
       
       lambdaS_samp[e,s,d]<-lambdaSim(mat_list = A_t_samp[[s]][[e]],max_yrs = 500)$lambdaS
-      lambdaS_samp_extreme2[e,s,d]<-lambdaSim(mat_list = A_t_samp[[s]][[e]][toptwo_samp],max_yrs = 500)$lambdaS
-      lambdaS_samp_extreme4[e,s,d]<-lambdaSim(mat_list = A_t_samp[[s]][[e]][topfour_samp],max_yrs = 500)$lambdaS
-      lambdaS_samp_extreme6[e,s,d]<-lambdaSim(mat_list = A_t_samp[[s]][[e]][topsix_samp],max_yrs = 500)$lambdaS
+      lambdaS_samp_extreme10[e,s,d]<-lambdaSim(mat_list = A_t_samp[[s]][[e]][top10_samp],max_yrs = 500)$lambdaS
+      lambdaS_samp_extreme20[e,s,d]<-lambdaSim(mat_list = A_t_samp[[s]][[e]][top20_samp],max_yrs = 500)$lambdaS
+      lambdaS_samp_extreme30[e,s,d]<-lambdaSim(mat_list = A_t_samp[[s]][[e]][top30_samp],max_yrs = 500)$lambdaS
+      lambdaS_samp_extreme10_em[e,s,d]<-lambdaSim(mat_list = A_t_samp[[s]][[e]][top10_samp_em],max_yrs = 500)$lambdaS
+      lambdaS_samp_extreme20_em[e,s,d]<-lambdaSim(mat_list = A_t_samp[[s]][[e]][top20_samp_em],max_yrs = 500)$lambdaS
+      lambdaS_samp_extreme30_em[e,s,d]<-lambdaSim(mat_list = A_t_samp[[s]][[e]][top30_samp_em],max_yrs = 500)$lambdaS
       
       save_lambda_samp[,e,s,d] <- sapply(A_t_samp[[s]][[e]], FUN = lambda)
-      save_lambda_samp_extreme2[,e,s,d] <- sapply(A_t_samp[[s]][[e]][toptwo_samp], FUN = lambda)
-      save_lambda_samp_extreme4[,e,s,d] <- sapply(A_t_samp[[s]][[e]][topfour_samp], FUN = lambda)
-      save_lambda_samp_extreme6[,e,s,d] <- sapply(A_t_samp[[s]][[e]][topsix_samp], FUN = lambda)
+      save_lambda_samp_extreme10[,e,s,d] <- sapply(A_t_samp[[s]][[e]][top10_samp], FUN = lambda)
+      save_lambda_samp_extreme20[,e,s,d] <- sapply(A_t_samp[[s]][[e]][top20_samp], FUN = lambda)
+      save_lambda_samp_extreme30[,e,s,d] <- sapply(A_t_samp[[s]][[e]][top30_samp], FUN = lambda)
+      save_lambda_samp_extreme10_em[,e,s,d] <- sapply(A_t_samp[[s]][[e]][top10_samp_em], FUN = lambda)
+      save_lambda_samp_extreme20_em[,e,s,d] <- sapply(A_t_samp[[s]][[e]][top20_samp_em], FUN = lambda)
+      save_lambda_samp_extreme30_em[,e,s,d] <- sapply(A_t_samp[[s]][[e]][top30_samp_em], FUN = lambda)
     }
     
   }#s loop
@@ -738,6 +764,7 @@ lambdaS_obs[1,8,d] <- mean(lambdaS_obs[1,1:7,d]) # species mean eminus
 lambdaS_obs[2,8,d] <- mean(lambdaS_obs[2,1:7,d]) # species mean eplus mean only
 lambdaS_obs[3,8,d] <- mean(lambdaS_obs[3,1:7,d]) # species mean eplus var only
 lambdaS_obs[4,8,d] <- mean(lambdaS_obs[4,1:7,d]) # species mean eplus
+
 lambdaS_obs_extreme2[1,8,d] <- mean(lambdaS_obs_extreme2[1,1:7,d]) # species mean eminus
 lambdaS_obs_extreme2[2,8,d] <- mean(lambdaS_obs_extreme2[2,1:7,d]) # species mean eplus mean only
 lambdaS_obs_extreme2[3,8,d] <- mean(lambdaS_obs_extreme2[3,1:7,d]) # species mean eplus var only
@@ -750,22 +777,50 @@ lambdaS_obs_extreme6[1,8,d] <- mean(lambdaS_obs_extreme6[1,1:7,d]) # species mea
 lambdaS_obs_extreme6[2,8,d] <- mean(lambdaS_obs_extreme6[2,1:7,d]) # species mean eplus mean only
 lambdaS_obs_extreme6[3,8,d] <- mean(lambdaS_obs_extreme6[3,1:7,d]) # species mean eplus var only
 lambdaS_obs_extreme6[4,8,d] <- mean(lambdaS_obs_extreme6[4,1:7,d]) # species mean eplus
+
+lambdaS_obs_extreme2_em[1,8,d] <- mean(lambdaS_obs_extreme2_em[1,1:7,d]) # species mean eminus
+lambdaS_obs_extreme2_em[2,8,d] <- mean(lambdaS_obs_extreme2_em[2,1:7,d]) # species mean eplus mean only
+lambdaS_obs_extreme2_em[3,8,d] <- mean(lambdaS_obs_extreme2_em[3,1:7,d]) # species mean eplus var only
+lambdaS_obs_extreme2_em[4,8,d] <- mean(lambdaS_obs_extreme2_em[4,1:7,d]) # species mean eplus
+lambdaS_obs_extreme4_em[1,8,d] <- mean(lambdaS_obs_extreme4_em[1,1:7,d]) # species mean eminus
+lambdaS_obs_extreme4_em[2,8,d] <- mean(lambdaS_obs_extreme4_em[2,1:7,d]) # species mean eplus mean only
+lambdaS_obs_extreme4_em[3,8,d] <- mean(lambdaS_obs_extreme4_em[3,1:7,d]) # species mean eplus var only
+lambdaS_obs_extreme4_em[4,8,d] <- mean(lambdaS_obs_extreme4_em[4,1:7,d]) # species mean eplus
+lambdaS_obs_extreme6_em[1,8,d] <- mean(lambdaS_obs_extreme6_em[1,1:7,d]) # species mean eminus
+lambdaS_obs_extreme6_em[2,8,d] <- mean(lambdaS_obs_extreme6_em[2,1:7,d]) # species mean eplus mean only
+lambdaS_obs_extreme6_em[3,8,d] <- mean(lambdaS_obs_extreme6_em[3,1:7,d]) # species mean eplus var only
+lambdaS_obs_extreme6_em[4,8,d] <- mean(lambdaS_obs_extreme6_em[4,1:7,d]) # species mean eplus
+
 lambdaS_samp[1,8,d] <- mean(lambdaS_samp[1,1:7,d]) # species mean eminus
 lambdaS_samp[2,8,d] <- mean(lambdaS_samp[2,1:7,d]) # species mean eplus mean only
 lambdaS_samp[3,8,d] <- mean(lambdaS_samp[3,1:7,d]) # species mean eplus var only
 lambdaS_samp[4,8,d] <- mean(lambdaS_samp[4,1:7,d]) # species mean eplus
-lambdaS_samp_extreme2[1,8,d] <- mean(lambdaS_samp_extreme2[1,1:7,d]) # species mean eminus
-lambdaS_samp_extreme2[2,8,d] <- mean(lambdaS_samp_extreme2[2,1:7,d]) # species mean eplus mean only
-lambdaS_samp_extreme2[3,8,d] <- mean(lambdaS_samp_extreme2[3,1:7,d]) # species mean eplus var only
-lambdaS_samp_extreme2[4,8,d] <- mean(lambdaS_samp_extreme2[4,1:7,d]) # species mean eplus
-lambdaS_samp_extreme4[1,8,d] <- mean(lambdaS_samp_extreme4[1,1:7,d]) # species mean eminus
-lambdaS_samp_extreme4[2,8,d] <- mean(lambdaS_samp_extreme4[2,1:7,d]) # species mean eplus mean only
-lambdaS_samp_extreme4[3,8,d] <- mean(lambdaS_samp_extreme4[3,1:7,d]) # species mean eplus var only
-lambdaS_samp_extreme4[4,8,d] <- mean(lambdaS_samp_extreme4[4,1:7,d]) # species mean eplus
-lambdaS_samp_extreme6[1,8,d] <- mean(lambdaS_samp_extreme6[1,1:7,d]) # species mean eminus
-lambdaS_samp_extreme6[2,8,d] <- mean(lambdaS_samp_extreme6[2,1:7,d]) # species mean eplus mean only
-lambdaS_samp_extreme6[3,8,d] <- mean(lambdaS_samp_extreme6[3,1:7,d]) # species mean eplus var only
-lambdaS_samp_extreme6[4,8,d] <- mean(lambdaS_samp_extreme6[4,1:7,d]) # species mean eplus
+
+lambdaS_samp_extreme10[1,8,d] <- mean(lambdaS_samp_extreme10[1,1:7,d]) # species mean eminus
+lambdaS_samp_extreme10[2,8,d] <- mean(lambdaS_samp_extreme10[2,1:7,d]) # species mean eplus mean only
+lambdaS_samp_extreme10[3,8,d] <- mean(lambdaS_samp_extreme10[3,1:7,d]) # species mean eplus var only
+lambdaS_samp_extreme10[4,8,d] <- mean(lambdaS_samp_extreme10[4,1:7,d]) # species mean eplus
+lambdaS_samp_extreme20[1,8,d] <- mean(lambdaS_samp_extreme20[1,1:7,d]) # species mean eminus
+lambdaS_samp_extreme20[2,8,d] <- mean(lambdaS_samp_extreme20[2,1:7,d]) # species mean eplus mean only
+lambdaS_samp_extreme20[3,8,d] <- mean(lambdaS_samp_extreme20[3,1:7,d]) # species mean eplus var only
+lambdaS_samp_extreme20[4,8,d] <- mean(lambdaS_samp_extreme20[4,1:7,d]) # species mean eplus
+lambdaS_samp_extreme30[1,8,d] <- mean(lambdaS_samp_extreme30[1,1:7,d]) # species mean eminus
+lambdaS_samp_extreme30[2,8,d] <- mean(lambdaS_samp_extreme30[2,1:7,d]) # species mean eplus mean only
+lambdaS_samp_extreme30[3,8,d] <- mean(lambdaS_samp_extreme30[3,1:7,d]) # species mean eplus var only
+lambdaS_samp_extreme30[4,8,d] <- mean(lambdaS_samp_extreme30[4,1:7,d]) # species mean eplus
+
+lambdaS_samp_extreme10_em[1,8,d] <- mean(lambdaS_samp_extreme10_em[1,1:7,d]) # species mean eminus
+lambdaS_samp_extreme10_em[2,8,d] <- mean(lambdaS_samp_extreme10_em[2,1:7,d]) # species mean eplus mean only
+lambdaS_samp_extreme10_em[3,8,d] <- mean(lambdaS_samp_extreme10_em[3,1:7,d]) # species mean eplus var only
+lambdaS_samp_extreme10_em[4,8,d] <- mean(lambdaS_samp_extreme10_em[4,1:7,d]) # species mean eplus
+lambdaS_samp_extreme20_em[1,8,d] <- mean(lambdaS_samp_extreme20_em[1,1:7,d]) # species mean eminus
+lambdaS_samp_extreme20_em[2,8,d] <- mean(lambdaS_samp_extreme20_em[2,1:7,d]) # species mean eplus mean only
+lambdaS_samp_extreme20_em[3,8,d] <- mean(lambdaS_samp_extreme20_em[3,1:7,d]) # species mean eplus var only
+lambdaS_samp_extreme20_em[4,8,d] <- mean(lambdaS_samp_extreme20_em[4,1:7,d]) # species mean eplus
+lambdaS_samp_extreme30_em[1,8,d] <- mean(lambdaS_samp_extreme30_em[1,1:7,d]) # species mean eminus
+lambdaS_samp_extreme30_em[2,8,d] <- mean(lambdaS_samp_extreme30_em[2,1:7,d]) # species mean eplus mean only
+lambdaS_samp_extreme30_em[3,8,d] <- mean(lambdaS_samp_extreme30_em[3,1:7,d]) # species mean eplus var only
+lambdaS_samp_extreme30_em[4,8,d] <- mean(lambdaS_samp_extreme30_em[4,1:7,d]) # species mean eplus
 }#end d loop
 
 # # Saving all of the simulations
@@ -808,6 +863,45 @@ save_lambda_samp <- read_rds(paste0(path,"/Model_Runs/MPM_output/save_lambda_sam
 save_lambda_samp_extreme2 <- read_rds(paste0(path,"/Model_Runs/MPM_output/save_lambda_samp_extreme2.rds"))
 save_lambda_samp_extreme4 <- read_rds(paste0(path,"/Model_Runs/MPM_output/save_lambda_samp_extreme4.rds"))
 save_lambda_samp_extreme6 <- read_rds(paste0(path,"/Model_Runs/MPM_output/save_lambda_samp_extreme6.rds"))
+
+## look at mean and variance of lambda in observed and extreme samples
+cv<-function(x){sd(x)/mean(x)}
+
+mean_lambdaT_obs <- as.data.frame.table(apply(save_lambda_obs[,c(1,4),,],c(2,3,4),mean))
+mean_lambdaT_obs_extreme2 <- as.data.frame.table(apply(save_lambda_obs_extreme2[,c(1,4),,],c(2,3,4),mean))
+mean_lambdaT_obs_extreme4 <- as.data.frame.table(apply(save_lambda_obs_extreme4[,c(1,4),,],c(2,3,4),mean))
+mean_lambdaT_obs_extreme6 <- as.data.frame.table(apply(save_lambda_obs_extreme6[,c(1,4),,],c(2,3,4),mean))
+
+names(mean_lambdaT_obs)<-names(mean_lambdaT_obs_extreme2)<-names(mean_lambdaT_obs_extreme4)<-names(mean_lambdaT_obs_extreme6)<-c("Endo","Spp","Draw")
+mean_lambdaT_obs$Trt<-"control"
+mean_lambdaT_obs_extreme2$Trt<-"extreme2"
+mean_lambdaT_obs_extreme4$Trt<-"extreme4"
+mean_lambdaT_obs_extreme6$Trt<-"extreme6"
+mean_lambdaT_combo<-rbind(mean_lambdaT_obs,mean_lambdaT_obs_extreme2,
+                          mean_lambdaT_obs_extreme4,mean_lambdaT_obs_extreme6)
+names(mean_lambdaT_combo)[4]<-"lambda"
+
+ggplot(mean_lambdaT_combo)+
+  geom_boxplot(aes(y=lambda,fill=Trt))+
+  facet_wrap(~Spp, scales = "free")
+
+sd_lambdaT_obs <- as.data.frame.table(apply(save_lambda_obs[,c(1,4),,],c(2,3,4),sd))
+sd_lambdaT_obs_extreme2 <- as.data.frame.table(apply(save_lambda_obs_extreme2[,c(1,4),,],c(2,3,4),sd))
+sd_lambdaT_obs_extreme4 <- as.data.frame.table(apply(save_lambda_obs_extreme4[,c(1,4),,],c(2,3,4),sd))
+sd_lambdaT_obs_extreme6 <- as.data.frame.table(apply(save_lambda_obs_extreme6[,c(1,4),,],c(2,3,4),sd))
+
+names(sd_lambdaT_obs)<-names(sd_lambdaT_obs_extreme2)<-names(sd_lambdaT_obs_extreme4)<-names(sd_lambdaT_obs_extreme6)<-c("Endo","Spp","Draw")
+sd_lambdaT_obs$Trt<-"control"
+sd_lambdaT_obs_extreme2$Trt<-"extreme2"
+sd_lambdaT_obs_extreme4$Trt<-"extreme4"
+sd_lambdaT_obs_extreme6$Trt<-"extreme6"
+sd_lambdaT_combo<-rbind(sd_lambdaT_obs,sd_lambdaT_obs_extreme2,
+                          sd_lambdaT_obs_extreme4,sd_lambdaT_obs_extreme6)
+names(sd_lambdaT_combo)[4]<-"sd_lambda"
+
+ggplot(sd_lambdaT_combo)+
+  geom_boxplot(aes(y=sd_lambda,fill=Trt))+
+  facet_wrap(~Spp, scales = "free")
 
 # calculate cross species mean and the posterior means
 lambdaS_obs_diff <- lambdaS_samp_diff <- array(NA,dim=c(4,4,8,7))
@@ -1000,6 +1094,28 @@ for(i in 1:13){
 }
 
 plot(lambda_t[1,],lambda_t[2,])
+
+dist<-c()
+for(i in 1:13){
+  dist[i] <- euclidean(c(lambda_t[1,i],lambda_t[2,i]),
+                       c(mean(lambda_t[1,]),mean(lambda_t[2,])))
+}
+topsix <- dist%in%rev(sort(dist))[1:6]
+points(lambda_t[1,topsix],lambda_t[2,topsix],col="blue",pch=16)
+
+topsix_em <- lambda_t[1,]%in%sort(lambda_t[1,])[c(1:3,(years_obs-2):years_obs)]
+points(lambda_t[1,topsix_em],lambda_t[2,topsix_em],pch="X")
+
+x<-lambda_t[1,]
+sort(x)
+rank(x)
+order(x)
+which.max(lambda_t[1,])
+sort(lambda_t[1,])
+rank(lambda_t[1,])
+
+order(runif(5))
+
 euc.cent <- c(mean(lambda_t[1,]),mean(lambda_t[2,]))
 points(x=euc.cent[1],y=euc.cent[2],pch=16,col="red")
 #euclidian center
