@@ -75,12 +75,17 @@ LTREB_full$seedmean_pred_t1 <- seedmean_prob
 
 
 # Here we want to generate a estimate of the seed production for each plant. We are using the our reproductive data and our seed mean model. Where we don't have spikelet data, we use the spikelet model to fill in our estimates
+# There are 12 rows where we have size data but not flower data, most of which are 1 or 2 tiller plants. We probably forgot to record the flowering data, and many are likely to be non-flowering. Given the small number, I'm dropping these.
 # Then I want to get a value for the total number of seeds for each plot for each year.
 LTREB_annual_seed_data <- LTREB_full %>% 
+  mutate(endo_01 = case_when(plot_index == 30 | plot_index == 23 ~ 1,
+                             TRUE ~ endo_01),
+         endo_index = case_when(plot_index == 30 | plot_index == 23 ~ 2,
+                             TRUE ~ endo_index)) %>% # fixing some typos for plot endophyte status for two LOAR plots
   rowwise() %>%
   mutate(spike_t1_mean = mean(c(SPIKE_A_T1, SPIKE_B_T1, SPIKE_C_T1, SPIKE_AGPE_MEAN_T1), na.rm = T)) %>% # getting a spikelet mean for each plant where we actually have data
   mutate(seed_est_t1 = case_when( is.na(SPIKE_A_T1) & !is.na(FLW_STAT_T1) ~ round(FLW_STAT_T1*FLW_COUNT_T1*spikeperinf_pred_t1*seedmean_pred_t1),
-                                  !is.na(SPIKE_A_T1) & !is.na(FLW_STAT_T1) ~ round(FLW_STAT_T1*FLW_COUNT_T1*spike_t1_mean*seedmean_pred_t1))) %>%
+                                  !is.na(SPIKE_A_T1) & !is.na(FLW_STAT_T1) ~ round(FLW_STAT_T1*FLW_COUNT_T1*spike_t1_mean*seedmean_pred_t1))) %>%  # This is where we fill in the spikelet and seed mean predictions to get our seed estimates.
   mutate(year_t1_factor = factor(year_t1_index, levels = min(year_t1_index):max(year_t1_index)),
          plot_factor = factor(plot_index, levels = min(plot_index):max(plot_index))) %>% 
   group_by(species, species_index, plot_index, year_t, year_t_index, year_t1, year_t1_index, endo_01, endo_index) %>% 
@@ -96,10 +101,14 @@ LTREB_annual_seed_data <- LTREB_full %>%
 
 LTREB_annual_recruit_data <- LTREB_full %>% 
   filter(origin_01 == "1" & year_t == birth) %>% 
+  mutate(endo_01 = case_when(plot_index == 30 | plot_index == 23 ~ 1,
+                             TRUE ~ endo_01),
+         endo_index = case_when(plot_index == 30 | plot_index == 23 ~ 2,
+                                TRUE ~ endo_index)) %>% # fixing some typos for plot endophyte status for two LOAR plots
   mutate(surv_t = case_when(!is.na(size_t) ~ 1,
                            is.na(size_t) ~ 0)) %>% 
-  filter(surv_t == 1) %>%    # There are a few plants which were TNF or other issues that weren't actually recruits, so I'm dropping these (~22 plants)
-  filter(size_t <= 5) %>% # dropping all the plants bigger than 5 tillers. There are ~13000 recruits that are size 1 tiller, and 682 "recruits" that are bigger. Some of these we have notes saying they arer probablly older. For currrent data collection, we are leaviing the birth year as NA, instead of adding a definite year. Filtering out at 5 tillers drops 112 plants, which allows for the occasional recruit that is actually bigger than 1 tiller.
+  filter(surv_t == 1) %>%       # There are a few plants which were TNF or other issues that weren't actually recruits, so I'm dropping these (~22 plants)
+  filter(size_t <= 4) %>%   # dropping all the plants bigger than 4 tillers. There are ~13000 recruits that are size 1 tiller, and 682 "recruits" that are bigger. Some of these we have notes saying they arer probablly older. For currrent data collection, we are leaviing the birth year as NA, instead of adding a definite year. Filtering out at 4 tillers drops 142 plants, which allows for the occasional recruit that is actually bigger than 1 tiller.
   group_by(species, species_index, plot_index, year_t, year_t_index, year_t1, year_t1_index, endo_01, endo_index) %>% 
   summarize(recruits_n_rows = n(),
             recruits_surviving_plants_t1 = sum(surv_t1, na.rm = T),
@@ -128,9 +137,8 @@ LTREB_s_to_s_data <- LTREB_annual_seed_data %>%
   left_join(LTREB_annual_recruit_data, by = c("species", "species_index", "plot_index", "year_t", "year_t_index", "year_t1", "year_t1_index", "endo_01", "endo_index")) %>% 
   left_join(LTREB_spei,  by = c("species", "species_index", "year_t", "year_t_index", "year_t1", "year_t1_index")) %>% 
   mutate(tot_recruits_t1 = case_when(is.na(tot_recruits_t1) ~ 0, 
-                                      TRUE ~ tot_recruits_t1)) %>% # Giving a zero value of recruits for 2007 and 2008. This pretty true, I think, but there may be some instance where the birth years of those earlly recruits are just weird because the Original plants all have birth year 2007
-  filter(!is.na(tot_recruits_t1), tot_seed_t >= tot_recruits_t1) %>%   # There are ~120 rows where there are recruits, but no seeds from previous year, or more recruits than seeds. Think about a seed bank
-  filter(!is.na(endo_01)) %>%  # There are a few LOAR which have NA's for endophyte status, probably from data entry iin the endo_demog_long file
+                                      TRUE ~ tot_recruits_t1))  %>%      # Giving a zero value of recruits for 2007 and 2008. This pretty true, I think, but there may be some instance where the birth years of those earlly recruits are just weird because the Original plants all have birth year 2007
+  filter(tot_seed_t >= tot_recruits_t1) %>%   # There are ~119 rows where there are recruits, but no seeds from previous year, or more recruits than seeds. Think about a seed bank
   filter(!is.na(spei12)) # this drops the spei values for LOAR where we don't have any actual data. This is actually good because they were being labeled as 0 values for seed and recruits
 
 dim(LTREB_s_to_s_data)
@@ -153,8 +161,8 @@ s_to_s_data_list <- list(tot_recruit_t1 = LTREB_s_to_s_data$tot_recruits_t1,
                          nEndo = length(unique(LTREB_s_to_s_data$endo_01)))
 str(s_to_s_data_list)
 
-# saveRDS(s_to_s_data_list, file = "s_to_s_data_list.rds")
-s_to_s_data_list <- read_rds(file = "s_to_s_data_list.rds")
+# saveRDS(s_to_s_data_list, file = "Analyses/s_to_s_data_list.rds")
+s_to_s_data_list <- read_rds(file = "Analyses/s_to_s_data_list.rds")
 #########################################################################################################
 # Stan model for seed to seedling recruitment rate ------------------------------
 #########################################################################################################
@@ -176,23 +184,18 @@ mcmc_pars <- list(
 ## Run the model by calling stan()
 ## Save the outputs as rds files
 # sm_s_to_s <- stanc(file = "Analyses/endo_spp_s_to_s.stan")
+# Fits with max_treedepth warning, so increased max_treedepth
 sm_s_to_s <- stan(file = "Analyses/endo_spp_s_to_s.stan", data = s_to_s_data_list,
                      iter = mcmc_pars$iter,
                      warmup = mcmc_pars$warmup,
                      chains = mcmc_pars$chains, 
-                     thin = mcmc_pars$thin)
+                     thin = mcmc_pars$thin,
+                  control = list(max_treedepth = 15))
 saveRDS(sm_s_to_s, file = "~/Dropbox/EndodemogData/Model_Runs/endo_spp_s_to_s.rds")
 
 print(sm_s_to_s, pars = c("sigmaendo"))
 traceplot(sm_s_to_s, pars = c("beta0"))
 
-
-# sm_s_to_s <- stan(file = "Analyses/endo_spp_s_to_s_novarianceeffect.stan", data = s_to_s_data_list,
-#                   iter = mcmc_pars$iter,
-#                   warmup = mcmc_pars$warmup,
-#                   chains = mcmc_pars$chains,
-#                   thin = mcmc_pars$thin)
-# stanc(file = "Analyses/endo_spp_s_to_s_novarianceeffect.stan")
 
 #running the climate-explicit version with just the linear climate effect
 # running this gives maximum treedepth warnings
@@ -200,7 +203,8 @@ sm_s_to_s <- stan(file = "Analyses/climate_endo_spp_s_to_s.stan", data = s_to_s_
                   iter = mcmc_pars$iter,
                   warmup = mcmc_pars$warmup,
                   chains = mcmc_pars$chains, 
-                  thin = mcmc_pars$thin)
+                  thin = mcmc_pars$thin,
+                  control = list(max_treedepth = 15))
 saveRDS(sm_s_to_s, file = "~/Dropbox/EndodemogData/Model_Runs/climate_endo_spp_s_to_s.rds")
 
 #########################################################################################################
