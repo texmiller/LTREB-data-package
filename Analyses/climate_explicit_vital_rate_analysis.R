@@ -212,7 +212,7 @@ LTREB_data_forspike <- LTREB_full %>%
   filter(FLW_STAT_T1>0) %>% 
   melt(id.var = c("plot_fixed" ,   "plot_index",         "pos"         ,           "id",
                   "species"       ,         "species_index"  ,        "endo_01",
-                  "endo_index"  ,           "origin_01"       ,       "birth" , "spei12",
+                  "endo_index"  ,           "origin_01"       ,       "birth" , "spei12", "spei3",
                   "year_t1"         ,       "year_t1_index"       ,   "surv_t1" ,
                   "size_t1"         ,       "logsize_t1"       ,
                   "year_t",
@@ -232,11 +232,8 @@ LTREB_data_forspike <- LTREB_full %>%
 # rm(LTREB_full)
 
 
-# Create data lists to be used for the Stan model
-
+# Create data lists to be used for the Stan model with 12month and 3month SPEI values
 surv_data_list <- list(y = LTREB_data_forsurv$surv_t1,
-                       spei = as.numeric(LTREB_data_forsurv$spei12),
-                       spei_nl = as.numeric(LTREB_data_forsurv$spei12^2),
                        logsize = LTREB_data_forsurv$logsize_t,
                        origin_01 = LTREB_data_forsurv$origin_01,
                        endo_01 = as.integer(LTREB_data_forsurv$endo_01),
@@ -249,11 +246,15 @@ surv_data_list <- list(y = LTREB_data_forsurv$surv_t1,
                        nYear = max(unique(LTREB_data_forsurv$year_t_index)),
                        nPlot = length(unique(LTREB_data_forsurv$plot_index)),
                        nEndo =   length(unique(LTREB_data_forsurv$endo_01)))
-str(surv_data_list)
+surv_spei12_data_list <- append(surv_data_list, list(spei = as.numeric(LTREB_data_forsurv$spei12),
+                                                     spei_nl = as.numeric(LTREB_data_forsurv$spei12^2)))
+surv_spei3_data_list <- append(surv_data_list, list(spei = as.numeric(LTREB_data_forsurv$spei3),
+                                                     spei_nl = as.numeric(LTREB_data_forsurv$spei3^2)))
+
+str(surv_data_list);str(surv_spei12_data_list);str(surv_spei3_data_list)
+
 
 seed_surv_data_list <- list(y = LTREB_surv_seedling$surv_t1,
-                            spei = as.numeric(LTREB_surv_seedling$spei12),
-                            spei_nl = as.numeric(LTREB_surv_seedling$spei12^2),
                             logsize_t = LTREB_surv_seedling$logsize_t,
                             origin_01 = LTREB_surv_seedling$origin_01,
                             endo_01 = as.integer(LTREB_surv_seedling$endo_01),
@@ -266,13 +267,15 @@ seed_surv_data_list <- list(y = LTREB_surv_seedling$surv_t1,
                             nYear = max(unique(LTREB_surv_seedling$year_t_index)),
                             nPlot = length(unique(LTREB_data_forsurv$plot_index)),
                             nEndo =   length(unique(LTREB_surv_seedling$endo_01)))
-str(seed_surv_data_list)
+seed_surv_spei12_data_list <- append(seed_surv_data_list, list(spei = as.numeric(LTREB_surv_seedling$spei12),
+                                                               spei_nl = as.numeric(LTREB_surv_seedling$spei12^2)))
+seed_surv_spei3_data_list <- append(seed_surv_data_list, list(spei = as.numeric(LTREB_surv_seedling$spei3),
+                                                               spei_nl = as.numeric(LTREB_surv_seedling$spei3^2)))
 
+str(seed_surv_data_list);str(seed_surv_spei12_data_list);str(seed_surv_spei3_data_list)
 
 
 flw_data_list <- list(y = LTREB_data_forflw$FLW_STAT_T1,
-                      spei = as.numeric(LTREB_data_forflw$spei12),
-                      spei_nl = as.numeric(LTREB_data_forflw$spei12^2),
                       logsize = LTREB_data_forflw$logsize_t1,
                       origin_01 = LTREB_data_forflw$origin_01,
                       endo_01 = as.integer(LTREB_data_forflw$endo_01),
@@ -285,11 +288,15 @@ flw_data_list <- list(y = LTREB_data_forflw$FLW_STAT_T1,
                       nYear = max(unique(LTREB_data_forflw$year_t_index)),
                       nPlot = length(unique(LTREB_data_forflw$plot_index)),
                       nEndo =   length(unique(LTREB_data_forflw$endo_01)))
-str(flw_data_list)
+flw_spei12_data_list <- append(flw_data_list, list(spei = as.numeric(LTREB_data_forflw$spei12),
+                                                   spei_nl = as.numeric(LTREB_data_forflw$spei12^2)))
+flw_spei3_data_list <- append(flw_data_list, list(spei = as.numeric(LTREB_data_forflw$spei3),
+                                                   spei_nl = as.numeric(LTREB_data_forflw$spei3^2)))
+
+str(flw_data_list);str(flw_spei12_data_list);str(flw_spei3_data_list)
+
 # 
 grow_data_list <- list(y = as.integer(LTREB_data_forgrow$size_t1),
-                       spei = as.numeric(LTREB_data_forgrow$spei12),
-                       spei_nl = as.numeric(LTREB_data_forgrow$spei12^2),
                        logsize = LTREB_data_forgrow$logsize_t,
                        origin_01 = as.integer(LTREB_data_forgrow$origin_01),
                        endo_01 = as.integer(LTREB_data_forgrow$endo_01),
@@ -302,10 +309,14 @@ grow_data_list <- list(y = as.integer(LTREB_data_forgrow$size_t1),
                        nYear = max(unique(LTREB_data_forgrow$year_t_index)),
                        nPlot = length(unique(LTREB_data_forgrow$plot_index)),
                        nEndo =   length(unique(LTREB_data_forgrow$endo_01)))
-str(grow_data_list)
+grow_spei12_data_list <- append(grow_data_list, list(spei = as.numeric(LTREB_data_forgrow$spei12),
+                                                     spei_nl = as.numeric(LTREB_data_forgrow$spei12^2)))
+grow_spei3_data_list <- append(grow_data_list, list(spei = as.numeric(LTREB_data_forgrow$spei3),
+                                                     spei_nl = as.numeric(LTREB_data_forgrow$spei3^2)))
+str(grow_data_list);str(grow_spei12_data_list);str(grow_spei3_data_list)
+
+#
 seed_grow_data_list <- list(y = as.integer(LTREB_grow_seedling$size_t1),
-                            spei = as.numeric(LTREB_grow_seedling$spei12),
-                            spei_nl = as.numeric(LTREB_grow_seedling$spei12^2),
                             logsize = LTREB_grow_seedling$logsize_t,
                             origin_01 = as.integer(LTREB_grow_seedling$origin_01),
                             endo_01 = as.integer(LTREB_grow_seedling$endo_01),
@@ -318,11 +329,13 @@ seed_grow_data_list <- list(y = as.integer(LTREB_grow_seedling$size_t1),
                             nYear = max(unique(LTREB_grow_seedling$year_t_index)),
                             nPlot = max(unique(LTREB_grow_seedling$plot_index)),
                             nEndo =   length(unique(LTREB_grow_seedling$endo_01)))
-str(seed_grow_data_list)
+seed_grow_spei12_data_list <- append(seed_grow_data_list, list(spei = as.numeric(LTREB_grow_seedling$spei12),
+                                                               spei_nl = as.numeric(LTREB_grow_seedling$spei12^2)))
+seed_grow_spei3_data_list <- append(seed_grow_data_list, list(spei = as.numeric(LTREB_grow_seedling$spei3),
+                                                               spei_nl = as.numeric(LTREB_grow_seedling$spei3^2)))
+str(seed_grow_data_list);str(seed_grow_spei12_data_list);str(seed_grow_spei3_data_list)
 
 fert_data_list <- list(y = as.integer(LTREB_data_forfert$FLW_COUNT_T1),
-                       spei = as.numeric(LTREB_data_forfert$spei12),
-                       spei_nl = as.numeric(LTREB_data_forfert$spei12^2),
                        logsize = LTREB_data_forfert$logsize_t1,
                        origin_01 = LTREB_data_forfert$origin_01,
                        endo_01 = as.integer(LTREB_data_forfert$endo_01),
@@ -335,9 +348,11 @@ fert_data_list <- list(y = as.integer(LTREB_data_forfert$FLW_COUNT_T1),
                        nYear = max(unique(LTREB_data_forfert$year_t_index)),
                        nPlot = max(unique(LTREB_data_forfert$plot_index)),
                        nEndo =   length(unique(LTREB_data_forfert$endo_01)))
-str(fert_data_list)
-
-
+fert_spei12_data_list <- append(fert_data_list, list(spei = as.numeric(LTREB_data_forfert$spei12),
+                                                     spei_nl = as.numeric(LTREB_data_forfert$spei12^2)))
+fert_spei3_data_list <- append(fert_data_list, list(spei = as.numeric(LTREB_data_forfert$spei3),
+                                                     spei_nl = as.numeric(LTREB_data_forfert$spei3^2)))
+str(fert_data_list);str(fert_spei12_data_list);str(fert_spei3_data_list);
 
 spike_data_list <- list(nYear = max(unique(LTREB_data_forspike$year_t_index)),
                         nPlot = max(unique(LTREB_data_forspike$plot_index)),
@@ -350,10 +365,12 @@ spike_data_list <- list(nYear = max(unique(LTREB_data_forspike$year_t_index)),
                         y = LTREB_data_forspike$spike_count_t1,
                         logsize = LTREB_data_forspike$logsize_t1,
                         endo_01 = LTREB_data_forspike$endo_01,
-                        origin_01 = LTREB_data_forspike$origin_01, 
-                        spei = as.numeric(LTREB_data_forspike$spei12),
-                        spei_nl = as.numeric(LTREB_data_forspike$spei12^2))
-str(spike_data_list)
+                        origin_01 = LTREB_data_forspike$origin_01)
+spike_spei12_data_list <- append(spike_data_list, list(spei = as.numeric(LTREB_data_forspike$spei12),
+                                                       spei_nl = as.numeric(LTREB_data_forspike$spei12^2)))
+spike_spei3_data_list <- append(spike_data_list, list(spei = as.numeric(LTREB_data_forspike$spei3),
+                                                       spei_nl = as.numeric(LTREB_data_forspike$spei3^2)))
+str(spike_data_list);str(spike_spei12_data_list);str(spike_spei3_data_list)
 #########################################################################################################
 # Stan model runs------------------------------
 #########################################################################################################
@@ -369,14 +386,21 @@ mcmc_pars <- list(
   thin = 1, 
   chains = 3
 )
-
-sm_surv <- stan(file = "Analyses/climate_endo_spp_surv_flw.stan", data = surv_data_list,
+# Fitting the model with 12 month spei, no quadratic terms
+# The model with squared climate terrms gives max_treedepth warnings but otherwise converges okay but without non-linear terms does not have warning.
+sm_surv_spei12 <- stan(file = "Analyses/climate_endo_spp_surv_flw.stan", data = surv_spei12_data_list,
                 iter = mcmc_pars$iter,
                 warmup = mcmc_pars$warmup,
                 chains = mcmc_pars$chains, 
                 thin = mcmc_pars$thin)
-saveRDS(sm_surv, file = "~/Dropbox/EndodemogData/Model_Runs/climate_endo_spp_surv_woseedling_linear.rds")
-# The model with squared climate terrms gives max_treedepth warnings but otherwise converges okay but without non-linear terms does not have wraning.
+saveRDS(sm_surv_spei12, file = "~/Dropbox/EndodemogData/Model_Runs/climate_spei12_endo_spp_surv_woseedling_linear.rds")
+# Fitting the model with 3 month spei, no quadratic terms as well to explore how growing season climate affects vital rates
+sm_surv_spei3 <- stan(file = "Analyses/climate_endo_spp_surv_flw.stan", data = surv_spei3_data_list,
+                iter = mcmc_pars$iter,
+                warmup = mcmc_pars$warmup,
+                chains = mcmc_pars$chains, 
+                thin = mcmc_pars$thin)
+saveRDS(sm_surv_spei3, file = "~/Dropbox/EndodemogData/Model_Runs/climate_spei3_endo_spp_surv_woseedling_linear.rds")
 
 #Running the seedling survival model for 10000 iterations running for only 5000 led to low effective sample size warnings, most likely in sigma0 parameter
 # running for 10000 iterations had enough effective sample size, but had 3 divergent transitions. Could try re-running and hope that goes away, or try simplifying, like no non-linear term
