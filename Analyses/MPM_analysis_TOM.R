@@ -422,7 +422,7 @@ yearcolors<- colorRampPalette(brewer.pal(8,"Dark2"))(yearcount)
 # scales::show_col(yearcolors)
 species_list <- c("AGPE", "ELRI", "ELVI", "FESU", "LOAR", "POAL", "POSY")
 
-meanlambda_plot <- ggplot(data = lambda_mean_df) +
+meanlambda_plot <- ggplot(data = filter(lambda_mean_df, sampling == "obs")) +
   geom_hline(yintercept = 0, col = "black") + 
   # geom_linerange(data = lambda_mean_diff_df, aes(x = species, y = mean, ymin = 0, ymax = mean, color = species)) + 
   geom_point(aes(y = lambda_diff, x = species, color = sampling, group = sampling), position = position_jitterdodge(dodge.width = 0.75,jitter.width=0.2), alpha = .2) +
