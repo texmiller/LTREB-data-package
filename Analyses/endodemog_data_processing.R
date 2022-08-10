@@ -2130,8 +2130,10 @@ climate_census_month <- climate %>%
   # filter(!is.na(monthly_tmean), !is.na(monthly_PET), !is.na(monthly_BAL)) 
 
 # calulate SPEI, we'll use the 12 month spei which is calculated as a 12 month lag from each month
+# and the 3 month spei
   # I am removing NA's which means that spei is calculated without those months for some of the time intervals, but I think thiis is better than if we were to drop the months from the database. Dropping the months leads to the column having some skipped months, and the spei's would be calculated with the shifted set of months.
 climate_census_month$spei12 <- spei(climate_census_month$monthly_BAL, 12, na.rm = TRUE)$fitted
+climate_census_month$spei3 <- spei(climate_census_month$monthly_BAL, 3, na.rm = TRUE)$fitted
 climate_census_month$spei24 <- spei(climate_census_month$monthly_BAL, 24, na.rm = TRUE)$fitted
 climate_census_month$spei1 <- spei(climate_census_month$monthly_BAL, 1, na.rm = TRUE)$fitted
 
