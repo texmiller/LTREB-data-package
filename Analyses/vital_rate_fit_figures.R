@@ -240,7 +240,7 @@ seed_mean_data_list <- list(seed = LTREB_data_for_seedmeans$SEED_PER_SPIKE,
                             nEndo =   length(unique(LTREB_data_for_seedmeans$endo_01)))
 str(seed_mean_data_list)
 
-s_to_s_data_list <- read_rds("s_to_s_data_list.rds")
+s_to_s_data_list <- read_rds("Analyses/s_to_s_data_list.rds")
 
 #############################################################################################
 ####### Read in matrix population functions ------------------
@@ -1269,3 +1269,51 @@ meanvareffect_fitplot <-  surv_meanplot + surv_yearplot+grow_meanplot +grow_year
                                                                                                                                                             guides = "collect",
                                                                                                                                                             )
 ggsave(meanvareffect_fitplot, filename = "meanvareffect_fitplot.png", width = 40, height = 25 )  
+
+
+# plot of just AGPE growth and FESU survival
+AGPEgrow_meanplot <- ggplot()+
+  geom_point(data = filter(grow_sizebin, Species == "AGPE"), aes(x = mean_size, y = mean_vr, size = samplesize, shape = Endo), alpha = .5) +
+  geom_ribbon(data = filter(grow_mean_df, Species == "AGPE"), aes(x = log_x_seq, ymin = twenty, ymax = eighty, fill = Endo), alpha = .3)+
+  geom_line(data = filter(grow_mean_df, Species == "AGPE"), aes(x = log_x_seq, y = mean, linetype = Endo)) +
+  scale_shape_manual(values = c(19,1))+ scale_fill_manual(values = c( endophyte_color_scheme[5], endophyte_color_scheme[3]))+
+  facet_wrap(~Species, scales = "free", ncol = 1) +
+  theme_classic() + theme(strip.background = element_blank()) + labs(title = "Adult Growth", subtitle = "Mean endophyte effect with 80% credible intervals")
+AGPEgrow_meanplot
+
+AGPEgrow_yearplot <- ggplot()+
+  geom_point(data = filter(grow_yearsizebin, Species == "AGPE"), aes(x = mean_size, y = mean_vr, size = samplesize, col = as.factor(Year), shape = Endo), alpha = .5) +
+  geom_line(data = filter(growyear_mean_df, Species == "AGPE"), aes(x = log_x_seq, y = mean, linetype = Endo, col = Year)) +
+  scale_shape_manual(values = c(19,1))+ 
+  scale_color_manual(values = yearcolors)+ # this is using the set of colors above, but you could also supply hex codes
+  facet_wrap(~Species + Endo, scales = "free", ncol = 2) + 
+  theme_classic() + theme(strip.background = element_blank()) + labs(title = "Adult Growth", subtitle = "Endophyte effect on interannual variation")
+AGPEgrow_yearplot
+
+FESUsurv_meanplot <- ggplot()+
+  geom_point(data = filter(surv_sizebin, Species == "FESU"), aes(x = mean_size, y = mean_vr, size = samplesize, shape = Endo), alpha = .5) +
+  geom_ribbon(data = filter(surv_mean_df, Species == "FESU"), aes(x = log_x_seq, ymin = twenty, ymax = eighty, fill = Endo), alpha = .3)+
+  geom_line(data = filter(surv_mean_df, Species == "FESU"), aes(x = log_x_seq, y = mean, linetype = Endo)) +
+  scale_shape_manual(values = c(19,1))+ scale_fill_manual(values = c( endophyte_color_scheme[5], endophyte_color_scheme[3]))+
+  facet_wrap(~Species, scales = "free", ncol = 1) + 
+  theme_classic() + theme(strip.background = element_blank()) + labs(title = "Adult Survival", subtitle = "Mean endophyte effect with 80% credible intervals")
+FESUsurv_meanplot
+
+FESUsurv_yearplot <- ggplot()+
+  geom_point(data = filter(surv_yearsizebin, Species == "FESU"), aes(x = mean_size, y = mean_vr, size = samplesize, col = as.factor(Year), shape = Endo), alpha = .5) +
+  geom_line(data = filter(survyear_mean_df, Species == "FESU"), aes(x = log_x_seq, y = mean, linetype = Endo, col = Year)) +
+  scale_shape_manual(values = c(19,1))+ 
+  scale_color_manual(values = yearcolors)+
+  facet_wrap(~Species + Endo, scales = "free", ncol = 2) + 
+  theme_classic() + theme(strip.background = element_blank()) + labs(title = "Adult Survival", subtitle = "Endophyte effect on interannual variation")
+FESUsurv_yearplot
+
+AGPE_growplot <- AGPEgrow_meanplot+AGPEgrow_yearplot+plot_layout( nrow  = 1,
+                                                                 widths = c(1,2),
+                                                                 guides = "collect")
+ggsave(AGPE_growplot, filename = "AGPE_growplot.png", height = 4, width = 8)
+
+FESU_survplot <- FESUsurv_meanplot+FESUsurv_yearplot+plot_layout( nrow  = 1,
+                                                                  widths = c(1,2),
+                                                                  guides = "collect")
+ggsave(FESU_survplot, filename = "FESU_survplot.png", height = 4, width = 8)
