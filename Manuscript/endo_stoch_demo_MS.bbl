@@ -1,4 +1,4 @@
-\begin{thebibliography}{32}
+\begin{thebibliography}{40}
 \providecommand{\natexlab}[1]{#1}
 \providecommand{\url}[1]{\texttt{#1}}
 \expandafter\ifx\csname urlstyle\endcsname\relax
@@ -54,6 +54,18 @@ Shripad~D. Tuljapurkar.
 \newblock URL
   \url{http://www.sciencedirect.com/science/article/pii/0040580982900107}.
 
+\bibitem[Cohen(1979)]{cohen1979comparative}
+Joel~E Cohen.
+\newblock Comparative statics and stochastic dynamics of age-structured
+  populations.
+\newblock \emph{Theoretical population biology}, 16\penalty0 (2):\penalty0
+  159--171, 1979.
+
+\bibitem[Tuljapurkar(2013)]{tuljapurkar2013population}
+Shripad Tuljapurkar.
+\newblock \emph{Population dynamics in variable environments}, volume~85.
+\newblock Springer Science \& Business Media, 2013.
+
 \bibitem[Pfister(1998)]{pfister1998patterns}
 Catherine~A Pfister.
 \newblock Patterns of variance in stage-structured populations: evolutionary
@@ -61,10 +73,48 @@ Catherine~A Pfister.
 \newblock \emph{Proceedings of the National Academy of Sciences}, 95\penalty0
   (1):\penalty0 213--218, 1998.
 
+\bibitem[Morris et~al.(2008)Morris, Pfister, Tuljapurkar, Haridas, Boggs,
+  Boyce, Bruna, Church, Coulson, Doak, et~al.]{morris2008longevity}
+William~F Morris, Catherine~A Pfister, Shripad Tuljapurkar, Chirrakal~V
+  Haridas, Carol~L Boggs, Mark~S Boyce, Emilio~M Bruna, Don~R Church, Tim
+  Coulson, Daniel~F Doak, et~al.
+\newblock Longevity can buffer plant and animal populations against changing
+  climatic variability.
+\newblock \emph{Ecology}, 89\penalty0 (1):\penalty0 19--25, 2008.
+
 \bibitem[Menges(1990)]{menges1990population}
 Eric~S Menges.
 \newblock Population viability analysis for an endangered plant.
 \newblock \emph{Conservation biology}, 4\penalty0 (1):\penalty0 52--62, 1990.
+
+\bibitem[Compagnoni et~al.(2016)Compagnoni, Bibian, Ochocki, Rogers, Schultz,
+  Sneck, Elderd, Iler, Inouye, Jacquemyn, et~al.]{compagnoni2016effect}
+Aldo Compagnoni, Andrew~J Bibian, Brad~M Ochocki, Haldre~S Rogers, Emily~L
+  Schultz, Michelle~E Sneck, Bret~D Elderd, Amy~M Iler, David~W Inouye, Hans
+  Jacquemyn, et~al.
+\newblock The effect of demographic correlations on the stochastic population
+  dynamics of perennial plants.
+\newblock \emph{Ecological Monographs}, 86\penalty0 (4):\penalty0 480--494,
+  2016.
+
+\bibitem[Ellis and Crone(2013)]{ellis2013role}
+Martha~M Ellis and Elizabeth~E Crone.
+\newblock The role of transient dynamics in stochastic population growth for
+  nine perennial plants.
+\newblock \emph{Ecology}, 94\penalty0 (8):\penalty0 1681--1686, 2013.
+
+\bibitem[Tuljapurkar and Orzack(1980)]{tuljapurkar1980population}
+SD~Tuljapurkar and Steven~Hecht Orzack.
+\newblock Population dynamics in variable environments i. long-run growth rates
+  and extinction.
+\newblock \emph{Theoretical Population Biology}, 18\penalty0 (3):\penalty0
+  314--342, 1980.
+
+\bibitem[Fieberg and Ellner(2001)]{fieberg2001stochastic}
+John Fieberg and Stephen~P Ellner.
+\newblock Stochastic matrix models for conservation and management: a
+  comparative review of methods.
+\newblock \emph{Ecology letters}, 4\penalty0 (3):\penalty0 244--266, 2001.
 
 \bibitem[Hilde et~al.(2020)Hilde, Gamelon, Sæther, Gaillard, Yoccoz, and
   Pélabon]{hilde_demographic_2020}
@@ -231,11 +281,16 @@ Bret~D Elderd and Tom~EX Miller.
 \newblock \emph{Ecological Monographs}, 86\penalty0 (1):\penalty0 125--144,
   2016.
 
-\bibitem[Tuljapurkar and Orzack(1980)]{tuljapurkar1980population}
-SD~Tuljapurkar and Steven~Hecht Orzack.
-\newblock Population dynamics in variable environments i. long-run growth rates
-  and extinction.
-\newblock \emph{Theoretical Population Biology}, 18\penalty0 (3):\penalty0
-  314--342, 1980.
+\bibitem[Brooks and Gelman(1998)]{brooks1998general}
+Stephen~P Brooks and Andrew Gelman.
+\newblock General methods for monitoring convergence of iterative simulations.
+\newblock \emph{Journal of computational and graphical statistics}, 7\penalty0
+  (4):\penalty0 434--455, 1998.
+
+\bibitem[Gelman and Hill(2006)]{gelman2006data}
+Andrew Gelman and Jennifer Hill.
+\newblock \emph{Data analysis using regression and multilevel/hierarchical
+  models}.
+\newblock Cambridge university press, 2006.
 
 \end{thebibliography}
