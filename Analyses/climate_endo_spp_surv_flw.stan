@@ -15,7 +15,7 @@ data {
     int<lower=0,upper=1> endo_01[N];            // plant endophyte status for surv model
     int<lower=0,upper=1> origin_01[N];          // plant origin status for surv model
     vector[N] spei;                           // 12 month spei for each climate year
-    vector[N] spei_nl;
+    // vector[N] spei_nl;
 }
 
 parameters {
@@ -28,7 +28,7 @@ parameters {
     
     // climate interactions
     matrix[nSpp,nEndo] betaspei_endo;              // endo by climate interaction
-    matrix[nSpp,nEndo] betaspei_nl_endo;              // endo by climate interaction non-linear
+    // matrix[nSpp,nEndo] betaspei_nl_endo;              // endo by climate interaction non-linear
 
     
     // random  effects
@@ -49,7 +49,7 @@ transformed parameters {
     for(n in 1:N){
     p[n] = beta0[spp[n]] + betasize[spp[n]]*logsize[n] + betaendo[spp[n]]*endo_01[n] + betaorigin[spp[n]]*origin_01[n]
     + betaspei_endo[spp[n],endo_01[n]+1]*spei[n]
-    + betaspei_nl_endo[spp[n],endo_01[n]+1]*spei_nl[n]
+    // + betaspei_nl_endo[spp[n],endo_01[n]+1]*spei_nl[n]
 
     + tau_year[spp[n],(endo_01[n]+1),year_t[n]]
     + tau_plot[plot[n]]
@@ -77,7 +77,7 @@ model {
       betaendo ~ normal(0,5);
       betaorigin ~ normal(0,5);  
       to_vector(betaspei_endo) ~ normal(0,5);
-      to_vector(betaspei_nl_endo) ~ normal(0,5);
+      // to_vector(betaspei_nl_endo) ~ normal(0,5);
       sigma0 ~ normal(0,1);
       sigmaendo ~ normal(0,1);
 
