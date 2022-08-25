@@ -261,33 +261,52 @@ ggsave(stos_moments, filename = "stos_moments.png", width = 4, height = 4)
 
 
 # PPC for the climate-explicit recruitment model
-s_to_s_fit <- read_rds("~/Dropbox/EndodemogData/Model_Runs/climate_endo_spp_s_to_s.rds") 
-s_to_s_par <- rstan::extract(s_to_s_fit, pars = c("p"))$p
-predRecruit<- s_to_s_par
+s_to_s_fit_spei12 <- read_rds("~/Dropbox/EndodemogData/Model_Runs/climate_endo_spp_s_to_s_spei12.rds") 
+s_to_s_fit_spei3 <- read_rds("~/Dropbox/EndodemogData/Model_Runs/climate_endo_spp_s_to_s_spei3.rds") 
 
+s_to_s_par_spei12 <- rstan::extract(s_to_s_fit_spei12, pars = c("p"))$p
+s_to_s_par_spei3 <- rstan::extract(s_to_s_fit_spei3, pars = c("p"))$p
 
+predRecruit_spei12<- s_to_s_par_spei12
+predRecruit_spei3<- s_to_s_par_spei3
 
 n_post_draws <- 500
-post_draws <- sample.int(dim(predRecruit)[1], n_post_draws)
-y_recruit_sim <- matrix(NA,n_post_draws,length(s_to_s_data_list$tot_recruit_t1))
+post_draws <- sample.int(dim(predRecruit_spei12)[1], n_post_draws)
+y_recruit_sim_spei12 <- y_recruit_sim_spei3 <- matrix(NA,n_post_draws,length(s_to_s_spei12_data_list$tot_recruit_t1))
 
 for(i in 1:n_post_draws){
-  y_recruit_sim[i,] <- rbinom(n = length(s_to_s_data_list$tot_recruit_t1), size = s_to_s_data_list$tot_seed_t, prob = invlogit(predRecruit[post_draws[i],]))
+  y_recruit_sim_spei12[i,] <- rbinom(n = length(s_to_s_spei12_data_list$tot_recruit_t1), size = s_to_s_spei12_data_list$tot_seed_t, prob = invlogit(predRecruit_spei12[post_draws[i],]))
+  y_recruit_sim_spei3[i,] <- rbinom(n = length(s_to_s_spei3_data_list$tot_recruit_t1), size = s_to_s_spei3_data_list$tot_seed_t, prob = invlogit(predRecruit_spei3[post_draws[i],]))
+  
 }
-saveRDS(y_recruit_sim, file = "yrep_climate_stosmodel_linear.rds")
-y_recruit_sim <- read_rds(file = "yrep_climate_stosmodel_linear.rds")
+saveRDS(y_recruit_sim_spei12, file = "yrep_climate_stosmodel_spei12.rds")
+saveRDS(y_recruit_sim_spei3, file = "yrep_climate_stosmodel_spei3.rds")
 
-ppc_dens_overlay(s_to_s_data_list$tot_recruit_t1, y_recruit_sim)
-ppc_dens_overlay(s_to_s_data_list$tot_recruit_t1, y_recruit_sim) +xlim(0,30) # seems to be fitting okay
-stos_densplot <- ppc_dens_overlay(s_to_s_data_list$tot_recruit_t1, y_recruit_sim) +xlim(0,40) + labs(title = "Recruitment", x = "Successful Germination", y = "Density") 
-ggsave(stos_densplot, filename = "climate_stos_densplot.png", width = 4, height = 4)
+y_recruit_sim_spei12 <- read_rds(file = "yrep_climate_stosmodel_spei12.rds")
+y_recruit_sim_spei3 <- read_rds(file = "yrep_climate_stosmodel_spei3.rds")
+
+ppc_dens_overlay(s_to_s_spei12_data_list$tot_recruit_t1, y_recruit_sim_spei12)+xlim(0,30)# seems to be fitting okay
+stos_spei12_densplot <- ppc_dens_overlay(s_to_s_spei12_data_list$tot_recruit_t1, y_recruit_sim_spei12) +xlim(0,30) + labs(title = "Recruitment (12 month SPEI)", x = "Successful Germination", y = "Density") 
+ggsave(stos_spei12_densplot, filename = "climate_stos_spei12_densplot.png", width = 4, height = 4)
+
+stos_spei3_densplot <- ppc_dens_overlay(s_to_s_spei12_data_list$tot_recruit_t1, y_recruit_sim_spei12) +xlim(0,30) + labs(title = "Recruitment (12 month SPEI)", x = "Successful Germination", y = "Density") 
+ggsave(stos_spei3_densplot, filename = "climate_stos_spei3_densplot.png", width = 4, height = 4)
 
 # overall mean looks okay.
 
-mean_stos_plot <-   ppc_stat(s_to_s_data_list$tot_recruit_t1, y_recruit_sim, stat = "mean")
-sd_stos_plot <- ppc_stat(s_to_s_data_list$tot_recruit_t1, y_recruit_sim, stat = "sd")
-skew_stos_plot <- ppc_stat(s_to_s_data_list$tot_recruit_t1, y_recruit_sim, stat = "skewness")
-kurt_stos_plot <- ppc_stat(s_to_s_data_list$tot_recruit_t1, y_recruit_sim, stat = "Lkurtosis")
-stos_moments <- mean_stos_plot+sd_stos_plot+skew_stos_plot+kurt_stos_plot
-stos_moments
-ggsave(stos_moments, filename = "climate_stos_moments.png", width = 4, height = 4)
+mean_stos_spei12_plot <-   ppc_stat(s_to_s_spei12_data_list$tot_recruit_t1, y_recruit_sim_spei12, stat = "mean")
+sd_stos_spei12_plot <- ppc_stat(s_to_s_spei12_data_list$tot_recruit_t1, y_recruit_sim_spei12, stat = "sd")
+skew_stos_spei12_plot <- ppc_stat(s_to_s_spei12_data_list$tot_recruit_t1, y_recruit_sim_spei12, stat = "skewness")
+kurt_stos_spei12_plot <- ppc_stat(s_to_s_spei12_data_list$tot_recruit_t1, y_recruit_sim_spei12, stat = "Lkurtosis")
+stos_spei12_moments <- mean_stos_spei12_plot+sd_stos_spei12_plot+skew_stos_spei12_plot+kurt_stos_spei12_plot
+# stos_spei12_moments
+ggsave(stos_spei12_moments, filename = "climate_stos_spei12_moments.png", width = 4, height = 4)
+
+
+mean_stos_spei3_plot <-   ppc_stat(s_to_s_spei3_data_list$tot_recruit_t1, y_recruit_sim_spei3, stat = "mean")
+sd_stos_spei3_plot <- ppc_stat(s_to_s_spei3_data_list$tot_recruit_t1, y_recruit_sim_spei3, stat = "sd")
+skew_stos_spei3_plot <- ppc_stat(s_to_s_spei3_data_list$tot_recruit_t1, y_recruit_sim_spei3, stat = "skewness")
+kurt_stos_spei3_plot <- ppc_stat(s_to_s_spei3_data_list$tot_recruit_t1, y_recruit_sim_spei3, stat = "Lkurtosis")
+stos_spei3_moments <- mean_stos_spei3_plot+sd_stos_spei3_plot+skew_stos_spei3_plot+kurt_stos_spei3_plot
+# stos_spei3_moments
+ggsave(stos_spei3_moments, filename = "climate_stos_spei3_moments.png", width = 4, height = 4)
