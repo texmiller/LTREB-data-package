@@ -855,7 +855,7 @@ saveRDS(save_lambda_samp_extreme30, file = paste0(path,"/Model_Runs/MPM_output/s
 saveRDS(save_lambda_samp_extreme10_em, file = paste0(path,"/Model_Runs/MPM_output/save_lambda_samp_extreme10_em.rds"))
 saveRDS(save_lambda_samp_extreme20_em, file = paste0(path,"/Model_Runs/MPM_output/save_lambda_samp_extreme20_em.rds"))
 saveRDS(save_lambda_samp_extreme30_em, file = paste0(path,"/Model_Runs/MPM_output/save_lambda_samp_extreme30_em.rds"))
-# 
+# read in the saved outputs
 lambdaS_obs <- read_rds(paste0(path,"/Model_Runs/MPM_output/lambdaS_obs.rds"))
 lambdaS_obs_extreme2 <- read_rds(paste0(path,"/Model_Runs/MPM_output/lambdaS_obs_extreme2.rds"))
 lambdaS_obs_extreme4 <- read_rds(paste0(path,"/Model_Runs/MPM_output/lambdaS_obs_extreme4.rds"))
@@ -1226,3 +1226,16 @@ plot(sample(x = dnorm(x = qnorm(p = .95, mean = 0, sd = 1):10, mean = 0, sd = 2)
 # Could do this in the vital rates, but maybe better to just increase the sd by 10 percent
 rfx_surv <- sample(qnorm(p=c(seq(.9,1,.001),seq(0,.1,.001)),mean = 0, sd=surv_par$sigma_year[draw,species,(endo_var+1)]),size = 1) # sample the tenth and ninetieth percentiles
 
+# some calculations for manuscript
+meanspecies_calcs <- lambdaS_obs_diff_df %>% 
+  filter(Scenario == "normal" | Scenario == "extreme2") %>%
+  select(Species,Scenario,Contribution,Sampling,mean) %>% 
+  pivot_wider(names_from = Contribution, values_from = mean) %>% 
+  mutate(fullminusintx = `Full Effect` - `Interaction`,
+         percent_var_offullminusintx = (`Variance only`/fullminusintx)*100,
+         percent_mean_offullminusintx = (`Mean only`/fullminusintx)*100,
+         percent_var = (`Variance only`/`Full Effect`)*100,
+         percent_mean = (`Mean only`/`Full Effect`)*100,
+         percent_intx = (`Interaction`/`Full Effect`)*100,
+         percent_varofmean= (`Variance only`/`Mean only`)*100,
+         meandivbyvar = (`Mean only`/`Variance only`))
