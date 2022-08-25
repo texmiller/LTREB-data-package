@@ -266,25 +266,25 @@ stos_fit <- read_rds("~/Dropbox/EndodemogData/Model_Runs/endo_spp_s_to_s.rds")
 
 # Pulling out the actual parameters
 surv_par <- rstan::extract(surv_fit, pars =quote_bare(beta0,betasize,betaendo,betaorigin,
-                                                      tau_year, tau_plot, sigma_year))
+                                                      tau_year, tau_plot, sigma_year, sigma0, sigmaendo))
 surv_sdlg_par <- rstan::extract(surv_fit_seedling, pars =quote_bare(beta0,betaendo,
-                                                                    tau_year, tau_plot, sigma_year))
+                                                                    tau_year, tau_plot, sigma_year, sigma0, sigmaendo))
 grow_par <- rstan::extract(grow_fit, pars = quote_bare(beta0,betasize,betaendo,betaorigin,
                                                        tau_year, tau_plot,
-                                                       sigma, sigma_year))
+                                                       sigma, sigma_year, sigma0, sigmaendo))
 grow_sdlg_par <- rstan::extract(grow_fit_seedling, pars = quote_bare(beta0,betaendo,
                                                                      tau_year, tau_plot,
-                                                                     sigma, sigma_year))
+                                                                     sigma, sigma_year, sigma0, sigmaendo))
 flow_par <- rstan::extract(flw_fit, pars = quote_bare(beta0,betasize,betaendo,betaorigin,
-                                                      tau_year, tau_plot, sigma_year))
+                                                      tau_year, tau_plot, sigma_year, sigma0, sigmaendo))
 fert_par <- rstan::extract(fert_fit, pars = quote_bare(beta0,betasize,betaendo,betaorigin,
-                                                       tau_year, tau_plot, sigma_year))
+                                                       tau_year, tau_plot, sigma_year, sigma0, sigmaendo))
 spike_par <- rstan::extract(spike_fit, pars = quote_bare(beta0,betasize,betaendo,betaorigin,
                                                          tau_year, tau_plot,
-                                                         phi, sigma_year))
+                                                         phi, sigma_year, sigma0, sigmaendo))
 seed_par <- rstan::extract(seedmean_fit, pars = quote_bare(beta0,betaendo)) #no plot or year effect
 recruit_par <- rstan::extract(stos_fit, pars = quote_bare(beta0,betaendo,
-                                                          tau_year, tau_plot, sigma_year))
+                                                          tau_year, tau_plot, sigma_year, sigma0, sigmaendo))
 
 # Saved y_rep values from the script "vital_rate_analysis.R", "seed_means.R" and "seed_to_seedling.R"
 y_s_sim <- readRDS(file = "yrep_survivalmodel.rds")
@@ -1317,3 +1317,145 @@ FESU_survplot <- FESUsurv_meanplot+FESUsurv_yearplot+plot_layout( nrow  = 1,
                                                                   widths = c(1,2),
                                                                   guides = "collect")
 ggsave(FESU_survplot, filename = "FESU_survplot.png", height = 4, width = 8)
+
+
+######## making a heatmap of each vital rate for degree of buffering #####
+# First I'm making dataframes for the endophytes effects on mean and variance
+#surv
+dimnames(surv_par$sigmaendo) <- list(Draw = paste0("i",1:dim(surv_par$sigma_year)[1]), Species = species_list)
+surv_sigmaendo_cube <- cubelyr::as.tbl_cube(surv_par$sigmaendo)
+surv_sigmaendo_df <- as_tibble(surv_sigmaendo_cube)  %>% 
+  rename(estimate = `surv_par$sigmaendo`) %>% 
+  mutate(vital_rate = "Survival", effect = "Variance")
+dimnames(surv_par$betaendo) <- list(Draw = paste0("i",1:dim(surv_par$sigma_year)[1]), Species = species_list)
+surv_betaendo_cube <- cubelyr::as.tbl_cube(surv_par$betaendo)
+surv_betaendo_df <- as_tibble(surv_betaendo_cube)  %>% 
+  rename(estimate = `surv_par$betaendo`) %>% 
+  mutate(vital_rate = "Survival", effect = "Mean")
+#seedling survival
+dimnames(surv_sdlg_par$sigmaendo) <- list(Draw = paste0("i",1:dim(surv_sdlg_par$sigma_year)[1]), Species = species_list)
+surv_sdlg_sigmaendo_cube <- cubelyr::as.tbl_cube(surv_sdlg_par$sigmaendo)
+surv_sdlg_sigmaendo_df <- as_tibble(surv_sdlg_sigmaendo_cube)  %>% 
+  rename(estimate = `surv_sdlg_par$sigmaendo`) %>% 
+  mutate(vital_rate = "Seedling Survival", effect = "Variance")
+dimnames(surv_sdlg_par$betaendo) <- list(Draw = paste0("i",1:dim(surv_sdlg_par$sigma_year)[1]), Species = species_list)
+surv_sdlg_betaendo_cube <- cubelyr::as.tbl_cube(surv_sdlg_par$betaendo)
+surv_sdlg_betaendo_df <- as_tibble(surv_sdlg_betaendo_cube)  %>% 
+  rename(estimate = `surv_sdlg_par$betaendo`) %>% 
+  mutate(vital_rate = "Seedling Survival", effect = "Mean")
+#grow
+dimnames(grow_par$sigmaendo) <- list(Draw = paste0("i",1:dim(grow_par$sigmaendo)[1]), Species = species_list)
+grow_sigmaendo_cube <- cubelyr::as.tbl_cube(grow_par$sigmaendo)
+grow_sigmaendo_df <- as_tibble(grow_sigmaendo_cube)  %>% 
+  rename(estimate = `grow_par$sigmaendo`)%>% 
+  mutate(vital_rate = "Growth", effect = "Variance")
+dimnames(grow_par$betaendo) <- list(Draw = paste0("i",1:dim(grow_par$betaendo)[1]), Species = species_list)
+grow_betaendo_cube <- cubelyr::as.tbl_cube(grow_par$betaendo)
+grow_betaendo_df <- as_tibble(grow_betaendo_cube)  %>% 
+  rename(estimate = `grow_par$betaendo`)%>% 
+  mutate(vital_rate = "Growth", effect = "Mean")
+#seedling grow
+dimnames(grow_sdlg_par$sigmaendo) <- list(Draw = paste0("i",1:dim(grow_sdlg_par$sigmaendo)[1]), Species = species_list)
+seedgrow_sigmaendo_cube <- cubelyr::as.tbl_cube(grow_sdlg_par$sigmaendo)
+seedgrow_sigmaendo_df <- as_tibble(seedgrow_sigmaendo_cube)  %>% 
+  rename(estimate = `grow_sdlg_par$sigmaendo`)%>% 
+  mutate(vital_rate = "Seedling Growth", effect = "Variance")
+dimnames(grow_sdlg_par$betaendo) <- list(Draw = paste0("i",1:dim(grow_sdlg_par$betaendo)[1]), Species = species_list)
+seedgrow_betaendo_cube <- cubelyr::as.tbl_cube(grow_sdlg_par$betaendo)
+seedgrow_betaendo_df <- as_tibble(seedgrow_betaendo_cube)  %>% 
+  rename(estimate = `grow_sdlg_par$betaendo`)%>% 
+  mutate(vital_rate = "Seedling Growth", effect = "Mean")
+#flw
+dimnames(flow_par$sigmaendo) <- list(Draw = paste0("i",1:dim(flow_par$sigmaendo)[1]), Species = species_list)
+flow_sigmaendo_cube <- cubelyr::as.tbl_cube(flow_par$sigmaendo)
+flow_sigmaendo_df <- as_tibble(flow_sigmaendo_cube)  %>% 
+  rename(estimate = `flow_par$sigmaendo`)%>% 
+  mutate(vital_rate = "Flowering", effect = "Variance")
+dimnames(flow_par$betaendo) <- list(Draw = paste0("i",1:dim(flow_par$betaendo)[1]), Species = species_list)
+flow_betaendo_cube <- cubelyr::as.tbl_cube(flow_par$betaendo)
+flow_betaendo_df <- as_tibble(flow_betaendo_cube)  %>% 
+  rename(estimate = `flow_par$betaendo`)%>% 
+  mutate(vital_rate = "Flowering", effect = "Mean")
+#fert
+dimnames(fert_par$sigmaendo) <- list(Draw = paste0("i",1:dim(fert_par$sigmaendo)[1]), Species = species_list)
+fert_sigmaendo_cube <- cubelyr::as.tbl_cube(fert_par$sigmaendo)
+fert_sigmaendo_df <- as_tibble(fert_sigmaendo_cube)  %>% 
+  rename(estimate = `fert_par$sigmaendo`)%>% 
+  mutate(vital_rate = "Panicle Production", effect = "Variance")
+dimnames(fert_par$betaendo) <- list(Draw = paste0("i",1:dim(fert_par$betaendo)[1]), Species = species_list)
+fert_betaendo_cube <- cubelyr::as.tbl_cube(fert_par$betaendo)
+fert_betaendo_df <- as_tibble(fert_betaendo_cube)  %>% 
+  rename(estimate = `fert_par$betaendo`)%>% 
+  mutate(vital_rate = "Panicle Production", effect = "Mean")
+#spike
+dimnames(spike_par$sigmaendo) <- list(Draw = paste0("i",1:dim(spike_par$sigmaendo)[1]), Species = species_list)
+spike_sigmaendo_cube <- cubelyr::as.tbl_cube(spike_par$sigmaendo)
+spike_sigmaendo_df <- as_tibble(spike_sigmaendo_cube)  %>% 
+  rename(estimate = `spike_par$sigmaendo`)%>% 
+  mutate(vital_rate = "Spikelets/Infl.", effect = "Variance")
+dimnames(spike_par$betaendo) <- list(Draw = paste0("i",1:dim(spike_par$betaendo)[1]), Species = species_list)
+spike_betaendo_cube <- cubelyr::as.tbl_cube(spike_par$betaendo)
+spike_betaendo_df <- as_tibble(spike_betaendo_cube)  %>% 
+  rename(estimate = `spike_par$betaendo`)%>% 
+  mutate(vital_rate = "Spikelets/Infl.", effect = "Mean")
+#germination
+dimnames(recruit_par$sigmaendo) <- list(Draw = paste0("i",1:dim(recruit_par$sigmaendo)[1]), Species = species_list)
+recruit_sigmaendo_cube <- cubelyr::as.tbl_cube(recruit_par$sigmaendo)
+recruit_sigmaendo_df <- as_tibble(recruit_sigmaendo_cube)  %>% 
+  rename(estimate = `recruit_par$sigmaendo`)%>% 
+  mutate(vital_rate = "Germination", effect = "Variance")
+dimnames(recruit_par$betaendo) <- list(Draw = paste0("i",1:dim(recruit_par$betaendo)[1]), Species = species_list)
+recruit_betaendo_cube <- cubelyr::as.tbl_cube(recruit_par$betaendo)
+recruit_betaendo_df <- as_tibble(recruit_betaendo_cube)  %>% 
+  rename(estimate = `recruit_par$betaendo`)%>% 
+  mutate(vital_rate = "Germination", effect = "Mean")
+
+#Combining all of those into one dataframe
+endo_vr_effects_df <- surv_sigmaendo_df %>% 
+  rbind(surv_betaendo_df,
+        surv_sdlg_sigmaendo_df,surv_sdlg_betaendo_df,
+        grow_sigmaendo_df,grow_betaendo_df,
+        seedgrow_sigmaendo_df,seedgrow_betaendo_df,
+        flow_sigmaendo_df, flow_betaendo_df,
+        fert_sigmaendo_df,fert_betaendo_df,
+        spike_sigmaendo_df, spike_betaendo_df,
+        recruit_sigmaendo_df,recruit_betaendo_df)
+# calculating the average effects for each species and vital rate
+endo_vr_effects_summary <- endo_vr_effects_df %>% 
+  group_by(Species, vital_rate, effect) %>% 
+  summarize(average_effect = mean(estimate))
+
+#now we can make a heat map based on those means
+vr_order <- c("Survival","Seedling Survival", "Growth", "Seedling Growth", "Flowering", "Panicle Production", "Spikelets/Infl.", "Germination")
+meanvar_effect_heatmap <- ggplot()+
+  geom_tile(data = endo_vr_effects_summary, aes(x = Species, y = factor(vital_rate, levels=vr_order), fill = average_effect), color = "lightgrey")+
+  scale_fill_gradient2(limits = c(-1.6, 1.6), low = "#d8b365",mid="#f5f5f5",high="#5ab4ac")+
+  facet_wrap(~effect)+
+  labs(x = "Species", y = "Vital Rate", fill = "Avg. Endophyte Effect")+  
+  theme_minimal()+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+meanvar_effect_heatmap
+
+#pulling out 500 random draws from each vital rate/species/effect
+thinned_endo_vr_effects_df <- endo_vr_effects_df %>% 
+  group_by(vital_rate, effect, Species) %>% 
+  slice_sample(n=100)
+
+meanvar_effect_pointmap <- ggplot()+
+  geom_tile(data = filter(endo_vr_effects_summary, effect == "Mean"), aes(x = Species, y = factor(vital_rate, levels=vr_order), fill = average_effect), color = "lightgrey")+
+  geom_jitter(data = filter(thinned_endo_vr_effects_df, effect == "Mean"), aes(x = Species, y = factor(vital_rate, levels=vr_order), color = estimate), alpha = .8)+
+  scale_fill_gradient2(limit= c(-5.5,5.5),low = "#d8b365",mid="#f5f5f5",high="#5ab4ac")+
+  scale_color_gradient2(low = "#d8b365",mid="#f5f5f5",high="#5ab4ac")+
+  facet_wrap(~effect)+
+  labs(x = "Species", y = "Vital Rate", fill = "Avg. Endophyte Effect")+  
+  theme_minimal()+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+meanvar_effect_pointmap
+
+library(ggbeeswarm)
+meanvar_effect_dotplot <- ggplot()+
+  geom_quasirandom(data = filter(thinned_endo_vr_effects_df, effect == "Variance"), aes(x = Species, y = factor(vital_rate, levels=vr_order), color = estimate), alpha = .7)+
+  scale_color_gradient2(limits = c(-1,1),low = "#d8b365",mid="#D3D3D3",high="#5ab4ac")+
+  facet_wrap(~effect)
+meanvar_effect_dotplot
