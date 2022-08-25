@@ -34,13 +34,19 @@ max_size <- LTREB_full %>%
   summarise(actual_max_size = max(size_t),
             max_size = quantile(size_t,probs=0.975),
             max_size_99 = quantile(size_t,probs=0.99)) # The mean and sd effects plots look basically identical with either max size
-
-spei_minmax <- LTREB_full %>% 
+# We use these min max values of SPEI for the relationship between growth rates and climate
+spei12_minmax <- LTREB_full %>% 
   dplyr::select(species,species_index, spei12) %>% 
   filter(!is.na(spei12)) %>% 
   group_by(species, species_index) %>% 
   summarise(min_spei = min(spei12),
             max_spei = max(spei12))
+spei3_minmax <- LTREB_full %>% 
+  dplyr::select(species,species_index, spei3) %>% 
+  filter(!is.na(spei3)) %>% 
+  group_by(species, species_index) %>% 
+  summarise(min_spei = min(spei3),
+            max_spei = max(spei3))
   
 #############################################################################################
 ####### Read in matrix population functions ------------------
@@ -57,38 +63,67 @@ tompath <- "C:/Users/tm9/Dropbox/EndodemogData/"
 joshpath <- "~/Dropbox/EndodemogData/"
 path<-joshpath
 
-spei_surv_fit_seedling <- read_rds("~/Dropbox/EndodemogData/Model_Runs/climate_endo_seedling_surv_withoutquadraticterm.rds")
-spei_surv_fit <- read_rds("~/Dropbox/EndodemogData/Model_Runs/climate_endo_spp_surv_woseedling_linear.rds")
-spei_grow_fit_seedling <- read_rds("~/Dropbox/EndodemogData/Model_Runs/climate_seedling_grow_linear_10000iterations.rds")
-spei_grow_fit <- read_rds("~/Dropbox/EndodemogData/Model_Runs/climate_endo_grow_PIG_linear.rds")
-spei_flw_fit <- read_rds("~/Dropbox/EndodemogData/Model_Runs/climate_endo_spp_flw.rds")
-spei_fert_fit <- read_rds("~/Dropbox/EndodemogData/Model_Runs/climate_endo_fert_PIG_linear.rds")
-spei_spike_fit <- read_rds("~/Dropbox/EndodemogData/Model_Runs/climate_endo_spp_spike_linear.rds")
+spei12_surv_fit_seedling <- read_rds("~/Dropbox/EndodemogData/Model_Runs/climate_endo_seedling_surv_spei12.rds")
+spei3_surv_fit_seedling <- read_rds("~/Dropbox/EndodemogData/Model_Runs/climate_endo_seedling_surv_spei3.rds")
+
+spei12_surv_fit <- read_rds("~/Dropbox/EndodemogData/Model_Runs/climate_spei12_endo_spp_surv_woseedling_linear.rds")
+spei3_surv_fit <- read_rds("~/Dropbox/EndodemogData/Model_Runs/climate_spei3_endo_spp_surv_woseedling_linear.rds")
+
+spei12_grow_fit_seedling <- read_rds("~/Dropbox/EndodemogData/Model_Runs/climate_seedling_grow_spei12_10000iterations.rds")
+spei3_grow_fit_seedling <- read_rds("~/Dropbox/EndodemogData/Model_Runs/climate_seedling_grow_spei3_10000iterations.rds")
+
+spei12_grow_fit <- read_rds("~/Dropbox/EndodemogData/Model_Runs/climate_endo_grow_PIG_spei12.rds")
+spei3_grow_fit <- read_rds("~/Dropbox/EndodemogData/Model_Runs/climate_endo_grow_PIG_spei3.rds")
+
+spei12_flw_fit <- read_rds("~/Dropbox/EndodemogData/Model_Runs/climate_endo_spp_flw_spei12.rds")
+spei3_flw_fit <- read_rds("~/Dropbox/EndodemogData/Model_Runs/climate_endo_spp_flw_spei3.rds")
+
+spei12_fert_fit <- read_rds("~/Dropbox/EndodemogData/Model_Runs/climate_endo_fert_PIG_spei12.rds")
+spei3_fert_fit <- read_rds("~/Dropbox/EndodemogData/Model_Runs/climate_endo_fert_PIG_spei3.rds")
+
+spei12_spike_fit <- read_rds("~/Dropbox/EndodemogData/Model_Runs/climate_endo_spp_spike_spei12.rds")
+spei3_spike_fit <- read_rds("~/Dropbox/EndodemogData/Model_Runs/climate_endo_spp_spike_spei3.rds")
+
 seedmean_fit <- read_rds("~/Dropbox/EndodemogData/Model_Runs/endo_spp_seed_mean.rds") # doesn't include spei predictor
-spei_stos_fit <- read_rds("~/Dropbox/EndodemogData/Model_Runs/climate_endo_spp_s_to_s.rds") 
+
+spei12_stos_fit <- read_rds("~/Dropbox/EndodemogData/Model_Runs/climate_endo_spp_s_to_s_spei12.rds") 
+spei3_stos_fit <- read_rds("~/Dropbox/EndodemogData/Model_Runs/climate_endo_spp_s_to_s_spei3.rds") 
 
 
 
 # Pulling out the actual parameters
 #survival
-spei_surv_par <- rstan::extract(spei_surv_fit, pars =quote_bare(beta0,betasize,betaendo,betaorigin,
-                                                                betaspei_endo,
-                                                                tau_year, tau_plot, sigma_year))
+spei12_surv_par <- rstan::extract(spei12_surv_fit, pars =quote_bare(beta0,betasize,betaendo,betaorigin,betaspei_endo,tau_year, tau_plot, sigma_year))
+spei3_surv_par <- rstan::extract(spei3_surv_fit, pars =quote_bare(beta0,betasize,betaendo,betaorigin,betaspei_endo,tau_year, tau_plot, sigma_year))
 # seedling survival
-spei_surv_sdlg_par <- rstan::extract(spei_surv_fit_seedling, pars =quote_bare(beta0,betaendo, betaspei_endo, tau_year, tau_plot, sigma_year))
+spei12_surv_sdlg_par <- rstan::extract(spei12_surv_fit_seedling, pars =quote_bare(beta0,betaendo, betaspei_endo, tau_year, tau_plot, sigma_year))
+spei3_surv_sdlg_par <- rstan::extract(spei3_surv_fit_seedling, pars =quote_bare(beta0,betaendo, betaspei_endo, tau_year, tau_plot, sigma_year))
+
 # growth
-spei_grow_par <- rstan::extract(spei_grow_fit, pars = quote_bare(beta0,betasize,betaendo,betaorigin, betaspei_endo, tau_year, tau_plot, sigma, sigma_year))
+spei12_grow_par <- rstan::extract(spei12_grow_fit, pars = quote_bare(beta0,betasize,betaendo,betaorigin, betaspei_endo, tau_year, tau_plot, sigma, sigma_year))
+spei3_grow_par <- rstan::extract(spei3_grow_fit, pars = quote_bare(beta0,betasize,betaendo,betaorigin, betaspei_endo, tau_year, tau_plot, sigma, sigma_year))
+
 # seedling growth
-spei_grow_sdlg_par <- rstan::extract(spei_grow_fit_seedling, pars = quote_bare(beta0,betaendo, betaspei_endo, tau_year, tau_plot, sigma, sigma_year))
+spei12_grow_sdlg_par <- rstan::extract(spei12_grow_fit_seedling, pars = quote_bare(beta0,betaendo, betaspei_endo, tau_year, tau_plot, sigma, sigma_year))
+spei3_grow_sdlg_par <- rstan::extract(spei3_grow_fit_seedling, pars = quote_bare(beta0,betaendo, betaspei_endo, tau_year, tau_plot, sigma, sigma_year))
+
 #flowering
-spei_flow_par <- rstan::extract(spei_flw_fit, pars = quote_bare(beta0,betasize,betaendo,betaorigin, betaspei_endo, tau_year, tau_plot, sigma_year))
+spei12_flow_par <- rstan::extract(spei12_flw_fit, pars = quote_bare(beta0,betasize,betaendo,betaorigin, betaspei_endo, tau_year, tau_plot, sigma_year))
+spei3_flow_par <- rstan::extract(spei3_flw_fit, pars = quote_bare(beta0,betasize,betaendo,betaorigin, betaspei_endo, tau_year, tau_plot, sigma_year))
+
 # number of flower tillers
-spei_fert_par <- rstan::extract(spei_fert_fit, pars = quote_bare(beta0,betasize,betaendo,betaorigin, betaspei_endo, tau_year, tau_plot, sigma_year))
+spei12_fert_par <- rstan::extract(spei12_fert_fit, pars = quote_bare(beta0,betasize,betaendo,betaorigin, betaspei_endo, tau_year, tau_plot, sigma_year))
+spei3_fert_par <- rstan::extract(spei3_fert_fit, pars = quote_bare(beta0,betasize,betaendo,betaorigin, betaspei_endo, tau_year, tau_plot, sigma_year))
+
 # spikelets/infl
-spei_spike_par <- rstan::extract(spei_spike_fit, pars = quote_bare(beta0,betasize,betaendo,betaorigin, betaspei_endo, tau_year, tau_plot, sigma_year))
+spei12_spike_par <- rstan::extract(spei12_spike_fit, pars = quote_bare(beta0,betasize,betaendo,betaorigin, betaspei_endo, tau_year, tau_plot, sigma_year))
+spei3_spike_par <- rstan::extract(spei3_spike_fit, pars = quote_bare(beta0,betasize,betaendo,betaorigin, betaspei_endo, tau_year, tau_plot, sigma_year))
+
+# seed mean/spikelet
 seed_par <- rstan::extract(seedmean_fit, pars = quote_bare(beta0,betaendo)) #no plot or year effect
 # seedling recruitment
-spei_recruit_par <- rstan::extract(spei_stos_fit, pars = quote_bare(beta0,betaendo, betaspei_endo, tau_year, tau_plot, sigma_year))
+spei12_recruit_par <- rstan::extract(spei12_stos_fit, pars = quote_bare(beta0,betaendo, betaspei_endo, tau_year, tau_plot, sigma_year))
+spei3_recruit_par <- rstan::extract(spei3_stos_fit, pars = quote_bare(beta0,betaendo, betaspei_endo, tau_year, tau_plot, sigma_year))
 
 
 # endophyte effects on lambda mean across spei values ---------------------------
