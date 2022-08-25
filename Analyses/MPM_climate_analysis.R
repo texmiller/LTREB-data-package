@@ -24,8 +24,12 @@ quote_bare <- function( ... ){
 #############################################################################################
 ####### Read in Data and creating size bins------------------
 #############################################################################################
+tompath <- "C:/Users/tm9/Dropbox/EndodemogData/"
+joshpath <- "~/Dropbox/EndodemogData/"
+path<-joshpath
 
-source("Analyses/endodemog_data_processing.R")
+# source("Analyses/endodemog_data_processing.R")
+LTREB_full <- read_csv(paste0(joshpath,"Fulldataplusmetadata/LTREB_full.csv"))
 
 max_size <- LTREB_full %>% 
   dplyr::select(species,species_index, size_t) %>% 
@@ -54,14 +58,9 @@ spei3_minmax <- LTREB_full %>%
 
 source("Analyses/MPM_functions.R")
 
-
-
 #############################################################################################
 ####### Read in Stan vital rate model outputs ------------------
 #############################################################################################
-tompath <- "C:/Users/tm9/Dropbox/EndodemogData/"
-joshpath <- "~/Dropbox/EndodemogData/"
-path<-joshpath
 
 spei12_surv_fit_seedling <- read_rds("~/Dropbox/EndodemogData/Model_Runs/climate_endo_seedling_surv_spei12.rds")
 spei3_surv_fit_seedling <- read_rds("~/Dropbox/EndodemogData/Model_Runs/climate_endo_seedling_surv_spei3.rds")
@@ -137,36 +136,57 @@ n_spp <- length(unique(LTREB_full$species))
 n_endo <- 2
 # stepsize of spei values
 spei_steps <- 10
-spei_range <- array(dim = c(n_spp,spei_steps))
+spei12_range <- spei3_range <- array(dim = c(n_spp,spei_steps))
 for(s in 1:n_spp){
-spei_range[s,] <- seq(from = spei_minmax$min_spei[s], to = spei_minmax$max_spei[s], length.out = 10)
+spei12_range[s,] <- seq(from = spei12_minmax$min_spei[s], to = spei12_minmax$max_spei[s], length.out = 10)
+spei3_range[s,] <- seq(from = spei3_minmax$min_spei[s], to = spei3_minmax$max_spei[s], length.out = 10)
 }
-lambda_spei <- array(dim = c(spei_steps,(n_spp+1),n_endo,n_draws))
+lambda_spei12 <- lambda_spei3 <- array(dim = c(spei_steps,(n_spp+1),n_endo,n_draws))
 
 
 for(i in 1:n_draws){
   for(e in 1:n_endo){
     for(s in 1:n_spp){
       for(c in 1:spei_steps){
-        # 1. Sample observation years, calculate mean and variance
-        lambda_spei[c,s,e,i] <- lambda(bigmatrix(make_params(species=s,
+        # 1. fit MPM with 12 Month SPEI effect, without random effects
+        lambda_spei12[c,s,e,i] <- lambda(bigmatrix(make_params(species=s,
                                                                  endo_mean=(e-1),
                                                                  original = 1, # should be =1 to represent recruit
                                                                  draw=post_draws[i],
                                                                  max_size=max_size,
                                                                  rfx=F,
                                                                  spei = T,
-                                                                 surv_par=spei_surv_par,
-                                                                 surv_sdlg_par = spei_surv_sdlg_par,
-                                                                 grow_par=spei_grow_par,
-                                                                 grow_sdlg_par = spei_grow_sdlg_par,
-                                                                 flow_par=spei_flow_par,
-                                                                 fert_par=spei_fert_par,
-                                                                 spike_par=spei_spike_par,
+                                                                 surv_par=spei12_surv_par,
+                                                                 surv_sdlg_par = spei12_surv_sdlg_par,
+                                                                 grow_par=spei12_grow_par,
+                                                                 grow_sdlg_par = spei12_grow_sdlg_par,
+                                                                 flow_par=spei12_flow_par,
+                                                                 fert_par=spei12_fert_par,
+                                                                 spike_par=spei12_spike_par,
                                                                  seed_par=seed_par,
-                                                                 recruit_par=spei_recruit_par),
-                                                     spei = spei_range[s,c],
+                                                                 recruit_par=spei12_recruit_par),
+                                                     spei = spei12_range[s,c],
                                                      extension = 100)$MPMmat) # the extension parameter is used to fit the growth kernel to sizes larger than max size without losing probability density
+        # 1. fit MPM with 12 Month SPEI effect, without random effects
+        lambda_spei3[c,s,e,i] <- lambda(bigmatrix(make_params(species=s,
+                                                               endo_mean=(e-1),
+                                                               original = 1, # should be =1 to represent recruit
+                                                               draw=post_draws[i],
+                                                               max_size=max_size,
+                                                               rfx=F,
+                                                               spei = T,
+                                                               surv_par=spei3_surv_par,
+                                                               surv_sdlg_par = spei3_surv_sdlg_par,
+                                                               grow_par=spei3_grow_par,
+                                                               grow_sdlg_par = spei3_grow_sdlg_par,
+                                                               flow_par=spei3_flow_par,
+                                                               fert_par=spei3_fert_par,
+                                                               spike_par=spei3_spike_par,
+                                                               seed_par=seed_par,
+                                                               recruit_par=spei3_recruit_par),
+                                                   spei = spei3_range[s,c],
+                                                   extension = 100)$MPMmat) # the extension parameter is used to fit the growth kernel to sizes larger than max size without losing probability density
+        
       } # endo of spei loop
     } # endo of species loop
   }# endo of endo loop
@@ -175,17 +195,34 @@ for(i in 1:n_draws){
 # calculating overall species mean
 for(i in 1:n_draws){
   for(e in 1:n_endo){
-    lambda_spei[,8,e,i] <- rowMeans(lambda_spei[,1:7,e,i])
+    lambda_spei12[,8,e,i] <- rowMeans(lambda_spei12[,1:7,e,i])
+    lambda_spei3[,8,e,i] <- rowMeans(lambda_spei3[,1:7,e,i])
+    
   }
 }
 
-saveRDS(lambda_spei, file = "~/Dropbox/EndodemogData/Model_Runs/MPM_output/lambda_spei.rds")
-lambda_spei <- read_rds(file = "~/Dropbox/EndodemogData/Model_Runs/MPM_output/lambda_spei.rds")
+saveRDS(lambda_spei12, file = "~/Dropbox/EndodemogData/Model_Runs/MPM_output/lambda_spei12.rds")
+saveRDS(lambda_spei3, file = "~/Dropbox/EndodemogData/Model_Runs/MPM_output/lambda_spei3.rds")
 
-dimnames(lambda_spei) <- list(spei = paste0("spei",1:spei_steps),species = paste0("s",1:(n_spp+1)), Endo = paste0("e",1:2), Iteration= paste0("i",1:n_draws))
-lambda_spei_cube <- cubelyr::as.tbl_cube(lambda_spei)
+lambda_spei12 <- read_rds(file = "~/Dropbox/EndodemogData/Model_Runs/MPM_output/lambda_spei12.rds")
+lambda_spei3 <- read_rds(file = "~/Dropbox/EndodemogData/Model_Runs/MPM_output/lambda_spei3.rds")
 
-lambda_spei_df <- as_tibble(lambda_spei_cube) %>% 
+dimnames(lambda_spei12) <-dimnames(lambda_spei3) <- list(spei = paste0("spei",1:spei_steps),species = paste0("s",1:(n_spp+1)), Endo = paste0("e",1:2), Iteration= paste0("i",1:n_draws))
+lambda_spei12_cube <- cubelyr::as.tbl_cube(lambda_spei12)
+lambda_spei3_cube <- cubelyr::as.tbl_cube(lambda_spei3)
+
+lambda_spei12_df <- as_tibble(lambda_spei12_cube) %>% 
+  mutate(Species = case_when(species == "s1" ~ "Agrostis perennans",
+                             species == "s2" ~ "Elymus villosus",
+                             species == "s3" ~ "Elymus virginicus",
+                             species == "s4" ~ "Festuca subverticillata",
+                             species == "s5" ~ "Lolium arundinaceum",
+                             species == "s6" ~ "Poa alsodes",
+                             species == "s7" ~ "Poa sylvestris",
+                             species == "s8" ~ "Species Mean"),
+         Endo = case_when(Endo == "e1" ~ "E-",
+                          Endo == "e2" ~ "E+")) 
+lambda_spei3_df <- as_tibble(lambda_spei3_cube) %>% 
   mutate(Species = case_when(species == "s1" ~ "Agrostis perennans",
                              species == "s2" ~ "Elymus villosus",
                              species == "s3" ~ "Elymus virginicus",
@@ -197,36 +234,58 @@ lambda_spei_df <- as_tibble(lambda_spei_cube) %>%
          Endo = case_when(Endo == "e1" ~ "E-",
                           Endo == "e2" ~ "E+")) 
 
-dimnames(spei_range) <- list(species = paste0("s",1:(n_spp)), spei = paste0("spei",1:spei_steps))
-spei_range_cube <- cubelyr::as.tbl_cube(spei_range)
-spei_range_df <- as_tibble(spei_range_cube) %>% 
-  rename(spei_value = spei_range)
+dimnames(spei12_range) <- dimnames(spei3_range) <- list(species = paste0("s",1:(n_spp)), spei = paste0("spei",1:spei_steps))
+spei12_range_cube <- cubelyr::as.tbl_cube(spei12_range)
+spei3_range_cube <- cubelyr::as.tbl_cube(spei3_range)
 
-lambda_spei_df <- lambda_spei_df %>% 
-  left_join(spei_range_df)
+spei12_range_df <- as_tibble(spei12_range_cube) %>% 
+  rename(spei_value = spei12_range)
+spei3_range_df <- as_tibble(spei3_range_cube) %>% 
+  rename(spei_value = spei3_range)
 
-lambda_spei_mean <- lambda_spei_df %>% 
-  left_join(spei_range_df) %>% 
+lambda_spei12_df <- lambda_spei12_df %>% 
+  left_join(spei12_range_df)
+lambda_spei3_df <- lambda_spei3_df %>% 
+  left_join(spei3_range_df)
+
+lambda_spei12_mean <- lambda_spei12_df %>% 
+  left_join(spei12_range_df) %>% 
   group_by(spei_value,species,Endo,Species) %>% 
   summarize(lambda_spei_mean = mean(lambda_spei)) %>% 
-  left_join(spei_range_df)
+  left_join(spei12_range_df)
+
+lambda_spei3_mean <- lambda_spei3_df %>% 
+  left_join(spei3_range_df) %>% 
+  group_by(spei_value,species,Endo,Species) %>% 
+  summarize(lambda_spei_mean = mean(lambda_spei)) %>% 
+  left_join(spei3_range_df)
+
 
 # Set color scheme based on analine blue
 endophyte_color_scheme <- c("#fdedd3","#f3c8a8", "#5a727b", "#4986c7", "#181914",  "#163381")
 color_scheme_set(endophyte_color_scheme)
 # color_scheme_view()
 # And creating a color palette for each year
-yearcount = length(unique(LTREB_full$year_t))
-yearcolors<- colorRampPalette(brewer.pal(8,"Dark2"))(yearcount)
+# yearcount = length(unique(LTREB_full$year_t))
+# yearcolors<- colorRampPalette(brewer.pal(8,"Dark2"))(yearcount)
 # scales::show_col(yearcolors)
 species_list <- c("AGPE", "ELRI", "ELVI", "FESU", "LOAR", "POAL", "POSY")
 
 
-spei_lambda_plot <- ggplot(data = lambda_spei_df)+
-  geom_path(aes(x = spei_value, y = lambda_spei, group = interaction(Endo,Iteration), color = Endo), alpha = .05, lwd = .4)+
-  geom_path(data = lambda_spei_mean, aes(x = spei_value, y = lambda_spei_mean, group = Endo, color = Endo),lwd = 1)+
+spei12_lambda_plot <- ggplot(data = lambda_spei12_df)+
+  geom_path(aes(x = spei_value, y = lambda_spei12, group = interaction(Endo,Iteration), color = Endo), alpha = .05, lwd = .4)+
+  geom_path(data = lambda_spei12_mean, aes(x = spei_value, y = lambda_spei_mean, group = Endo, color = Endo),lwd = 1)+
   facet_wrap(~Species, scales = "free")+
   scale_color_manual(values = endophyte_color_scheme[c(2,6)])+
-  theme_classic()+ theme(strip.background = element_blank()) + labs(title = "Population Growth", subtitle = "Mean endophyte effect with 500 posteriors draws")
-spei_lambda_plot
-ggsave(spei_lambda_plot, filename = "spei_lamda_plot.png", width = 6, height = 6 )
+  theme_classic()+ theme(strip.background = element_blank()) + labs(title = "Population Growth (12 month SPEI)", subtitle = "Mean endophyte effect with 500 posteriors draws")
+spei12_lambda_plot
+ggsave(spei12_lambda_plot, filename = "spei12_lamda_plot.png", width = 6, height = 6 )
+
+spei3_lambda_plot <- ggplot(data = lambda_spei3_df)+
+  geom_path(data = lambda_spei3_mean, aes(x = spei_value, y = lambda_spei_mean, group = Endo, color = Endo),lwd = 1)+
+  geom_path(aes(x = spei_value, y = lambda_spei3, group = interaction(Endo,Iteration), color = Endo), alpha = .05, lwd = .4)+
+  facet_wrap(~Species, scales = "free")+
+  scale_color_manual(values = endophyte_color_scheme[c(2,6)])+
+  theme_classic()+ theme(strip.background = element_blank()) + labs(title = "Population Growth (3 month SPEI)", subtitle = "Mean endophyte effect with 500 posteriors draws")
+spei3_lambda_plot
+ggsave(spei3_lambda_plot, filename = "spei3_lamda_plot.png", width = 6, height = 6 )
