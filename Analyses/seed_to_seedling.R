@@ -122,7 +122,7 @@ LTREB_annual_recruit_data <- LTREB_full %>%
 # LOAR only goes up to 2019
 LTREB_spei <- LTREB_full %>% 
   ungroup() %>% 
-  dplyr::select(species, species_index, year_t1, year_t1_index, year_t, year_t_index, spei12) %>% 
+  dplyr::select(species, species_index, year_t1, year_t1_index, year_t, year_t_index, spei12, spei3) %>% 
   unique()
 
 # These are the problem recruit id's
@@ -147,8 +147,6 @@ dim(LTREB_s_to_s_data)
 # We are using the same predicted seed values for the climate-implicit and -explicit versions of the models
 s_to_s_data_list <- list(tot_recruit_t1 = LTREB_s_to_s_data$tot_recruits_t1,
                          tot_seed_t = LTREB_s_to_s_data$tot_seed_t,
-                         spei = as.numeric(LTREB_s_to_s_data$spei12),
-                         spei_nl = as.numeric(LTREB_s_to_s_data$spei12^2),
                          endo_01 = as.integer(LTREB_s_to_s_data$endo_01),
                          endo_index = as.integer(LTREB_s_to_s_data$endo_index),
                          year_t = as.integer(LTREB_s_to_s_data$year_t_index),
@@ -159,10 +157,23 @@ s_to_s_data_list <- list(tot_recruit_t1 = LTREB_s_to_s_data$tot_recruits_t1,
                          nPlot = length(unique(LTREB_s_to_s_data$plot_index)),
                          nSpp = length(unique(LTREB_s_to_s_data$species_index)),
                          nEndo = length(unique(LTREB_s_to_s_data$endo_01)))
-str(s_to_s_data_list)
+s_to_s_spei12_data_list <- append(s_to_s_data_list, list(spei = as.numeric(LTREB_s_to_s_data$spei12),
+                                                               spei_nl = as.numeric(LTREB_s_to_s_data$spei12^2)))
+s_to_s_spei3_data_list <- append(s_to_s_data_list, list(spei = as.numeric(LTREB_s_to_s_data$spei3),
+                                                              spei_nl = as.numeric(LTREB_s_to_s_data$spei3^2)))
+
+
+str(s_to_s_data_list);str(s_to_s_spei12_data_list);str(s_to_s_spei3_data_list)
 
 # saveRDS(s_to_s_data_list, file = "Analyses/s_to_s_data_list.rds")
+# saveRDS(s_to_s_spei12_data_list, file = "Analyses/s_to_s_spei12_data_list.rds")
+# saveRDS(s_to_s_spei3_data_list, file = "Analyses/s_to_s_spei3_data_list.rds")
+
 s_to_s_data_list <- read_rds(file = "Analyses/s_to_s_data_list.rds")
+s_to_s_spei12_data_list <- read_rds(file = "Analyses/s_to_s_spei12_data_list.rds")
+s_to_s_spei3_data_list <- read_rds(file = "Analyses/s_to_s_spei3_data_list.rds")
+
+
 #########################################################################################################
 # Stan model for seed to seedling recruitment rate ------------------------------
 #########################################################################################################
@@ -199,13 +210,21 @@ traceplot(sm_s_to_s, pars = c("beta0"))
 
 #running the climate-explicit version with just the linear climate effect
 # running this gives maximum treedepth warnings
-sm_s_to_s <- stan(file = "Analyses/climate_endo_spp_s_to_s.stan", data = s_to_s_data_list,
+sm_s_to_s_spei12 <- stan(file = "Analyses/climate_endo_spp_s_to_s.stan", data = s_to_s_spei12_data_list,
                   iter = mcmc_pars$iter,
                   warmup = mcmc_pars$warmup,
                   chains = mcmc_pars$chains, 
                   thin = mcmc_pars$thin,
                   control = list(max_treedepth = 15))
-saveRDS(sm_s_to_s, file = "~/Dropbox/EndodemogData/Model_Runs/climate_endo_spp_s_to_s.rds")
+saveRDS(sm_s_to_s_spei12, file = "~/Dropbox/EndodemogData/Model_Runs/climate_endo_spp_s_to_s_spei12.rds")
+
+sm_s_to_s_spei3 <- stan(file = "Analyses/climate_endo_spp_s_to_s.stan", data = s_to_s_spei3_data_list,
+                         iter = mcmc_pars$iter,
+                         warmup = mcmc_pars$warmup,
+                         chains = mcmc_pars$chains, 
+                         thin = mcmc_pars$thin,
+                         control = list(max_treedepth = 15))
+saveRDS(sm_s_to_s_spei3, file = "~/Dropbox/EndodemogData/Model_Runs/climate_endo_spp_s_to_s_spei3.rds")
 
 #########################################################################################################
 # Model Diagnostics ------------------------------
