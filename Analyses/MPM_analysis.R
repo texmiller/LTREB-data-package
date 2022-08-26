@@ -377,6 +377,11 @@ lambdavar_plot <- ggplot(data = lambda_var_df) +
 lambdavar_plot
 ggsave(lambdavar_plot, filename = "lambdavar_plot_coefficientofvariation.png", width = 8, height = 4)
 
+endo_lambdaeffects_plot <-  meanlambda_plot +lambdavar_plot + plot_layout(nrow = 1)
+ggsave(endo_lambdaeffects_plot, filename = "endo_lambdaeffects_plot.png", width = 12, height = 6)
+
+
+
 # a plot of variance by mean effects
 lambda_var_join <- lambda_var_df %>% 
   rename( varlambda_diff = lambda_diff, var_e1 = e1, var_e2 = e2)

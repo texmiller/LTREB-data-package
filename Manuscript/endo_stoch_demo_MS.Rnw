@@ -2,6 +2,7 @@
 % Use the lineno option to display guide line numbers if required.
 
 \newcommand{\tom}[2]{{\color{red}{#1}}\footnote{\textit{\color{red}{#2}}}}
+\newcommand{\josh}[2]{{\color{green}{#1}}\footnote{\textit{\color{green}{#2}}}}
 
 \templatetype{pnasresearcharticle} % Choose template 
 % {pnasresearcharticle} = Template for a two-column research article
@@ -70,10 +71,32 @@ Using data from a unique, long-term experiment of plant-microbe symbiosis, we te
 We find that the symbiosis contributes positively to long-term population growth rates through both mean and variance buffering effects. Integrating across diverse effects on vital rates, contributions to long-term growth rates from effects on the mean are 4.17 times greater on average than contributions from variance buffering. However, these effects varied between species; for example, two species (\emph{A. perennans} and \emph{P. syvestris}) have contributions from variance buffering which are greater than mean effects. Additionally, the effect of mutualism increases under simulations with increased variance driven by greater contributions of variance buffering. In the most extreme scenario, we find that variance buffering contributions across species are 1.5 times greater than effects on the mean on average, and that variance buffering contributions are greater than mean effects for five out of seven species.
 
 \section*{Results}
+\begin{figure*}%[tbhp]
+\centering
+\includegraphics[width=.8\linewidth]{meanvar_effect_heatmap}
+\caption{needs to be updated pdf version, but putting this here for now. Effect of endophytes on vital rates across species}
+\label{fig:vr_figure}
+\end{figure*}
+
 \subsection*{Endophyte effects on the mean and variance of vital rates}
-Our vital rate models reveal that the mean and variance effects of endophyte symbiosis vary across species and across vital rates. For example, endophytes provide a mean benefit for survival in SPECIES with only a neglible mean effect for SPECIES where we see stronger buffering. Similarly, vital rates that are typically more variable year-to-year (typically those associated with reproduction \cite{}) show stronger buffering by endophytes, particularly for SPECIES. 
+Vital rate models reveal that Epichlo\"{e} fungal endophyte symbiosis tends to have positive effects on vital rate means; at the same time, endophytes provide a weaker but consistent variance buffering effect (Fig. \ref{fig:vr_figure}). These effects vary across species and across vital rates. For example, endophytes increase mean adult survival and buffer variance slightly for \emph{P. alsodes}, while for \emph{F. subverticillata}, effects from variance buffering are stronger with a weaker mean effect. In other vital rates, such as in seedling growth, \emph{P. alsodes} experiences stronger buffering than \emph{F. subverticillata}. Variance buffering effects are weak but present consistently across speciess in reproductive vital rates (e.g. likelihood of flowering and panicle production). \josh{Interestingly, there are also certain vital rates that indicate potential costs of endophyte symbiosis, such as \emph{A. perennans} and \emph{F. subverticillata} which have lower average germination rates when partnered with endophytes.}{Not sure how much to talk about demographic compensation (i.e. do we see less variance in vital rates that are more important). We don't really assess this. And at least loooking at the actual sigma values for each species, it seems like none of the vital rates have hugely different baseline standard deviations.} 
+
+
+
+
 \subsection*{Endophyte effects on the mean and variance of population growth rates}
-The diverse effects of endophytes on the mean and variance of host vital rates warrants a demographic modeling approach to assess their total impact on host fitness. We find that, on average, Epichlo\"{e} endophytes lead to a XXX\% increase in the mean and a XXX\% reduction in the standard deviation of annual growth rates across species (ref to Fig). This variance buffering affect is associated with uncertainty. There are contrasts across host species; Variance is reduced my as much as XXX\% for some( \emph{F. subverticillata}), while in others endophytes seem to have negligible (\emph{}) or even slightly elevated variance (\emph{}).
+Diverse effects of endophytes on the mean and variance of host vital rates can be integrated into demographic models to assess the total impact of endophyte symbiosis on host population growth rates. We find that, on average across species, populations with endophytes experience mean population growth that is 9.2 \% higher with a standard deviation that is 6.2 \% smaller than non-symbiotic populations.
+
+\begin{figure*}%[tbhp]
+\centering
+\includegraphics[width=.8\linewidth]{endo_lambdaeffects_plot}
+\caption{needs to be updated pdf version, but putting this here for now. Effect of endophytes on mean and CV of population growth}
+\label{fig:lambda_figure}
+\end{figure*}
+
+
+
+warrants a demographic modeling approach to assess their total impact on host fitness. We find that, on average, Epichlo\"{e} endophytes lead to a XXX\% increase in the mean and a XXX\% reduction in the standard deviation of annual growth rates across species (ref to Fig). This variance buffering affect is associated with uncertainty. There are contrasts across host species; Variance is reduced my as much as XXX\% for some( \emph{F. subverticillata}), while in others endophytes seem to have negligible (\emph{}) or even slightly elevated variance (\emph{}).
 \subsection*{Contribution of mean and variance effects to long-term growth rates}
 We decomposed the overall effect of the symbiosis to assess the contributions of mean and variance buffering to long-term population growth rates. We found that variance buffering provided a small benefit overall (XXX\%) (See figure?) but note that even small changes in fitness can have profound effects over long time periods.
 \subsection*{Endophytes are buffering their hosts from environmental variability}

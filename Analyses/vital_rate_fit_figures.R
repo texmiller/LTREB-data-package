@@ -540,8 +540,24 @@ ggsave(vr_traceplots, filename = "vr_traceplots.png", width = 25, height = 20)
 
 
 ## Plots for mean and year variance endophyte effects on all vital rates, all species ####
+sigmayear_species_key <- c("sigma_year[1,1]" = "AGPE E-", "sigma_year[1,2]" = "AGPE E+", "sigma_year[2,1]" = "ELRI E-",  "sigma_year[2,2]" = "ELRI E+", "sigma_year[3,1]" = "ELVI E-", "sigma_year[3,2]" = "ELVI E+", "sigma_year[4,1]" = "FESU E-","sigma_year[4,2]" = "FESU E+", "sigma_year[5,1]" = "LOAR E-", "sigma_year[5,2]" = "LOAR E+", "sigma_year[6,1]" = "POAL E-", "sigma_year[6,2]" = "POAL E+", "sigma_year[7,1]" = "POSY E-","sigma_year[7,2]" = "POSY E+")
 mean_species_key <- c("betaendo[1]" = "AGPE", "betaendo[2]" = "ELRI", "betaendo[3]" = "ELVI", "betaendo[4]" = "FESU", "betaendo[5]" = "LOAR", "betaendo[6]" = "POAL", "betaendo[7]" = "POSY")
 sd_species_key <- c("sigmaendo[1]" = "AGPE", "sigmaendo[2]" = "ELRI", "sigmaendo[3]" = "ELVI", "sigmaendo[4]" = "FESU", "sigmaendo[5]" = "LOAR", "sigmaendo[6]" = "POAL", "sigmaendo[7]" = "POSY")
+
+#posterriors of variance for all vital rates
+surv_sigmayear_posteriors <-  mcmc_areas(surv_fit, prob = 0.8, regex_pars = c("sigma_year"))+labs(title = "Adult Survival", subtitle = "Vital rate SD with 80% credible intervals") + scale_y_discrete(labels = sigmayear_species_key)
+seedsurv_sigmayear_posteriors <-  mcmc_areas(surv_fit_seedling, prob = 0.8, regex_pars = c("sigma_year"))+labs(title = "Seedling Survival", subtitle = "Vital rate SD with 80% credible intervals") + scale_y_discrete(labels = sigmayear_species_key)
+grow_sigmayear_posteriors <- mcmc_areas(grow_fit, prob = 0.8, regex_pars = c("sigma_year"))+labs(title = "Adult Growth", subtitle = "Vital rate SD with 80% credible intervals") + scale_y_discrete(labels = sigmayear_species_key)
+seedgrow_sigmayear_posteriors <- mcmc_areas(grow_fit_seedling, prob = 0.8, regex_pars = c("sigma_year"))+labs(title = "Seedling Growth", subtitle = "Vital rate SD with 80% credible intervals") + scale_y_discrete(labels = sigmayear_species_key)
+flw_sigmayear_posteriors <- mcmc_areas(flw_fit, prob = 0.8, regex_pars = c("sigma_year"))+labs(title = "Flowering", subtitle = "Vital rate SD with 80% credible intervals") + scale_y_discrete(labels = sigmayear_species_key)
+fert_sigmayear_posteriors <- mcmc_areas(fert_fit, prob = 0.8, regex_pars = c("sigma_year"))+labs(title = "Fertility", subtitle = "Vital rate SD with 80% credible intervals") + scale_y_discrete(labels = sigmayear_species_key)
+spike_sigmayear_posteriors <- mcmc_areas(spike_fit, prob = 0.8, regex_pars = c("sigma_year"))+labs(title = "Spikelets per infl.", subtitle = "Vital rate SD with 80% credible intervals") + scale_y_discrete(labels = sigmayear_species_key)
+stos_sigmayear_posteriors <- mcmc_areas(stos_fit, prob = 0.8, regex_pars = c("sigma_year"))+labs(title = "Germination", subtitle = "Vital rate SD with 80% credible intervals") + scale_y_discrete(labels = sigmayear_species_key)
+
+vital_rate_sd_posteriors <- surv_sigmayear_posteriors +seedsurv_sigmayear_posteriors +grow_sigmayear_posteriors + seedgrow_sigmayear_posteriors +flw_sigmayear_posteriors + fert_sigmayear_posteriors + spike_sigmayear_posteriors +stos_sigmayear_posteriors+
+  plot_layout(ncol = 1)
+ggsave(vital_rate_sd_posteriors, filename = "vital_rate_sd_posteriors.png", width = 12, height = 30)
+
 
 # effect of endophytte on mean (betaendo)
 surv_endomean_posteriors <-  mcmc_areas(surv_fit, prob = 0.8, regex_pars = c("betaendo"))+labs(title = "Adult Survival", subtitle = "Endophyte effect on mean with 80% credible intervals") + scale_y_discrete(labels = mean_species_key)
