@@ -151,6 +151,9 @@ for(s in 1:8){
 # look at the lambda values for a general gut check
 lambda_means
 
+#calculating the percent difference for each species
+lambda_means_percentdiff <- 100-(lambda_means[,1]/lambda_means[,2]*100)
+
 ## now do variance in lambda 
 
 lambda_hold <- array(dim = c(13,7,2,n_draws)) # 13 years because of reproduction measured in year t1; needs to be before growth, so no year 1
@@ -195,7 +198,7 @@ lambda_var <- read_rds(file = "~/Dropbox/EndodemogData/Model_Runs/MPM_output/lam
 lambda_sds <- matrix(NA,8,2)
 lambda_vars <- matrix(NA,8,2)
 
-lambda_cv <- (lambda_var^2)/(2*lambda_mean^2)
+lambda_cv <- (lambda_var^2)/(2*lambda_mean^2) # this is the "variance penalty" term not the true CV right now
 
 lambda_cvs <- matrix(NA,8,2)
 
@@ -222,6 +225,9 @@ for(s in 1:8){
   lambda_cv_diff[s,2:7] = quantile(lambda_cv[s,2,]^2 - lambda_cv[s,1,]^2,probs=c(0.05,0.125,0.25,0.75,0.875,0.95))
   
 }
+
+# calcualating the percent different in standard deviation
+lambda_sds_percentdiff <- 100 - (lambda_sds[,1]/lambda_sds[,2])*100
 
 # Making plots of yearly lambdas
 yearly_lambda <- array(dim = c(13,7,2))
