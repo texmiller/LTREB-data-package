@@ -122,9 +122,9 @@ lambda_year_samp <- array(dim = c(n_years_samp,(n_spp+1),n_endo,n_draws))
 lambda_year_samp_extr <- array(dim = c(n_years_samp,(n_spp+1),n_endo,n_draws))
 
 # store mean and variance outputs for observed and sampled years
-lambda_mean_obs <- lambda_mean_samp <- lambda_mean_samp_extr <- array(dim = c((n_spp+1),n_endo,n_draws))
-lambda_sd_obs <- lambda_sd_samp <- lambda_sd_samp_extr <- array(dim = c((n_spp+1),n_endo,n_draws))
-lambda_cv_obs <- lambda_cv_samp <- lambda_cv_samp_extr <- array(dim = c((n_spp+1),n_endo,n_draws))
+lambda_mean_obs <- lambda_mean_samp <- array(dim = c((n_spp+1),n_endo,n_draws))
+lambda_sd_obs <- lambda_sd_samp <- array(dim = c((n_spp+1),n_endo,n_draws))
+lambda_cv_obs <- lambda_cv_samp <- array(dim = c((n_spp+1),n_endo,n_draws))
 
 for(i in 1:n_draws){
   for(e in 1:n_endo){
@@ -175,34 +175,12 @@ for(i in 1:n_draws){
                                                                   seed_par=seed_par,
                                                                   recruit_par=recruit_par),
                                                       extension = 100)$MPMmat)
-        lambda_year_samp_extr[yi,s,e,i] <- lambda(bigmatrix(make_params(species=s,
-                                                                   endo_mean=(e-1),
-                                                                   endo_var=(e-1),
-                                                                   original = 1, # should be =1 to represent recruit
-                                                                   draw=post_draws[i],
-                                                                   max_size=max_size,
-                                                                   rfx=T,
-                                                                   samp=T,
-                                                                   samp_extreme = 1, # this should be a 100% increase in the standard deviation
-                                                                   #year=y+1, ## this pulls the t to t1 growth-surv transition and t1 reproduction -- see make_params()
-                                                                   surv_par=surv_par,
-                                                                   surv_sdlg_par = surv_sdlg_par,
-                                                                   grow_par=grow_par,
-                                                                   grow_sdlg_par = grow_sdlg_par,
-                                                                   flow_par=flow_par,
-                                                                   fert_par=fert_par,
-                                                                   spike_par=spike_par,
-                                                                   seed_par=seed_par,
-                                                                   recruit_par=recruit_par),
-                                                       extension = 100)$MPMmat)
+        
       }
       lambda_mean_samp[s,e,i] <- mean(lambda_year_samp[,s,e,i])
       lambda_sd_samp[s,e,i] <- sd(lambda_year_samp[,s,e,i])
       lambda_cv_samp[s,e,i] <- lambda_sd_samp[s,e,i]/lambda_mean_samp[s,e,i]
-      
-      lambda_mean_samp_extr[s,e,i] <- mean(lambda_year_samp_extr[,s,e,i])
-      lambda_sd_samp_extr[s,e,i] <- sd(lambda_year_samp_extr[,s,e,i])
-      lambda_cv_samp_extr[s,e,i] <- lambda_sd_samp_extr[s,e,i]/lambda_mean_samp_extr[s,e,i]
+
     }
     #calculating overall species means
     lambda_mean_obs[8,e,i] <- mean(lambda_mean_obs[1:7,e,i])
@@ -212,10 +190,7 @@ for(i in 1:n_draws){
     lambda_mean_samp[8,e,i] <- mean(lambda_mean_samp[1:7,e,i])
     lambda_sd_samp[8,e,i] <- sd(lambda_mean_samp[1:7,e,i])
     lambda_cv_samp[8,e,i] <- lambda_sd_samp[8,e,i]/lambda_mean_samp[8,e,i]
-    
-    lambda_mean_samp_extr[8,e,i] <- mean(lambda_mean_samp_extr[1:7,e,i])
-    lambda_sd_samp_extr[8,e,i] <- sd(lambda_mean_samp_extr[1:7,e,i])
-    lambda_cv_samp_extr[8,e,i] <- lambda_sd_samp_extr[8,e,i]/lambda_mean_samp_extr[8,e,i]
+   
   }
 }
 
@@ -232,12 +207,6 @@ for(i in 1:n_draws){
 # saveRDS(lambda_sd_samp, file = paste0(path,"/Model_Runs/MPM_output/lambda_sd_samp.rds"))
 # saveRDS(lambda_cv_samp, file = paste0(path,"/Model_Runs/MPM_output/lambda_cv_samp.rds"))
 # 
-# saveRDS(lambda_year_samp_extr, file = paste0(path,"/Model_Runs/MPM_output/lambda_year_samp_extr.rds"))
-# 
-# saveRDS(lambda_mean_samp_extr, file = paste0(path,"/Model_Runs/MPM_output/lambda_mean_samp_extr.rds"))
-# saveRDS(lambda_sd_samp_extr, file = paste0(path,"/Model_Runs/MPM_output/lambda_sd_samp_extr.rds"))
-# saveRDS(lambda_cv_samp_extr, file = paste0(path,"/Model_Runs/MPM_output/lambda_cv_samp_extr.rds"))
-
 
 
 
@@ -254,12 +223,6 @@ for(i in 1:n_draws){
  lambda_sd_samp <- read_rds(paste0(path,"/Model_Runs/MPM_output/lambda_sd_samp.rds"))
  lambda_cv_samp <- read_rds(paste0(path,"/Model_Runs/MPM_output/lambda_cv_samp.rds"))
 
- lambda_year_samp_extr <- read_rds(paste0(path,"/Model_Runs/MPM_output/lambda_year_samp_extr.rds"))
- 
- lambda_mean_samp_extr <- read_rds(paste0(path,"/Model_Runs/MPM_output/lambda_mean_samp_extr.rds"))
- lambda_sd_samp_extr <- read_rds(paste0(path,"/Model_Runs/MPM_output/lambda_sd_samp_extr.rds"))
- lambda_cv_samp_extr <- read_rds(paste0(path,"/Model_Runs/MPM_output/lambda_cv_samp_extr.rds"))
- 
  
 # Turning the sampled lambdas into a dataframe
 dimnames(lambda_mean_samp) <- list(species = paste0("s",1:8), Endo = paste0("e",1:2), Iteration= paste0("i",1:n_draws))
