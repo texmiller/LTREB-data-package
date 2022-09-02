@@ -353,10 +353,10 @@ ggplot(data = lambda_var_diff_df) +
 
 
 # Version with raw posterior draws
-dimnames(lambda_cv) <- list(Species = paste0("s",1:8), Endo = paste0("e",1:2), Iteration= paste0("i",1:n_draws))
-lambda_var_cube <- cubelyr::as.tbl_cube(lambda_cv)
+dimnames(lambda_var) <- list(Species = paste0("s",1:8), Endo = paste0("e",1:2), Iteration= paste0("i",1:n_draws))
+lambda_var_cube <- cubelyr::as.tbl_cube(lambda_var)
 lambda_var_df <- as_tibble(lambda_var_cube) %>% 
-  pivot_wider(names_from = Endo, values_from = lambda_cv) %>% 
+  pivot_wider(names_from = Endo, values_from = lambda_var) %>% 
   mutate(lambda_diff = e2-e1) %>% 
   mutate(species = case_when(Species == "s1" ~ "Agrostis perennans",
                              Species == "s2" ~ "Elymus villosus",
@@ -1457,5 +1457,21 @@ FESUsurv_dataplot_mean <- ggplot(data = subset(surv_fit_df, Species == "FESU")) 
 
 FESUsurv_dataplot_mean
 ggsave(FESUsurv_dataplot_mean, filename = "~/Documents/FESUsurv_dataplot_mean.png",width = 5, height = 4, bg = "white")
+
+#### Some summary calculations for the manuscript ####
+# getting the mean values as well as some posterior summaries from the mean effect
+summary_lambda_mean <- lambda_mean_df %>% 
+  group_by(species, Species) %>% 
+  summarize(mean_lambda_diff = mean(lambda_diff),
+            percent_endo_comparison = 100-(mean(e1)/mean(e2))*100,
+            percent_diffgreaterthanzero = (sum(lambda_diff>0)/n())*100,
+            draws = n())
+  
+summary_lambda_sd <- lambda_var_df %>% 
+  group_by(species, Species) %>% 
+  summarize(sd_lambda_diff = mean(lambda_diff),
+            percent_endo_comparison = 100-(mean(e1)/mean(e2))*100,
+            percent_difflessthanzero = (sum(lambda_diff<0)/n())*100,
+            draws = n())
 
 
