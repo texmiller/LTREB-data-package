@@ -319,58 +319,10 @@ lambda_cv_obs_df <- as_tibble(lambda_cv_obs_cube) %>%
                              species == "s8" ~ "Species Mean")) %>% 
   mutate(sampling = "obs")
 
-# Turning the extreme sampled lambdas into a dataframe
-dimnames(lambda_mean_samp_extr) <- list(species = paste0("s",1:8), Endo = paste0("e",1:2), Iteration= paste0("i",1:n_draws))
-dimnames(lambda_sd_samp_extr) <- list(species = paste0("s",1:8), Endo = paste0("e",1:2), Iteration= paste0("i",1:n_draws))
-dimnames(lambda_cv_samp_extr) <- list(species = paste0("s",1:8), Endo = paste0("e",1:2), Iteration= paste0("i",1:n_draws))
-
-lambda_mean_samp_extr_cube <- cubelyr::as.tbl_cube(lambda_mean_samp_extr)
-lambda_sd_samp_extr_cube <- cubelyr::as.tbl_cube(lambda_sd_samp_extr)
-lambda_cv_samp_extr_cube <- cubelyr::as.tbl_cube(lambda_cv_samp_extr)
-
-lambda_mean_samp_extr_df <- as_tibble(lambda_mean_samp_extr_cube) %>% 
-  pivot_wider(names_from = Endo, values_from = lambda_mean_samp_extr) %>% 
-  mutate(lambda_diff = e2-e1) %>% 
-  mutate(Species = case_when(species == "s1" ~ "Agrostis perennans",
-                             species == "s2" ~ "Elymus villosus",
-                             species == "s3" ~ "Elymus virginicus",
-                             species == "s4" ~ "Festuca subverticillata",
-                             species == "s5" ~ "Lolium arundinaceum",
-                             species == "s6" ~ "Poa alsodes",
-                             species == "s7" ~ "Poa sylvestris",
-                             species == "s8" ~ "Species Mean"))  %>% 
-  mutate(sampling = "samp_extr")
-
-lambda_sd_samp_extr_df <- as_tibble(lambda_sd_samp_extr_cube) %>% 
-  pivot_wider(names_from = Endo, values_from = lambda_sd_samp_extr) %>% 
-  mutate(lambda_diff = e2-e1) %>% 
-  mutate(Species = case_when(species == "s1" ~ "Agrostis perennans",
-                             species == "s2" ~ "Elymus villosus",
-                             species == "s3" ~ "Elymus virginicus",
-                             species == "s4" ~ "Festuca subverticillata",
-                             species == "s5" ~ "Lolium arundinaceum",
-                             species == "s6" ~ "Poa alsodes",
-                             species == "s7" ~ "Poa sylvestris",
-                             species == "s8" ~ "Species Mean"))  %>% 
-  mutate(sampling = "samp_extr")
-
-lambda_cv_samp_extr_df <- as_tibble(lambda_cv_samp_extr_cube) %>% 
-  pivot_wider(names_from = Endo, values_from = lambda_cv_samp_extr) %>% 
-  mutate(lambda_diff = e2-e1) %>% 
-  mutate(Species = case_when(species == "s1" ~ "Agrostis perennans",
-                             species == "s2" ~ "Elymus villosus",
-                             species == "s3" ~ "Elymus virginicus",
-                             species == "s4" ~ "Festuca subverticillata",
-                             species == "s5" ~ "Lolium arundinaceum",
-                             species == "s6" ~ "Poa alsodes",
-                             species == "s7" ~ "Poa sylvestris",
-                             species == "s8" ~ "Species Mean"))  %>% 
-  mutate(sampling = "samp_extr")
-
 # Combining the dataframes
-lambda_mean_df <- rbind(lambda_mean_obs_df, lambda_mean_samp_df, lambda_mean_samp_extr_df)
-lambda_sd_df <- rbind(lambda_sd_obs_df, lambda_sd_samp_df, lambda_sd_samp_extr_df)
-lambda_cv_df <- rbind(lambda_cv_obs_df, lambda_cv_samp_df, lambda_cv_samp_extr_df)
+lambda_mean_df <- rbind(lambda_mean_obs_df, lambda_mean_samp_df)
+lambda_sd_df <- rbind(lambda_sd_obs_df, lambda_sd_samp_df)
+lambda_cv_df <- rbind(lambda_cv_obs_df, lambda_cv_samp_df)
 
 
 # Plots of endo effects on mean, sd and cv
