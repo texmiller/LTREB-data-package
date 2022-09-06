@@ -1,4 +1,4 @@
-\begin{thebibliography}{40}
+\begin{thebibliography}{42}
 \providecommand{\natexlab}[1]{#1}
 \providecommand{\url}[1]{\texttt{#1}}
 \expandafter\ifx\csname urlstyle\endcsname\relax
@@ -229,6 +229,20 @@ Facundo~A Decunta, Luis~I P{\'e}rez, Dariusz~P Malinowski, Marco~A
 \newblock A systematic review on the effects of epichlo{\"e} fungal endophytes
   on drought tolerance in cool-season grasses.
 \newblock \emph{Frontiers in plant science}, 12:\penalty0 644731, 2021.
+
+\bibitem[Rudgers et~al.(2012)Rudgers, Miller, Ziegler, and
+  Craven]{rudgers2012there}
+Jennifer~A Rudgers, Tom~EX Miller, Shaun~M Ziegler, and Kelly~D Craven.
+\newblock There are many ways to be a mutualist: endophytic fungus reduces
+  plant survival but increases population growth.
+\newblock \emph{Ecology}, 93\penalty0 (3):\penalty0 565--574, 2012.
+
+\bibitem[Rees and Ellner(2009)]{rees2009integral}
+Mark Rees and Stephen~P Ellner.
+\newblock Integral projection models for populations in temporally varying
+  environments.
+\newblock \emph{Ecological Monographs}, 79\penalty0 (4):\penalty0 575--594,
+  2009.
 
 \bibitem[Fine(1975)]{fine1975vectors}
 Paul~EM Fine.
