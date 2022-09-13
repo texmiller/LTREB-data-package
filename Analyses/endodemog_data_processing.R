@@ -2130,8 +2130,10 @@ climate_census_month <- climate %>%
   # filter(!is.na(monthly_tmean), !is.na(monthly_PET), !is.na(monthly_BAL)) 
 
 # calulate SPEI, we'll use the 12 month spei which is calculated as a 12 month lag from each month
+# and the 3 month spei
   # I am removing NA's which means that spei is calculated without those months for some of the time intervals, but I think thiis is better than if we were to drop the months from the database. Dropping the months leads to the column having some skipped months, and the spei's would be calculated with the shifted set of months.
 climate_census_month$spei12 <- spei(climate_census_month$monthly_BAL, 12, na.rm = TRUE)$fitted
+climate_census_month$spei3 <- spei(climate_census_month$monthly_BAL, 3, na.rm = TRUE)$fitted
 climate_census_month$spei24 <- spei(climate_census_month$monthly_BAL, 24, na.rm = TRUE)$fitted
 climate_census_month$spei1 <- spei(climate_census_month$monthly_BAL, 1, na.rm = TRUE)$fitted
 
@@ -2145,7 +2147,7 @@ spei_census_month_spp <- climate_census_month %>%
                    TRUE ~ month == census_month)) %>% # Here we are taking just the spei starting from the census month, which should cover the climate  year  preceding the census (For 2021, there is no climate data from june, july, so for ELVI, ELRI, and LOAR, I am taking august data for this year)
   mutate(climate_year = case_when(year == 2021 & species == "ELVI" | year == 2021 & species  == "ELRI" | year == 2021 & species == "LOAR" ~ 2021,
                                   TRUE ~ climate_year)) %>% # this is fixinig the label for the climate year for that month fix
-  dplyr::select(species, year, climate_year, census_month, spei1, spei12, spei24)
+  dplyr::select(species, year, climate_year, census_month, spei1, spei3, spei12, spei24)
 
 # Making a dataframe with annual precipitation and temperature for the census year
 ppt_temp_census_annual_spp <- climate_census_month %>% 
@@ -2171,7 +2173,7 @@ LTREB_full <- LTREB_full_climate %>%
                             TRUE ~ dist_a.y),
          dist_b = case_when(!is.na(dist_b.x) ~ dist_b.x,
                             TRUE ~ dist_b.y)) %>% 
-  mutate(spei1 = as.numeric(spei1), spei12 = as.numeric(spei12), spei24 = as.numeric(spei24)) %>% # I don't know why but this was giving an error when trying to write the file cause it was saving the column as a list
+  mutate(spei1 = as.numeric(spei1), spei3 = as.numeric(spei3), spei12 = as.numeric(spei12), spei24 = as.numeric(spei24)) %>% # I don't know why but this was giving an error when trying to write the file cause it was saving the column as a list
   dplyr::select(-duplicate, -origin_from_check, -origin_from_distance, -date_status, -date_dist, -contains(".x"), -contains(".y")) # I'm removing some of the extraneous variable. We also have distance data in the new field data that needs to be merged in.
 # write_csv(LTREB_full,file = "~/Dropbox/EndodemogData/Fulldataplusmetadata/LTREB_full.csv")
 

@@ -151,6 +151,9 @@ for(s in 1:8){
 # look at the lambda values for a general gut check
 lambda_means
 
+#calculating the percent difference for each species
+lambda_means_percentdiff <- 100-(lambda_means[,1]/lambda_means[,2]*100)
+
 ## now do variance in lambda 
 
 lambda_hold <- array(dim = c(13,7,2,n_draws)) # 13 years because of reproduction measured in year t1; needs to be before growth, so no year 1
@@ -195,7 +198,7 @@ lambda_var <- read_rds(file = "~/Dropbox/EndodemogData/Model_Runs/MPM_output/lam
 lambda_sds <- matrix(NA,8,2)
 lambda_vars <- matrix(NA,8,2)
 
-lambda_cv <- (lambda_var^2)/(2*lambda_mean^2)
+lambda_cv <- (lambda_var^2)/(2*lambda_mean^2) # this is the "variance penalty" term not the true CV right now
 
 lambda_cvs <- matrix(NA,8,2)
 
@@ -222,6 +225,9 @@ for(s in 1:8){
   lambda_cv_diff[s,2:7] = quantile(lambda_cv[s,2,]^2 - lambda_cv[s,1,]^2,probs=c(0.05,0.125,0.25,0.75,0.875,0.95))
   
 }
+
+# calcualating the percent different in standard deviation
+lambda_sds_percentdiff <- 100 - (lambda_sds[,1]/lambda_sds[,2])*100
 
 # Making plots of yearly lambdas
 yearly_lambda <- array(dim = c(13,7,2))
@@ -347,10 +353,10 @@ ggplot(data = lambda_var_diff_df) +
 
 
 # Version with raw posterior draws
-dimnames(lambda_cv) <- list(Species = paste0("s",1:8), Endo = paste0("e",1:2), Iteration= paste0("i",1:n_draws))
-lambda_var_cube <- cubelyr::as.tbl_cube(lambda_cv)
+dimnames(lambda_var) <- list(Species = paste0("s",1:8), Endo = paste0("e",1:2), Iteration= paste0("i",1:n_draws))
+lambda_var_cube <- cubelyr::as.tbl_cube(lambda_var)
 lambda_var_df <- as_tibble(lambda_var_cube) %>% 
-  pivot_wider(names_from = Endo, values_from = lambda_cv) %>% 
+  pivot_wider(names_from = Endo, values_from = lambda_var) %>% 
   mutate(lambda_diff = e2-e1) %>% 
   mutate(species = case_when(Species == "s1" ~ "Agrostis perennans",
                              Species == "s2" ~ "Elymus villosus",
@@ -376,6 +382,11 @@ lambdavar_plot <- ggplot(data = lambda_var_df) +
         panel.grid = element_line(color = NA))
 lambdavar_plot
 ggsave(lambdavar_plot, filename = "lambdavar_plot_coefficientofvariation.png", width = 8, height = 4)
+
+endo_lambdaeffects_plot <-  meanlambda_plot +lambdavar_plot + plot_layout(nrow = 1)
+ggsave(endo_lambdaeffects_plot, filename = "endo_lambdaeffects_plot.png", width = 12, height = 6)
+
+
 
 # a plot of variance by mean effects
 lambda_var_join <- lambda_var_df %>% 
@@ -1446,5 +1457,21 @@ FESUsurv_dataplot_mean <- ggplot(data = subset(surv_fit_df, Species == "FESU")) 
 
 FESUsurv_dataplot_mean
 ggsave(FESUsurv_dataplot_mean, filename = "~/Documents/FESUsurv_dataplot_mean.png",width = 5, height = 4, bg = "white")
+
+#### Some summary calculations for the manuscript ####
+# getting the mean values as well as some posterior summaries from the mean effect
+summary_lambda_mean <- lambda_mean_df %>% 
+  group_by(species, Species) %>% 
+  summarize(mean_lambda_diff = mean(lambda_diff),
+            percent_endo_comparison = 100-(mean(e1)/mean(e2))*100,
+            percent_diffgreaterthanzero = (sum(lambda_diff>0)/n())*100,
+            draws = n())
+  
+summary_lambda_sd <- lambda_var_df %>% 
+  group_by(species, Species) %>% 
+  summarize(sd_lambda_diff = mean(lambda_diff),
+            percent_endo_comparison = 100-(mean(e1)/mean(e2))*100,
+            percent_difflessthanzero = (sum(lambda_diff<0)/n())*100,
+            draws = n())
 
 

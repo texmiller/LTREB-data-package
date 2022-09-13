@@ -58,8 +58,8 @@ model {
  
       // species specific fixed effects
 
-      beta0 ~ normal(0,10); 
-      betaendo ~ normal(0,10); 
+      beta0 ~ normal(0,5); 
+      betaendo ~ normal(0,5); 
       sigma0 ~ normal(0,1); 
       sigmaendo ~ normal(0,1); 
 

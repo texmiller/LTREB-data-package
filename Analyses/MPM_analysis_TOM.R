@@ -122,9 +122,9 @@ lambda_year_samp <- array(dim = c(n_years_samp,(n_spp+1),n_endo,n_draws))
 lambda_year_samp_extr <- array(dim = c(n_years_samp,(n_spp+1),n_endo,n_draws))
 
 # store mean and variance outputs for observed and sampled years
-lambda_mean_obs <- lambda_mean_samp <- lambda_mean_samp_extr <- array(dim = c((n_spp+1),n_endo,n_draws))
-lambda_sd_obs <- lambda_sd_samp <- lambda_sd_samp_extr <- array(dim = c((n_spp+1),n_endo,n_draws))
-lambda_cv_obs <- lambda_cv_samp <- lambda_cv_samp_extr <- array(dim = c((n_spp+1),n_endo,n_draws))
+lambda_mean_obs <- lambda_mean_samp <- array(dim = c((n_spp+1),n_endo,n_draws))
+lambda_sd_obs <- lambda_sd_samp <- array(dim = c((n_spp+1),n_endo,n_draws))
+lambda_cv_obs <- lambda_cv_samp <- array(dim = c((n_spp+1),n_endo,n_draws))
 
 for(i in 1:n_draws){
   for(e in 1:n_endo){
@@ -175,34 +175,12 @@ for(i in 1:n_draws){
                                                                   seed_par=seed_par,
                                                                   recruit_par=recruit_par),
                                                       extension = 100)$MPMmat)
-        lambda_year_samp_extr[yi,s,e,i] <- lambda(bigmatrix(make_params(species=s,
-                                                                   endo_mean=(e-1),
-                                                                   endo_var=(e-1),
-                                                                   original = 1, # should be =1 to represent recruit
-                                                                   draw=post_draws[i],
-                                                                   max_size=max_size,
-                                                                   rfx=T,
-                                                                   samp=T,
-                                                                   samp_extreme = 1, # this should be a 100% increase in the standard deviation
-                                                                   #year=y+1, ## this pulls the t to t1 growth-surv transition and t1 reproduction -- see make_params()
-                                                                   surv_par=surv_par,
-                                                                   surv_sdlg_par = surv_sdlg_par,
-                                                                   grow_par=grow_par,
-                                                                   grow_sdlg_par = grow_sdlg_par,
-                                                                   flow_par=flow_par,
-                                                                   fert_par=fert_par,
-                                                                   spike_par=spike_par,
-                                                                   seed_par=seed_par,
-                                                                   recruit_par=recruit_par),
-                                                       extension = 100)$MPMmat)
+        
       }
       lambda_mean_samp[s,e,i] <- mean(lambda_year_samp[,s,e,i])
       lambda_sd_samp[s,e,i] <- sd(lambda_year_samp[,s,e,i])
       lambda_cv_samp[s,e,i] <- lambda_sd_samp[s,e,i]/lambda_mean_samp[s,e,i]
-      
-      lambda_mean_samp_extr[s,e,i] <- mean(lambda_year_samp_extr[,s,e,i])
-      lambda_sd_samp_extr[s,e,i] <- sd(lambda_year_samp_extr[,s,e,i])
-      lambda_cv_samp_extr[s,e,i] <- lambda_sd_samp_extr[s,e,i]/lambda_mean_samp_extr[s,e,i]
+
     }
     #calculating overall species means
     lambda_mean_obs[8,e,i] <- mean(lambda_mean_obs[1:7,e,i])
@@ -212,10 +190,7 @@ for(i in 1:n_draws){
     lambda_mean_samp[8,e,i] <- mean(lambda_mean_samp[1:7,e,i])
     lambda_sd_samp[8,e,i] <- sd(lambda_mean_samp[1:7,e,i])
     lambda_cv_samp[8,e,i] <- lambda_sd_samp[8,e,i]/lambda_mean_samp[8,e,i]
-    
-    lambda_mean_samp_extr[8,e,i] <- mean(lambda_mean_samp_extr[1:7,e,i])
-    lambda_sd_samp_extr[8,e,i] <- sd(lambda_mean_samp_extr[1:7,e,i])
-    lambda_cv_samp_extr[8,e,i] <- lambda_sd_samp_extr[8,e,i]/lambda_mean_samp_extr[8,e,i]
+   
   }
 }
 
@@ -232,12 +207,6 @@ for(i in 1:n_draws){
 # saveRDS(lambda_sd_samp, file = paste0(path,"/Model_Runs/MPM_output/lambda_sd_samp.rds"))
 # saveRDS(lambda_cv_samp, file = paste0(path,"/Model_Runs/MPM_output/lambda_cv_samp.rds"))
 # 
-# saveRDS(lambda_year_samp_extr, file = paste0(path,"/Model_Runs/MPM_output/lambda_year_samp_extr.rds"))
-# 
-# saveRDS(lambda_mean_samp_extr, file = paste0(path,"/Model_Runs/MPM_output/lambda_mean_samp_extr.rds"))
-# saveRDS(lambda_sd_samp_extr, file = paste0(path,"/Model_Runs/MPM_output/lambda_sd_samp_extr.rds"))
-# saveRDS(lambda_cv_samp_extr, file = paste0(path,"/Model_Runs/MPM_output/lambda_cv_samp_extr.rds"))
-
 
 
 
@@ -254,12 +223,6 @@ for(i in 1:n_draws){
  lambda_sd_samp <- read_rds(paste0(path,"/Model_Runs/MPM_output/lambda_sd_samp.rds"))
  lambda_cv_samp <- read_rds(paste0(path,"/Model_Runs/MPM_output/lambda_cv_samp.rds"))
 
- lambda_year_samp_extr <- read_rds(paste0(path,"/Model_Runs/MPM_output/lambda_year_samp_extr.rds"))
- 
- lambda_mean_samp_extr <- read_rds(paste0(path,"/Model_Runs/MPM_output/lambda_mean_samp_extr.rds"))
- lambda_sd_samp_extr <- read_rds(paste0(path,"/Model_Runs/MPM_output/lambda_sd_samp_extr.rds"))
- lambda_cv_samp_extr <- read_rds(paste0(path,"/Model_Runs/MPM_output/lambda_cv_samp_extr.rds"))
- 
  
 # Turning the sampled lambdas into a dataframe
 dimnames(lambda_mean_samp) <- list(species = paste0("s",1:8), Endo = paste0("e",1:2), Iteration= paste0("i",1:n_draws))
@@ -356,58 +319,10 @@ lambda_cv_obs_df <- as_tibble(lambda_cv_obs_cube) %>%
                              species == "s8" ~ "Species Mean")) %>% 
   mutate(sampling = "obs")
 
-# Turning the extreme sampled lambdas into a dataframe
-dimnames(lambda_mean_samp_extr) <- list(species = paste0("s",1:8), Endo = paste0("e",1:2), Iteration= paste0("i",1:n_draws))
-dimnames(lambda_sd_samp_extr) <- list(species = paste0("s",1:8), Endo = paste0("e",1:2), Iteration= paste0("i",1:n_draws))
-dimnames(lambda_cv_samp_extr) <- list(species = paste0("s",1:8), Endo = paste0("e",1:2), Iteration= paste0("i",1:n_draws))
-
-lambda_mean_samp_extr_cube <- cubelyr::as.tbl_cube(lambda_mean_samp_extr)
-lambda_sd_samp_extr_cube <- cubelyr::as.tbl_cube(lambda_sd_samp_extr)
-lambda_cv_samp_extr_cube <- cubelyr::as.tbl_cube(lambda_cv_samp_extr)
-
-lambda_mean_samp_extr_df <- as_tibble(lambda_mean_samp_extr_cube) %>% 
-  pivot_wider(names_from = Endo, values_from = lambda_mean_samp_extr) %>% 
-  mutate(lambda_diff = e2-e1) %>% 
-  mutate(Species = case_when(species == "s1" ~ "Agrostis perennans",
-                             species == "s2" ~ "Elymus villosus",
-                             species == "s3" ~ "Elymus virginicus",
-                             species == "s4" ~ "Festuca subverticillata",
-                             species == "s5" ~ "Lolium arundinaceum",
-                             species == "s6" ~ "Poa alsodes",
-                             species == "s7" ~ "Poa sylvestris",
-                             species == "s8" ~ "Species Mean"))  %>% 
-  mutate(sampling = "samp_extr")
-
-lambda_sd_samp_extr_df <- as_tibble(lambda_sd_samp_extr_cube) %>% 
-  pivot_wider(names_from = Endo, values_from = lambda_sd_samp_extr) %>% 
-  mutate(lambda_diff = e2-e1) %>% 
-  mutate(Species = case_when(species == "s1" ~ "Agrostis perennans",
-                             species == "s2" ~ "Elymus villosus",
-                             species == "s3" ~ "Elymus virginicus",
-                             species == "s4" ~ "Festuca subverticillata",
-                             species == "s5" ~ "Lolium arundinaceum",
-                             species == "s6" ~ "Poa alsodes",
-                             species == "s7" ~ "Poa sylvestris",
-                             species == "s8" ~ "Species Mean"))  %>% 
-  mutate(sampling = "samp_extr")
-
-lambda_cv_samp_extr_df <- as_tibble(lambda_cv_samp_extr_cube) %>% 
-  pivot_wider(names_from = Endo, values_from = lambda_cv_samp_extr) %>% 
-  mutate(lambda_diff = e2-e1) %>% 
-  mutate(Species = case_when(species == "s1" ~ "Agrostis perennans",
-                             species == "s2" ~ "Elymus villosus",
-                             species == "s3" ~ "Elymus virginicus",
-                             species == "s4" ~ "Festuca subverticillata",
-                             species == "s5" ~ "Lolium arundinaceum",
-                             species == "s6" ~ "Poa alsodes",
-                             species == "s7" ~ "Poa sylvestris",
-                             species == "s8" ~ "Species Mean"))  %>% 
-  mutate(sampling = "samp_extr")
-
 # Combining the dataframes
-lambda_mean_df <- rbind(lambda_mean_obs_df, lambda_mean_samp_df, lambda_mean_samp_extr_df)
-lambda_sd_df <- rbind(lambda_sd_obs_df, lambda_sd_samp_df, lambda_sd_samp_extr_df)
-lambda_cv_df <- rbind(lambda_cv_obs_df, lambda_cv_samp_df, lambda_cv_samp_extr_df)
+lambda_mean_df <- rbind(lambda_mean_obs_df, lambda_mean_samp_df)
+lambda_sd_df <- rbind(lambda_sd_obs_df, lambda_sd_samp_df)
+lambda_cv_df <- rbind(lambda_cv_obs_df, lambda_cv_samp_df)
 
 
 # Plots of endo effects on mean, sd and cv
@@ -422,7 +337,7 @@ yearcolors<- colorRampPalette(brewer.pal(8,"Dark2"))(yearcount)
 # scales::show_col(yearcolors)
 species_list <- c("AGPE", "ELRI", "ELVI", "FESU", "LOAR", "POAL", "POSY")
 
-meanlambda_plot <- ggplot(data = lambda_mean_df) +
+meanlambda_plot <- ggplot(data = filter(lambda_mean_df, sampling == "obs")) +
   geom_hline(yintercept = 0, col = "black") + 
   # geom_linerange(data = lambda_mean_diff_df, aes(x = species, y = mean, ymin = 0, ymax = mean, color = species)) + 
   geom_point(aes(y = lambda_diff, x = species, color = sampling, group = sampling), position = position_jitterdodge(dodge.width = 0.75,jitter.width=0.2), alpha = .2) +
@@ -855,7 +770,7 @@ saveRDS(save_lambda_samp_extreme30, file = paste0(path,"/Model_Runs/MPM_output/s
 saveRDS(save_lambda_samp_extreme10_em, file = paste0(path,"/Model_Runs/MPM_output/save_lambda_samp_extreme10_em.rds"))
 saveRDS(save_lambda_samp_extreme20_em, file = paste0(path,"/Model_Runs/MPM_output/save_lambda_samp_extreme20_em.rds"))
 saveRDS(save_lambda_samp_extreme30_em, file = paste0(path,"/Model_Runs/MPM_output/save_lambda_samp_extreme30_em.rds"))
-# 
+# read in the saved outputs
 lambdaS_obs <- read_rds(paste0(path,"/Model_Runs/MPM_output/lambdaS_obs.rds"))
 lambdaS_obs_extreme2 <- read_rds(paste0(path,"/Model_Runs/MPM_output/lambdaS_obs_extreme2.rds"))
 lambdaS_obs_extreme4 <- read_rds(paste0(path,"/Model_Runs/MPM_output/lambdaS_obs_extreme4.rds"))
@@ -1226,3 +1141,16 @@ plot(sample(x = dnorm(x = qnorm(p = .95, mean = 0, sd = 1):10, mean = 0, sd = 2)
 # Could do this in the vital rates, but maybe better to just increase the sd by 10 percent
 rfx_surv <- sample(qnorm(p=c(seq(.9,1,.001),seq(0,.1,.001)),mean = 0, sd=surv_par$sigma_year[draw,species,(endo_var+1)]),size = 1) # sample the tenth and ninetieth percentiles
 
+# some calculations for manuscript
+meanspecies_calcs <- lambdaS_obs_diff_df %>% 
+  filter(Scenario == "normal" | Scenario == "extreme2") %>%
+  select(Species,Scenario,Contribution,Sampling,mean) %>% 
+  pivot_wider(names_from = Contribution, values_from = mean) %>% 
+  mutate(fullminusintx = `Full Effect` - `Interaction`,
+         percent_var_offullminusintx = (`Variance only`/fullminusintx)*100,
+         percent_mean_offullminusintx = (`Mean only`/fullminusintx)*100,
+         percent_var = (`Variance only`/`Full Effect`)*100,
+         percent_mean = (`Mean only`/`Full Effect`)*100,
+         percent_intx = (`Interaction`/`Full Effect`)*100,
+         percent_varofmean= (`Variance only`/`Mean only`)*100,
+         meandivbyvar = (`Mean only`/`Variance only`))
