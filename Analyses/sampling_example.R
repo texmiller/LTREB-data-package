@@ -11,3 +11,4 @@ hist(lambda[topfour],xlim=c(0.7,1.3),breaks=10,main=" ",ylim=c(0,4),col="cornflo
 hist(lambda[toptwo],xlim=c(0.7,1.3),breaks=10,main=" ",ylim=c(0,4),col="tomato")
 
 sd(lambda);sd(lambda[topsix]);sd(lambda[topfour]);sd(lambda[toptwo])
+mean(lambda);mean(lambda[topsix]);mean(lambda[topfour]);mean(lambda[toptwo])
