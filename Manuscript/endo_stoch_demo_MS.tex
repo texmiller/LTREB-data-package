@@ -1,4 +1,54 @@
-\documentclass[9pt,twocolumn,twoside,lineno]{pnas-new}
+\documentclass[9pt,twocolumn,twoside,lineno]{pnas-new}\usepackage[]{graphicx}\usepackage[]{xcolor}
+% maxwidth is the original width if it is less than linewidth
+% otherwise use linewidth (to make sure the graphics do not exceed the margin)
+\makeatletter
+\def\maxwidth{ %
+  \ifdim\Gin@nat@width>\linewidth
+    \linewidth
+  \else
+    \Gin@nat@width
+  \fi
+}
+\makeatother
+
+\definecolor{fgcolor}{rgb}{0.345, 0.345, 0.345}
+\newcommand{\hlnum}[1]{\textcolor[rgb]{0.686,0.059,0.569}{#1}}%
+\newcommand{\hlstr}[1]{\textcolor[rgb]{0.192,0.494,0.8}{#1}}%
+\newcommand{\hlcom}[1]{\textcolor[rgb]{0.678,0.584,0.686}{\textit{#1}}}%
+\newcommand{\hlopt}[1]{\textcolor[rgb]{0,0,0}{#1}}%
+\newcommand{\hlstd}[1]{\textcolor[rgb]{0.345,0.345,0.345}{#1}}%
+\newcommand{\hlkwa}[1]{\textcolor[rgb]{0.161,0.373,0.58}{\textbf{#1}}}%
+\newcommand{\hlkwb}[1]{\textcolor[rgb]{0.69,0.353,0.396}{#1}}%
+\newcommand{\hlkwc}[1]{\textcolor[rgb]{0.333,0.667,0.333}{#1}}%
+\newcommand{\hlkwd}[1]{\textcolor[rgb]{0.737,0.353,0.396}{\textbf{#1}}}%
+\let\hlipl\hlkwb
+
+\usepackage{framed}
+\makeatletter
+\newenvironment{kframe}{%
+ \def\at@end@of@kframe{}%
+ \ifinner\ifhmode%
+  \def\at@end@of@kframe{\end{minipage}}%
+  \begin{minipage}{\columnwidth}%
+ \fi\fi%
+ \def\FrameCommand##1{\hskip\@totalleftmargin \hskip-\fboxsep
+ \colorbox{shadecolor}{##1}\hskip-\fboxsep
+     % There is no \\@totalrightmargin, so:
+     \hskip-\linewidth \hskip-\@totalleftmargin \hskip\columnwidth}%
+ \MakeFramed {\advance\hsize-\width
+   \@totalleftmargin\z@ \linewidth\hsize
+   \@setminipage}}%
+ {\par\unskip\endMakeFramed%
+ \at@end@of@kframe}
+\makeatother
+
+\definecolor{shadecolor}{rgb}{.97, .97, .97}
+\definecolor{messagecolor}{rgb}{0, 0, 0}
+\definecolor{warningcolor}{rgb}{1, 0, 1}
+\definecolor{errorcolor}{rgb}{1, 0, 0}
+\newenvironment{knitrout}{}{} % an empty environment to be redefined in TeX
+
+\usepackage{alltt}
 % Use the lineno option to display guide line numbers if required.
 
 \newcommand{\tom}[2]{{\color{red}{#1}}\footnote{\textit{\color{red}{#2}}}}
@@ -43,10 +93,8 @@ Please provide an abstract of no more than 250 words in a single paragraph. Abst
 
 \dates{This manuscript was compiled on \today}
 \doi{\url{www.pnas.org/cgi/doi/10.1073/pnas.XXXXXXXXXX}}
-
-\usepackage{Sweave}
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
 \begin{document}
-\input{endo_stoch_demo_MS-concordance}
 
 \maketitle
 \thispagestyle{firststyle}
@@ -54,22 +102,43 @@ Please provide an abstract of no more than 250 words in a single paragraph. Abst
 
 % If your first paragraph (i.e. with the \dropcap) contains a list environment (quote, quotation, theorem, definition, enumerate, itemize...), the line after the list may have some extra indentation. If this is the case, add \parshape=0 to the end of the list environment.
 %Introduction
-\dropcap{A}long with increases in average temperatures, global climate change is driving increases in the variability of precipitation events, temperature extremes, and droughts \cite{IPCC2012managing, seneviratne2012changes, stocker2013technical}. Thus discerning the effects of variability on population dynamics and species interactions is pivotal to forecasting the future of ecological systems. Classic ecological theory predicts that long-term population growth rates will decline under increased environmental variability \cite{lewontin_population_1969,tuljapurkar_population_1982}. This stochastic variability means that populations can expect to experience both good and bad years. The long-term stochastic growth rate ($\lambda_s$), which is the long-run geometric mean of annual growth rates, captures this varability; the geometric mean will always be less than expected from the mean growth rate alone. 
+\dropcap{A}long with increases in average temperatures, global climate change is driving increases in the variability of precipitation events, temperature extremes, and droughts \cite{IPCC2012managing, seneviratne2012changes, stocker2013technical}. 
+Discerning the effects of environmental variability on population dynamics and species interactions are therefore key objectives of global change ecology. 
 
-Following Lewontin and Cohen \citep{lewontin_population_1969}, $\lambda_s$ for unstructured populations can be approximated as: 
-\begin{align}
- log(\lambda_s)  \approx log(\overline{\lambda}) - \frac{\sigma^2}{2\overline{\lambda}^2}
-\end{align}
+\tom{}{It would be nice to start paragraph 2 here, but that probably leaves P1 too skimpy.}Classic theory predicts that long-term population growth rates (equivalently, population mean fitness) will decline under increased environmental variability due to negative effects of bad years that outweigh positive effects of good years (a consequence of nonlinear averaging) \cite{lewontin_population_1969,tuljapurkar_population_1982}. 
+For example, in unstructured populations, the long-term stochastic growth rate in fluctuating environments ($\lambda_s$) will always be less than the growth rate averaged across environments ($\overline{\lambda}$) by an amount proportional to the environmental variance ($\sigma^2$): $ log(\lambda_s)  \approx log(\overline{\lambda}) - \frac{\sigma^2}{2\overline{\lambda}^2}$.
+Populations structured by size or stage are expected to similarly experience negative effects of variability \cite{cohen1979comparative, tuljapurkar2013population}.
+Thus, there are two pathways to increase population viability in a stochastic environment $\lambda_s$: increasing the mean growth rate and/or dampening temporal fluctuation in growth rates, also called variance ``buffering''.
 
-Where $\overline{\lambda}$ is the mean of annual population growth rates ($\lambda_t$) and $\sigma^2$ is the variance \citep{lewontin_population_1969}. Populations will increase over time if $\lambda_s$ is greater than 1, and can be expected to decrease if $\lambda_s$ is less than 1. Here, there are two pathways to increase $\lambda_s$:  (1) increasing the mean growth rate, and/or (2) reducing the variance in growth rates.  All else equal, structured populations are expected to experience similarly the negative effects of variability \cite{cohen1979comparative, tuljapurkar2013population}. That both mean and variance are important in determining fitness underlies understanding of which aspects of a species' life history influence its success \cite{pfister1998patterns, morris2008longevity} and has important implications for population viability analysis \cite{menges1990population}. Thus much attention has focused on the ways in which variation in vital rates (survival, growth and reproduction)\cite{}, correlations between vital rates \cite{compagnoni2016effect}, transient shifts in stage structure \cite{ellis2013role}, and the degree of environmental autocorrelation \cite{tuljapurkar1980population, fieberg2001stochastic} can amplify or buffer environmental variation. The degree to which species interactions contribute to effects on the variance in growth rates is an underexplored question \cite{hilde_demographic_2020}.
+Given the potential for negative fitness consequences of increasing environmental stochasticity under global change, there is growing interest in factors that can amplify or dampen demographic fluctuations. 
+%\tom{That both mean and variance are important in determining fitness underlies understanding of which aspects of a species' life history influence its success \cite{pfister1998patterns, morris2008longevity} and has important implications for population viability analysis \cite{menges1990population}.}{I don't know what this sentence is saying.} 
+Much attention has focused on the properties of species or their environment as modifiers of fluctuations in fitness, including variation in vital rates (survival, growth and reproduction)\cite{morris2008longevity}, correlations between vital rates \cite{compagnoni2016effect}, transient shifts in stage structure \cite{ellis2013role}, and the degree of environmental autocorrelation \cite{tuljapurkar1980population, fieberg2001stochastic}. 
+In contrast, little is known about how biotic interactions influence patterns of demographic variability \cite{hilde_demographic_2020}, due in part to the paucity of long-term interaction data that are required to detect such effects.
+%This pg needs work - what is the point of it? Also need transition sentence to microbes
 
-Microbial symbioses are ubiquitous in nature and are crucial determinants of host fitness \cite{rodriguez2009fungal, mcfall2013animals}, and as yet, we know little about their potential influence on responses to climate change and environmental variation \cite{rudgers2020climate}. Across a broad range of taxa, mutualistic host-associated microbes provide protection from environmental stresses including drought, extreme temperatures, and enemies \cite{russell2006costs, brownlie2009symbiont, kivlin2013fungal,corbin2017heritable, hoadley2019host}. The role they play may be under-appreciated, and it can be difficult to quantify the net outcome of a given interaction because they are often viewed as being context-dependent where the magnitude of benefit depends on environmental conditions \cite{chamberlain2014context}. Rather than considering context-dependence as some unexplainable intricacy of species interactions, environmental variation opens up the possibility for interaction strength to vary through time \cite{jordano1994spatial, billick2003relative} and to influence the variance of population growth rates. 
+Our work focused on the potential for microbial symbionts to buffer host plants against negative effects of environmental variability.
+Microbial symbioses are ubiquitous across plant and animal host taxa and can be crucial determinants of host fitness \cite{rodriguez2009fungal, mcfall2013animals}.
+Yet we know little about their potential influence on responses to climate change and environmental variation \cite{rudgers2020climate}. 
+\tom{Across a broad range of taxa, mutualistic host-associated microbes provide protection from environmental stresses including drought, extreme temperatures, and enemies \cite{russell2006costs, brownlie2009symbiont, kivlin2013fungal,corbin2017heritable, hoadley2019host}.}{This sentence seems to contradict the previous sentence.} 
+\tom{The role they play may be under-appreciated, and it can be difficult to quantify the net outcome of a given interaction because they are often viewed as being context-dependent where the magnitude of benefit depends on environmental conditions \cite{chamberlain2014context}. 
+Rather than considering context-dependence as some unexplainable intricacy of species interactions, environmental variation opens up the possibility for interaction strength to vary through time \cite{jordano1994spatial, billick2003relative} and to influence the variance of population growth rates. }{I agree that this is the place to introduce context-dependence and connect climate variability to variability in interaction outcome. But I don't think what you have here works.}
 
-We hypothesize that symbionts may provide benefits under harsh conditions when they are needed by their hosts, but be neutral or even costly under benign conditions. Over time, this would lead symbiotic hosts to experience a reduction in variation in vital rates by reducing the frequency of extreme years. Incorporating context-dependence in this way, we highlight a novel mechanism by which symbionts can act as mutualists that may come to be of increasing importance in a more variable future.
+\tom{We hypothesize that symbionts may provide benefits under harsh conditions when they are needed by their hosts, but be neutral or even costly under benign conditions. 
+Over time, this would lead symbiotic hosts to experience a reduction in variation in vital rates by reducing the frequency of extreme years. 
+Incorporating context-dependence in this way, we highlight a novel mechanism by which symbionts can act as mutualists that may come to be of increasing importance in a more variable future.}{Similar comment as above. I think this is the place to lay out the hypotheses of symbionts elevating mean and/or reducing variance. But I don't think this is sufficiently explanatory or provides sufficient context or rationale for the ideas to really hit home.}
 
-Using data from a unique, long-term experiment of plant-microbe symbiosis, we test the hypothesis that context-dependent benefits of microbial symbionts buffer hosts from the fitness consequences of environmental variability. The experiment consists of annually censused demography plots planted in 2007 with seven grass species which are hosts of Epichlo\"{e} fungal endophytes. These fungal endophytes are common among at least 30\% of cool-season grass species around the world and are primarily vertically transmitted from parent to seed \cite{cheplick2009ecology}. While they have been associated with contributing to drought tolerance for their hosts, these benefits are commonly context-dependent\cite{cheplick2004recovery, kannadan2008endophyte, decunta2021systematic}. And so, we ask first how fungal endophytes influence the mean and interannual variance of their hosts' vital rates; next, we ask if these vital rate effects buffer variance in fitness and, if so, what is the relative contribution of variance buffering vs. mean effects to the overall effect of the symbiosis on long-term growth rates. To answer these questions, we build structured, stochastic population models for these seven grass host species (\textit{Agrostis perennans}, \textit{Elymus villosus}, \textit{Elymus virginicus}, \textit{Festuca subverticillata},\textit{Lolium arundinaceum}, \textit{Poa alsodes} and \textit{Poa sylvestris}). These long-term plots contain either naturally symbiotic plants (E+) or those which have had their symbionts experimentally removed (E-).  Each annual census is a sample of climatic variation. Across 14 years, the data contain 31,216 individual-transition years. After quantifying endophytes effects on mean and variance in population growth rates, we use simulations to explore the consequences of variance buffering under increased variance and construct climate-explicit population models to evaluate the role of climate drivers as explanations for this buffering. 
+Using data from a unique, long-term symbiont-removal experiment, we \tom{test the hypothesis that context-dependent benefits of microbial symbionts buffer hosts from the fitness consequences of environmental variability}{In addition to this hypothesis, I think it is important to emphasize the question of relative importance of mean vs variance effects. Like Volker always says, yes/no hypotheses are often a little dull.}. 
+The experiment consists of annually censused plots initiated in 2007 with seven grass species that host Epichlo\"{e} fungal endophytes. 
+These specialized fungal endophytes are unique to grasses, occurring in at least \tom{30\%}{I think the 30\% number comes from a Leuchtmann paper.} of cool-season (C3) species, and are primarily vertically transmitted from maternal plant to seed \cite{cheplick2009ecology}. 
+\tom{While they have been associated with contributing to drought tolerance for their hosts}{Awkward phrasing.}, these \tom{benefits are commonly context-dependent}{This is a little confusing because it sounds like you are saying that the drought benefit is context-dependent, but I think drought is the context, so the benefits vary with presence or absence of drought.}\cite{cheplick2004recovery, kannadan2008endophyte, decunta2021systematic}. 
+\tom{And so}{too colloquial}, we ask first how fungal endophytes influence the mean and interannual variance of their hosts' vital rates; next, we ask if these vital rate effects buffer variance in fitness and, if so, what is the relative contribution of variance buffering vs. mean effects to the overall effect of the symbiosis on long-term growth rates. 
+\tom{To answer these questions, we build structured, stochastic population models for these seven grass host species (\textit{Agrostis perennans}, \textit{Elymus villosus}, \textit{Elymus virginicus}, \textit{Festuca subverticillata},\textit{Lolium arundinaceum}, \textit{Poa alsodes} and \textit{Poa sylvestris}).}{Mention the models somewhere in this paragraph but don't list the species.} 
+\tom{These long-term plots contain either naturally symbiotic plants (E+) or those which have had their symbionts experimentally removed (E-).}{Should come earlier when you first introduce the ``unique'' experiment.}  
+Each annual census is a sample of climatic variation. 
+\tom{Across 14 years, the data contain 31,216 individual-transition years.}{Put in results.} 
+After quantifying endophyte effects on mean and variance in population growth rates, we use simulations to explore the \tom{consequences of variance buffering under increased variance}{SHould be emphasized earlier. It's cool and novel.} \tom{and construct climate-explicit population models}{I would not mention this here since it is not central to the story of the paper.} to evaluate the role of climate drivers as explanations for this buffering. 
 
-Intriguingly, we find that the symbiosis contributes positively to long-term population growth rates through both mean and variance buffering effects. Integrating across diverse effects on vital rates, contributions to long-term growth rates from effects on the mean are 4.17 times greater on average than contributions from variance buffering. However, these effects varied between species; for example, two species (\emph{A. perennans} and \emph{P. syvestris}) have contributions from variance buffering which are greater than mean effects. Additionally, the effect of mutualism increases under simulations with increased variance driven by greater contributions of variance buffering. In the most extreme scenario, we find that variance buffering contributions across species are 1.5 times greater than effects on the mean on average, and that variance buffering contributions are greater than mean effects for five out of seven species.
+\tom{Intriguingly, we find that the symbiosis contributes positively to long-term population growth rates through both mean and variance buffering effects. Integrating across diverse effects on vital rates, contributions to long-term growth rates from effects on the mean are 4.17 times greater on average than contributions from variance buffering. However, these effects varied between species; for example, two species (\emph{A. perennans} and \emph{P. syvestris}) have contributions from variance buffering which are greater than mean effects. Additionally, the effect of mutualism increases under simulations with increased variance driven by greater contributions of variance buffering. In the most extreme scenario, we find that variance buffering contributions across species are 1.5 times greater than effects on the mean on average, and that variance buffering contributions are greater than mean effects for five out of seven species.}{I would eliminate this paragraph entirely. Not needed, since you launch directly into results from here.}
 
 \section*{Results}
 \begin{figure*}%[tbhp]
@@ -93,7 +162,7 @@ To assess the total impact of endophyte symbiosis on host population growth rate
 \end{figure*}
 
 \subsection*{Contribution of mean and variance effects to long-term growth rates}
-We decomposed the overall effect of the symbiosis to assess the contributions of mean and variance buffering to long-term population growth rates \josh{\citep{rees2009integral}}{I don't know if there's a better citation for this, this is more about IPM's}. We found that variance buffering provided a small benefit overall (XXX\%) (Fig. \ref{fig:contributions_plot}) but note that even small changes in fitness can have profound effects over long time periods.
+We decomposed the overall effect of the symbiosis into contributions from mean and variance buffering effects on long-term population growth rates \josh{\citep{rees2009integral}}{I don't know if there's a better citation for this, this is more about IPM's}. We found that variance buffering provided a small benefit overall (XXX\%) (Fig. \ref{fig:contributions_plot}) but note that even small changes in fitness can have profound effects over long time periods.
 
 \begin{figure*}%[tbhp]
 \centering
