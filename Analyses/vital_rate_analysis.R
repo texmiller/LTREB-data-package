@@ -53,6 +53,15 @@ mean_ageplot <- ggplot(data = max_ages)+
 # mean_ageplot
 # ggsave(mean_ageplot, filename = "~/Documents/mean_ageplot.png", width = 4, height = 4)
 
+# Getting some summary numbers
+# indiv_plants <- LTREB_full %>% 
+#   group_by(id) %>% 
+#   summarize(obs = n())
+# adul_plant <- LTREB_full %>% 
+#   filter(!is.na(size_t))
+# nrow(LTREB_full)
+# nrow(indiv_plants)
+
 ## Clean up the main data frame for NA's, other small data entry errors
 LTREB_data_forsurv <- LTREB_full %>% 
   filter(!is.na(surv_t1)) %>% 
