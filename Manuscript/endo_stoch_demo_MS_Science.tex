@@ -1,0 +1,734 @@
+% Use only LaTeX2e, calling the article.cls class and 12-point type.
+
+\documentclass[12pt]{article}
+
+% Users of the {thebibliography} environment or BibTeX should use the
+% scicite.sty package, downloadable from *Science* at
+% http://www.sciencemag.org/authors/preparing-manuscripts-using-latex 
+% This package should properly format in-text
+% reference calls and reference-list numbers.
+
+\usepackage{scicite}
+
+\usepackage{times}
+
+%setup for commenting during editing
+\usepackage{xcolor}
+\newcommand{\tom}[2]{{\color{red}{#1}}\footnote{\textit{\color{red}{#2}}}}
+\newcommand{\josh}[2]{{\color{blue}{#1}}\footnote{\textit{\color{blue}{#2}}}}
+
+% for adjusting the sizes of tables
+\usepackage{adjustbox}
+% for setting up equations
+\usepackage{amsmath}
+
+% The preamble here sets up a lot of new/revised commands and
+% environments.  It's annoying, but please do *not* try to strip these
+% out into a separate .sty file (which could lead to the loss of some
+% information when we convert the file to other formats).  Instead, keep
+% them in the preamble of your main LaTeX source file.
+
+
+% The following parameters seem to provide a reasonable page setup.
+
+\topmargin 0.0cm
+\oddsidemargin 0.2cm
+\textwidth 16cm 
+\textheight 21cm
+\footskip 1.0cm
+
+
+%The next command sets up an environment for the abstract to your paper.
+
+\newenvironment{sciabstract}{%
+\begin{quote} \bf}
+{\end{quote}}
+
+
+
+% Include your paper's title here
+
+\title{Context-dependent host-microbe interactions in stochastic environments} 
+
+
+% Place the author information here.  Please hand-code the contact
+% information and notecalls; do *not* use \footnote commands.  Let the
+% author contact information appear immediately below the author names
+% as shown.  We would also prefer that you don't change the type-size
+% settings shown here.
+
+\author
+{Joshua C. Fowler,$^{1\ast}$ Shaun Ziegler,$^{2}$ Kenneth D. Whitney,$^{2}$\\
+	 Jennifer A. Rudgers,$^{2}$ Tom E. X. Miller $^{1}$\\
+\\
+\normalsize{$^{1}$Rice University, Department of BioSciences, Houston, TX, 77005}\\
+\normalsize{$^{2}$University of New Mexico, Department of Biology, Albuquerque, NM, 87131}\\
+\\
+\normalsize{$^\ast$To whom correspondence should be addressed; E-mail:  jcf3@rice.edu.}
+}
+
+% Include the date command, but leave its argument blank.
+
+\date{}
+
+
+
+%%%%%%%%%%%%%%%%% END OF PREAMBLE %%%%%%%%%%%%%%%%
+
+
+
+\begin{document} 
+
+% Double-space the manuscript.
+
+\baselineskip24pt
+
+% Make the title.
+
+\maketitle 
+
+
+
+% Place your abstract within the special {sciabstract} environment.
+
+\begin{sciabstract}
+	ABSTRACT: Microbial symbioses are ubiquitous in nature, yet 
+
+
+\end{sciabstract}
+
+
+
+% In setting up this template for *Science* papers, we've used both
+% the \section* command and the \paragraph* command for topical
+% divisions.  Which you use will of course depend on the type of paper
+% you're writing.  Review Articles tend to have displayed headings, for
+% which \section* is more appropriate; Research Articles, when they have
+% formal topical divisions at all, tend to signal them with bold text
+% that runs into the paragraph, for which \paragraph* is the right
+% choice.  Either way, use the asterisk (*) modifier, as shown, to
+% suppress numbering.
+
+\section*{Main Text}
+
+Along with increases in average temperatures, global climate change is driving increases in the variability of precipitation events, temperature extremes, and droughts \cite{IPCC2012managing, seneviratne2012changes, stocker2013technical}.
+Discerning the effects of environmental variability on population dynamics is therefore a key objective of global change ecology. 
+Population responses to variability are likely shaped by species' life history \cite{pfister1998patterns, morris2008longevity, saether2013life} with important consequences for conservation and management \cite{menges2000applications}, but the impact that biotic interactions have on these responses is unclear.
+
+Classic theory predicts that long-term population growth rates (equivalently, population mean fitness) will decline under increased environmental variability due to negative effects of bad years that outweigh positive effects of good years (a consequence of nonlinear averaging) \cite{lewontin_population_1969,tuljapurkar_population_1982}.
+For example, in unstructured populations, the long-term stochastic growth rate in fluctuating environments ($\lambda_s$) will always be less than the growth rate averaged across environments ($\overline{\lambda}$) by an amount proportional to the environmental variance ($\sigma^2$): $ log(\lambda_s)  \approx log(\overline{\lambda}) - \frac{\sigma^2}{2\overline{\lambda}^2}$.
+Populations structured by size or stage are expected to similarly experience negative effects of variability \cite{cohen1979comparative, tuljapurkar2013population}.
+Thus, there are two pathways to increase population viability in a stochastic environment $\lambda_s$: increasing the mean growth rate and/or dampening temporal fluctuation in growth rates, also called variance ``buffering''.
+
+Given the potential for negative fitness consequences of increasing environmental stochasticity under global change, there is growing interest in the properties of species or their environment that can amplify or dampen demographic fluctuations, including variation in vital rates (survival, growth and reproduction)\cite{morris2008longevity}, correlations between vital rates \cite{compagnoni2016effect}, transient shifts in stage structure \cite{ellis2013role}, and the degree of environmental autocorrelation \cite{tuljapurkar1980population, fieberg2001stochastic}. 
+Little is known about how biotic interactions modulate responses to demographic variability \cite{hilde_demographic_2020} and because practically all species host symbiotic microorganisms that impact growth and performance \cite{rodriguez2009fungal, mcfall2013animals}, we investigated the potential for microbial symbionts to provide variance buffering for their hosts and how these responses may change under future climate change.
+
+Most multicellular organisms host microbes that are transmitted via reproduction from maternal hosts to offspring \cite{funkhouser2013mom}.
+This process, vertical transmission, links together the fitness of hosts and symbionts, leading to the expectation that the interaction be mutualistic, else the symbionts cause their host to be selected out of the population or vice versa \cite{ewald1987transmission, fine1975vectors}. 
+Many microbes provide their hosts with protection from environmental stresses including drought, extreme temperatures, and enemies \cite{russell2006costs, brownlie2009symbiont, kivlin2013fungal,corbin2017heritable, hoadley2019host}. 
+These benefits are context-dependent, meaning that the magnitude of outcome depends on environmental conditions \cite{chamberlain2014context}. 
+In a stochastic environment, context dependence opens up the possibility for interaction strength to vary through time \cite{jordano1994spatial, billick2003relative}. 
+In addition to elevating mean population growth rates, context-dependent symbioses may buffer variability by providing benefits to their hosts during years with harsh conditions, while being neutral or even costly during years with benign conditions, reducing the frequency of extreme years experienced by symbiotic hosts relative to non-symbiotic hosts. 
+Variance buffering is a previously unexplored mechanism by which context-dependent symbionts may act as mutualists to their hosts, which may come to be of increasing importance in a more variable future \cite{rudgers2020climate}.
+
+Using data from a unique, long-term symbiont-removal experiment, we tested the hypothesis that context-dependent benefits of symbiosis buffer hosts from the fitness consequences of environmental variability by (i) quantifying the effects of symbiosis on the mean and variance of host vital rates (survival, growth and reproduction), (ii) quantifying the relative contribution of mean and variance effects on long-term population fitness, (iii) and used simulations to explore the consequences of variance buffering under increased variability.
+
+Initiated in 2007 at the Indiana University Research and Teaching Preserve (Nashville, IN) with seven grass species that host Epichlo\"{e} fungal endophytes, the experiment consisted of annually censused plots planted with either naturally symbiotic plants (E+) or those which have had their symbionts experimentally removed  via a heat treatment (E-) (See SM for a full list of species and experimental methods).
+Epichlo\"{e} fungi are specialized symbionts growing intercellularly in the aboveground tissue of at least 30\% of cool-season (C3) grass species \cite{leuchtmann1992systematics}, which are primarily transmitted vertically from maternal plants through seeds \cite{cheplick2009ecology, rudgers2009fungus}.
+The fungi produce a variety of alkaloids, which have been demonstrated to provide protection against herbivory \cite{brem2001epichloe} and under drought stress \cite{cheplick2004recovery, kannadan2008endophyte, decunta2021systematic}.
+
+The data from this experiment manipulating the presence of fungal endophytes within their hosts over long time scales are uniquely suitable to quantify effects on variance buffering. 
+During each annual census, we collected demographic data on the survival, growth, and reproduction of all individuals within the plots. 
+Each of the 14 census years during the course of the experiment is a sample of interannual climatic variation.
+We fit all vital rate models as Bayesian generalized linear mixed models using Rstan \cite{rstan2022}, allowing us to isolate multiple sources of variance, borrow strength across species for some variance components, and propagate uncertainty from the vital rate estimates to our population model \cite{elderd2016quantifying}. 
+We quantified endophytes effects on interannual variance in vital rates, and consequently on host population growth by fitting random year effects, with separate estimates of variance for symbiotic and symbiont-free plants.
+We then parameterized stochastic matrix population models for each of the seven grass host species from the vital rate regressions. 
+
+Across seven host species, eight vital rates, 14 years, and 16789 individual host plants, we found that Epichlo\"{e} fungal endophyte symbiosis had generally positive effects on host demographic performance and reduced inter-annual demographic variance. 
+The mean endophyte effect was positive for $36$ out of $56$ host species--vital rate combinations, and was particularly strong for host survival, growth and germination. 
+Endophytes also consistently reduced inter-annual variance for the majority of host species and vital rates ($37$ out of $56$ host species--vital rate combinations; Fig. 1), consistent with the hypothesis of variance buffering. 
+The relative magnitude of symbiont effects on means and variances was idiosyncratic across species and across vital rates.
+For example, endophytes modestly increased mean adult survival and reduced variance for \emph{Festuca subverticillata} (Fig. 1B), while for \emph{Poa alsodes}, effects from variance buffering were stronger with a relatively weaker mean effect. 
+In other vital rates, such as in seedling growth, \emph{P. alsodes} experiences stronger buffering than \emph{F. subverticillata}. 
+\josh{Interestingly, there were also certain vital rates that showed costs of endophyte symbiosis, such as \emph{A. perennans} and \emph{F. subverticillata} which had lower mean germination rates when partnered with endophytes. Similarly, endophyte partnership led to greater variance in seedling growth for \emph{Elymus villosus} and \emph{Festuca subvertcillata}.}{ I will add this to the figure, but haven't yet}
+ 
+Not all vital rates contribute equally to fitness, so we used stochastic matrix models (where tiller number was the integer-valued state variable) to integrate the diverse effects described above into comprehensive measures for the mean and variance of host fitness.
+We found that, on average across host species, endophyte-symbiotic populations experienced a 9.2 \% increase in mean fitness $\overline{\lambda}$. 
+Our hierarchical Bayesian analysis, which propagates uncertainty from the underlying data through model predictions, indicates 92.8\% confidence that endophytes increased $\overline{\lambda}$ (Fig. 2A).
+The coefficient of variation of $\lambda$, reflecting inter-annual variability in fitness, was 11.2\% lower in endophyte-symbiotic populations than endophyte-free populations, (with 69.2\% confidence that the endophyte effect was negative) (Fig. 2B).
+For some host species, the coefficient of variation was  reduced by as much as 75.6\% (\emph{L. arundinaceum}) and 50.1\% (\emph{F. subverticillata}), while for others, variance effects were much smaller (\emph{E. villosus}; 4.6\% reduction), or even slightly positive  (13.1\% and 15.3\% increase for \emph{A. perennans} and \emph{E. virginicus} respectively)
+ 
+Having documented positive fitness effects of endophyte symbiosis via mean benefits and / or variance buffering, we next asked about the relative importance of those two pathways of host-symbiont mutualism for the stochastic growth rate $\lambda_{S}$.
+We decomposed the overall effect of the symbiosis on $\lambda_{S}$ into contributions from mean and variance buffering effects.
+To do this, we calculated $\lambda_{S}$ for population models incorporating both mean and variance buffering effects, as well as for mean effects alone, for variance effects alone, and for models without endophyte effects. 
+We ran each model for 1000 years by randomly sampling from the annual transition matrices observed over the course of the experiment, discarding the first 100 years to remove transient dynamics, and calculated the mean of growth rates.  
+Sampling observed transition matrices leads to models which realistically capture interannual variation by preserving correlations between individual vital rates.
+\josh{We also explored sampling from the full vital rate posteriors, an approach which potentially includes less realistic population dynamics, but which allows for sampling a broader set of environmental conditions, and found qualitatively similar results (See SM).
+Vital rate correlations have the potential to limit the impact of environmental variability, but this effect is minimal \cite{}}{This isn't quite true. And maybe it's not worth saying anything about this.}
+\josh{Overall, we found strong evidence of mutualism within the symbiosis.}{The total effect is XXX, with XXX certainty of a positive effect}
+Positive contributions to long-term population growth rates come from both mean and variance buffering effects, with effects on the mean that are 4.17 times greater on average than contributions from variance buffering. 
+However, these effects varied between species; for example, two species (\emph{A. perennans} and \emph{P. syvestris}) have contributions from variance buffering which are greater than mean effects. 
+
+We next used simulations to assess how the contributions from mean and variance buffering effects change  under increased variability, a key prediction of climate change.
+Under the regime of environmental variability observed during the course of the experiment, endophyte effects on mean population growth rates are the primary contribution to mutualistic outcomes. 
+To simulate increased variability, we repeated the estimation of $\lambda_{S}$ under three scenarios of increasing variability, choosing the transition matrices of the most extreme six, four, and two years. 
+These treatments increased variance by XXX between ambient and most extreme scenarios, while maintaining equivalent mean growth rates (See SM).
+Under increased variability, endophyte symbiosis's provides stronger mutualistic benefits, driven by increasing contributions from the variance buffering mechanism (by XX\% between the ambient and most extreme scenarios).
+An increase in the overall effect of symbiosis of XX\% suggests that Epichlo\"{e} endophytes will take on increased importance as their hosts experience increased climatic variability in the future. 
+We constructed population models that explicitly incorporate annual and growing season drought indices which explain some of, but not all of the context dependent interaction benefits responsible for the variance buffering mechanism (See SM).
+
+While beyond the scope of the current study, climatic drivers of interannual variation can be included explicitly in population models. 
+
+
+
+ \josh{start}{}
+ To Do:
+ 
+ Update labels on heatmap fig
+ 
+ update labels on mean and var fig and check that fig is SD
+ 
+ 
+ \josh{\cite{rees2009integral}}{I don't know if there's a better citation for this, this is more about IPM's-- Tom: I don't think we need a citation here, but we should briefly describe how we did this, since readers will get here before the methods. I've tried to add a little of this throughout the Results.}. 
+ 
+ 
+% \tom{We found that variance buffering provided a small benefit overall (XXX\%)}{Seems like this section is still under construction, but be sure to emphasize that across species there is really strong evidence for mutualism (positive effect on $\lambda_{S}$) and in the current regime of environmental variability that is dominated by the mean benefits.} (Fig. \ref{}) .
+ 
+ 
+ 
+ 
+
+
+
+\tom{ Additionally, the effect of mutualism increases under simulations with increased variance driven by greater contributions of variance buffering. In the most extreme scenario, we find that variance buffering contributions across species are 1.5 times greater than effects on the mean on average, and that variance buffering contributions are greater than mean effects for five out of seven species.}{I would eliminate this paragraph entirely. Not needed, since you launch directly into results from here.}
+
+
+Not all vital rates contribute equally to fitness, so we used stochastic matrix models (where tiller number was the integer-valued state variable) to integrate the diverse effects described above into comprehensive measures for the mean and variance of host fitness.
+We found that, on average across host species, endophyte-symbiotic populations experienced a 9.2 \% increase in mean fitness $\overline{\lambda}$. 
+Our hierarchical Bayseian analysis, which propagates uncertainty from the underlying data through model predictions, indicates 92.8\% confidence that endophytes increased $\overline{\lambda}$.
+%The \tom{standard deviation}{The figure in this draft shows CV. We should be consistent with what is shown and described.}, reflecting inter-annual variability in fitness, was 6.6 \% lower in endophyte-symbiotic populations than endophyte-free populations, averaging across host species (with \tom{66\% certainty}{The CV figure I am looking at is more than 66\% certainty.} that the endophyte effect was negative) (Fig. \ref{}). 
+%\tom{For some host species, the standard deviation was  reduced by as much as 44.3\% (\emph{L. arundinaceum}) and 28.5\% (\emph{F. subverticillata}), while for others, variance effects were much smaller, or even slightly positive (\emph{E. villosus} and \emph{E. virginicus}).}{I am thinking it might be valuable to show that biplot}{Here is where I think the biplot figure makes an interesting point. For some species the benefit is through the mean, for some it is through variance, for some it is both -- but we don't see any negative-negative. It's really compelling evidence for mutualism being pervasive here, but taking different forms.}
+%\tom{}{This comment is neither here nor there, but we can probably expct reviewers to ask was the realized population growth patterns were, i.e., did E+ plots grow faster than E- plots. Not sure how much we should go there yet (because the populations mostly shrank) but I do think we need to better communicate that we are talking about asymptotic growth rates.}
+
+Across eight host species, seven vital rates, 14 years, and \textit{large number} individual host-plants, we found that Epichlo\"{e} fungal endophyte symbiosis generally had positive effects on host demographic performance and negative effects on inter-annual demographic variance.
+The mean endophyte effect was positive for \textit{number} out of $56$ host species--vital rate combinations, and was particularly strong for host survival and growth. 
+Endophytes also consistently reduced inter-annual variance for the majority of host species and vital rates (\textit{number} out of $56$ host species--vital rate combinations; Fig. \ref{}), consistent with the hypothesis of variance buffering. 
+Variance buffering effects were particularly strong for reproductive vital rates (e.g. likelihood of flowering and panicle production); \tom{This might align with predictions from life-history theory suggesting that reproductive vital rates are likely to experience greater year-to-year variance \cite{}.}{This is an interesting and possibly useful observation here, but it implies that negative effects on variance were proportional to the absolute value of variance. This seems plausible - is that the case? Also, the best citation would be Pfister 1998.} 
+
+\tom{The}{We talked about updating the figure so that individual examples would pop out of the matrix. Presumably you would reference that figure here where you talk about specific examples.} relative magnitude of symbiont effects on means and variances was idiosyncratic across species and across vital rates. 
+For example, endophytes increased mean adult survival and caused a modest variance reduction for \emph{P. alsodes}, while for \emph{F. subverticillata}, effects from variance buffering were stronger with a relatively weaker mean effect. 
+In other vital rates, such as in seedling growth, \emph{P. alsodes} experiences stronger buffering than \emph{F. subverticillata}. 
+\josh{Interestingly, there were also certain vital rates that showed \tom{costs}{If you are going to highlight costs then it would be good to show both reductions in mean and increases in variance.} of endophyte symbiosis, such as \emph{A. perennans} and \emph{F. subverticillata} which had lower mean germination rates when partnered with endophytes.}{Not sure how much to talk about demographic compensation (i.e. do we see less variance in vital rates that are more important). We don't really assess this. And at least loooking at the actual sigma values for each species, it seems like none of the vital rates have hugely different baseline standard deviations. TOM: I would not talk about demographic compensation.} 
+
+
+\josh{start}{}
+
+
+
+
+
+
+These long-term plots contain either naturally symbiotic plants (E+) or those which have had their symbionts experimentally removed (E-)
+
+Using data from a unique, long-term symbiont-removal experiment, we \tom{test the hypothesis that context-dependent benefits of microbial symbionts buffer hosts from the fitness consequences of environmental variability}{In addition to this hypothesis, I think it is important to emphasize the question of relative importance of mean vs variance effects. Like Volker always says, yes/no hypotheses are often a little dull.}. 
+The experiment consists of annually censused plots initiated in 2007 with seven grass species that host Epichlo\"{e} fungal endophytes. 
+These specialized fungal endophytes are unique to grasses, occurring in at least \tom{30\%}{I think the 30\% number comes from a Leuchtmann paper.} of cool-season (C3) species, and are primarily vertically transmitted from maternal plant to seed \cite{cheplick2009ecology}. 
+\tom{While they have been associated with contributing to drought tolerance for their hosts}{Awkward phrasing.}, these \tom{benefits are commonly context-dependent}{This is a little confusing because it sounds like you are saying that the drought benefit is context-dependent, but I think drought is the context, so the benefits vary with presence or absence of drought.}\cite{cheplick2004recovery, kannadan2008endophyte, decunta2021systematic}. 
+\tom{And so}{too colloquial}, we ask first how fungal endophytes influence the mean and interannual variance of their hosts' vital rates; next, we ask if these vital rate effects buffer variance in fitness and, if so, what is the relative contribution of variance buffering vs. mean effects to the overall effect of the symbiosis on long-term growth rates. 
+
+
+\tom{To answer these questions, we buit structured, stochastic population models for these seven grass host species (\textit{Agrostis perennans}, \textit{Elymus villosus}, \textit{Elymus virginicus}, \textit{Festuca subverticillata},\textit{Lolium arundinaceum}, \textit{Poa alsodes} and \textit{Poa sylvestris}).}{Mention the models somewhere in this paragraph but don't list the species. Species list should definitely go somewhere and should include the endophyte species to the best of our known -- maybe this is an appendix table.} 
+
+
+\tom{These long-term plots contain either naturally symbiotic plants (E+) or those which have had their symbionts experimentally removed (E-).}{Should come earlier when you first introduce the ``unique'' experiment.}  
+
+
+Each annual census is a sample of climatic variation. 
+
+
+\tom{Across 14 years, the data contain 31,216 individual-transition years.}{Put in results.} 
+
+After quantifying endophyte effects on mean and variance in population growth rates, we use simulations to explore the \tom{consequences of variance buffering under increased variance}{SHould be emphasized earlier. It's cool and novel.} \tom{and construct climate-explicit population models}{I would not mention this here since it is not central to the story of the paper.} to evaluate the role of climate drivers as explanations for this buffering. 
+
+
+
+
+\section*{Formatting Citations}
+
+Citations can be handled in one of three ways.  The most
+straightforward (albeit labor-intensive) would be to hardwire your
+citations into your \LaTeX\ source, as you would if you were using an
+ordinary word processor.  Thus, your code might look something like
+this:
+
+
+\begin{quote}
+\begin{verbatim}
+However, this record of the solar nebula may have been
+partly erased by the complex history of the meteorite
+parent bodies, which includes collision-induced shock,
+thermal metamorphism, and aqueous alteration
+({\it 1, 2, 5--7\/}).
+\end{verbatim}
+\end{quote}
+
+
+\noindent Compiled, the last two lines of the code above, of course, would give notecalls in {\it Science\/} style:
+
+\begin{quote}
+\ldots thermal metamorphism, and aqueous alteration ({\it 1, 2, 5--7\/}).
+\end{quote}
+
+Under the same logic, the author could set up his or her reference list as a simple enumeration,
+
+\begin{quote}
+\begin{verbatim}
+{\bf References and Notes}
+
+\begin{enumerate}
+\item G. Gamow, {\it The Constitution of Atomic Nuclei
+and Radioactivity\/} (Oxford Univ. Press, New York, 1931).
+\item W. Heisenberg and W. Pauli, {\it Zeitschr.\ f.\ 
+Physik\/} {\bf 56}, 1 (1929).
+\end{enumerate}
+\end{verbatim}
+\end{quote}
+
+\noindent yielding
+
+\begin{quote}
+{\bf References and Notes}
+
+\begin{enumerate}
+\item G. Gamow, {\it The Constitution of Atomic Nuclei and
+Radioactivity\/} (Oxford Univ. Press, New York, 1931).
+\item W. Heisenberg and W. Pauli, {\it Zeitschr.\ f.\ Physik} {\bf 56},
+1 (1929).
+\end{enumerate}
+\end{quote}
+
+
+That's not a solution that's likely to appeal to everyone, however ---
+especially not to users of B{\small{IB}}\TeX\ \cite{inclme}.  If you
+are a B{\small{IB}}\TeX\ user, we suggest that you use the
+\texttt{Science.bst} bibliography style file and the
+\texttt{scicite.sty} package, both of which are downloadable from our author help site.
+{\bf While you can use B{\small{IB}}\TeX\ to generate the reference list, please don't submit 
+your .bib and .bbl files; instead, paste the generated .bbl file into the .tex file, creating
+ \texttt{\{thebibliography\}} environment.}
+ You can also
+generate your reference lists directly by using 
+\texttt{\{thebibliography\}} at the end of your source document; here
+again, you may find the \texttt{scicite.sty} file useful.
+
+Whatever you use, be
+very careful about how you set up your in-text reference calls and
+notecalls.  In particular, observe the following requirements:
+
+\begin{enumerate}
+\item Please follow the style for references outlined at our author
+  help site and embodied in recent issues of {\it Science}.  Each
+  citation number should refer to a single reference; please do not
+  concatenate several references under a single number.
+\item The reference numbering  continues from the 
+main text to the Supplementary Materials (e.g. this main 
+text has references 1-3; the numbering of references in the 
+Supplementary Materials should start with 4). 
+\item Please cite your references and notes in text {\it only\/} using
+  the standard \LaTeX\ \verb+\cite+ command, not another command
+  driven by outside macros.
+\item Please separate multiple citations within a single \verb+\cite+
+  command using commas only; there should be {\it no space\/}
+  between reference keynames.  That is, if you are citing two
+  papers whose bibliography keys are \texttt{keyname1} and
+  \texttt{keyname2}, the in-text cite should read
+  \verb+\cite{keyname1,keyname2}+, {\it not\/}
+  \verb+\cite{keyname1, keyname2}+.
+\end{enumerate}
+
+\noindent Failure to follow these guidelines could lead
+to the omission of the references in an accepted paper when the source
+file is translated to Word via HTML.
+
+
+
+\section*{Handling Math, Tables, and Figures}
+
+Following are a few things to keep in mind in coding equations,
+tables, and figures for submission to {\it Science}.
+
+\paragraph*{In-line math.}  The utility that we use for converting
+from \LaTeX\ to HTML handles in-line math relatively well.  It is best
+to avoid using built-up fractions in in-line equations, and going for
+the more boring ``slash'' presentation whenever possible --- that is,
+for \verb+$a/b$+ (which comes out as $a/b$) rather than
+\verb+$\frac{a}{b}$+ (which compiles as $\frac{a}{b}$).  
+ Please do not code arrays or matrices as
+in-line math; display them instead.  And please keep your coding as
+\TeX-y as possible --- avoid using specialized math macro packages
+like \texttt{amstex.sty}.
+
+\paragraph*{Tables.}  The HTML converter that we use seems to handle
+reasonably well simple tables generated using the \LaTeX\
+\texttt{\{tabular\}} environment.  For very complicated tables, you
+may want to consider generating them in a word processing program and
+including them as a separate file.
+
+\paragraph*{Figures.}  Figure callouts within the text should not be
+in the form of \LaTeX\ references, but should simply be typed in ---
+that is, \verb+(Fig. 1)+ rather than \verb+\ref{fig1}+.  For the
+figures themselves, treatment can differ depending on whether the
+manuscript is an initial submission or a final revision for acceptance
+and publication.  For an initial submission and review copy, you can
+use the \LaTeX\ \verb+{figure}+ environment and the
+\verb+\includegraphics+ command to include your PostScript figures at
+the end of the compiled file.  For the final revision,
+however, the \verb+{figure}+ environment should {\it not\/} be used;
+instead, the figure captions themselves should be typed in as regular
+text at the end of the source file (an example is included here), and
+the figures should be uploaded separately according to the Art
+Department's instructions.
+
+
+hello \cite{menges2000applications}
+
+
+
+
+
+\section*{What to Send In}
+
+What you should send to {\it Science\/} will depend on the stage your manuscript is in:
+
+\begin{itemize}
+\item {\bf Important:} If you're sending in the initial submission of
+  your manuscript (that is, the copy for evaluation and peer review),
+  please send in {\it only\/} a PDF version of the
+  compiled file (including figures).  Please do not send in the \TeX\ 
+  source, \texttt{.sty}, \texttt{.bbl}, or other associated files with
+  your initial submission.  (For more information, please see the
+  instructions at our Web submission site.)
+\item When the time comes for you to send in your revised final
+  manuscript (i.e., after peer review), we require that you include
+   source files and generated files in your upload. {\bf The .tex file should include
+the reference list as an itemized list (see "Formatting citations"  for the various options). The bibliography should not be in a separate file.}  
+  Thus, if the
+  name of your main source document is \texttt{ltxfile.tex}, you
+  need to include:
+\begin{itemize}
+\item \texttt{ltxfile.tex}.
+\item \texttt{ltxfile.aux}, the auxilliary file generated by the
+  compilation.
+\item A PDF file generated from
+  \texttt{ltxfile.tex}.
+
+\end{itemize}
+\end{itemize}
+
+% Your references go at the end of the main text, and before the
+% figures.  For this document we've used BibTeX, the .bib file
+% scibib.bib, and the .bst file Science.bst.  The package scicite.sty
+% was included to format the reference numbers according to *Science*
+% style.
+
+%BibTeX users: After compilation, comment out the following two lines and paste in
+% the generated .bbl file. 
+
+
+
+\bibliography{endo_stoch_demo}
+
+\bibliographystyle{Science.sty}
+
+
+
+
+
+\section*{Acknowledgments}
+Include acknowledgments of funding, any patents pending, where raw data for the paper are deposited, etc.
+
+%Here you should list the contents of your Supplementary Materials -- below is an example. 
+%You should include a list of Supplementary figures, Tables, and any references that appear only in the SM. 
+%Note that the reference numbering continues from the main text to the SM.
+% In the example below, Refs. 4-10 were cited only in the SM.     
+\section*{Supplementary materials}
+%\textbf{This pdf contains the following supplementary material:}\\
+Materials and Methods\\
+Supplementary Text\\
+
+
+Figs. S1 to S3\\
+Tables S1 to S2\\
+References \textit{(4-10)}
+
+
+\section*{Material and Methods}
+\paragraph*{Study site and species}
+This study was conducted at Indiana University's Lilly Dickie Woods (39.238533, -86.218150) in Brown County, Indiana, USA. 
+The distributions of many cool-season grass species overlap in the understory of the Eastern broadleaf forests of southern Indiana. 
+The experiment focused on seven of these grasses which host Epichlo\"e endophytes (\emph{Agrostis perennans}, \emph{Elymus villosus}, \emph{Elymus virginicus}, \emph{Festuca subverticillata}, \emph{Lolium arundinaceum}, \emph{Poa alsodes}, and \emph{Poa sylvestris}) (Table S1.). 
+
+\paragraph*{Endophyte removal, plant propagation, and planting methods}
+Seeds from naturally symbiotic populations of the seven focal host species were collected during the 2006 growing season from Lilly Dickie Woods (39.238533, -86.218150) and the Bayles Road Teaching and Research Preserve (39.220167, -86.542683) in Brown County, Indiana, USA. 
+To generate symbiotic (E+) and symbiont-free (E-) plants that shared the same genetic lineage, the collected seeds from each species were sterilized with a heat treatment (as described in Table S1) or left untreated. 
+The heat treatment is intended to symbiont-free plants by reaching a temperature at which the fungus inviable but the host seeds can successfully germinate.
+Both heat-treated and untreated seeds were surface sterilized with bleach and cold stratified for {\color{red}??? weeks}, then germinated in a growth chamber before being transferred to the greenhouse at Indiana University and allowed to grow for XXXX weeks. 
+We confirmed the endophyte status of these plants using microscopy of leaf peels, where tissue from the leaf sheath is stained with aniline blue dye and examined for the presence of fungal hyphae at 100X magnification \cite{bacon2018stains}. 
+Then, we established the experimental plots with \tom{vegetatively propogated clones of similar sizes from the plants}{not sure this happened}. 
+By starting the experiment with plants of similar sizes, we aimed to limit potential negative side effects of heat treatments on the growth of plants in our experiment \cite{rudgers2009benefits}.
+
+During the spring of 2007, we established 10 3x3 plots for \emph{A. perennans}, \emph{E. villosus}, \emph{E. virginicus}, \emph{F. subverticillata}, and \emph{L. arundinaceum}  and \tom{18 plots for \emph{P. alsodes} and \emph{P. sylvestris}}{I think one set was started in 2007 and another in 2008.}. 
+For each species, five (or nine, for \emph{P. alsodes} and \emph{P. sylvestris}) plots were randomly assigned to be planted with either symbiotic (E+) or with symbiont-free (E-) plants.
+Each plot was planted with 20 evenly spaced E+ or E- individuals and each plant received a unique aluminum tag staked into the ground. 
+In XXXX, we placed fencing around each plot to limit herbivory and disturbance in the plots, and replaced fencing for all plots in XXXX.
+
+
+
+\paragraph*{Long-term demographic data collection}
+Each summer starting in 2007 through 2021, we censused all individuals in each plot for survival, growth and reproduction. 
+Leaf litter was cleared out of each plot prior to the census, to aid in locating all tagged individuals and new recruits.
+For each plant remaining from the previous year, we marked its survival, measured its size as a count of the number of tillers, and collected reproductive data by counting the number of reproductive tillers, and then counting the number of seed-bearing spikelets on up to three of those reproductive tillers. 
+In each plot, we also searched for and tagged any unmarked individuals, which are recruits from the previous years' seed production, for which we collect the same demographic data.
+New recruits typically have one tiller and are non-reproductive. 
+In 2008 and 2009, we took additional counts of seeds per inflorescence for all reproducing individuals in the plots. 
+For Agrostis perennans, we also collected seed counts in 2010.
+For each individual plant in the experiment, we have data recording their transitions in size and reproduction from one year to the next. 
+In total across 14 years, the dataset includes demographic information for 16789 individual host-plants making up 31,216 individual transition years.
+
+We typically expect plots to maintain their endophyte status (E+ or E-) because the fungal symbionts are almost entirely vertically transmitted and plots are {\color{red}spaced at least 5 m apart}, limiting the possibility of dispersal between plots or horizontal transmission of the symbiont. 
+Seeds from reproductive individuals were taken opportunistically from reproducing plants throughout the experiment. 
+These seeds were scored with microscopy for their endophyte status  (100X with analine blue dye).  
+Overall, these scores reflect a 97.5\% faithfulness of recruits to their expected endophyte status across species and plots (Supplement data). 
+Additionally, over the course of the experiment, we have rarely observed fungal stromata, the fruiting bodies by which Epichlo\"e are potentially transmitted horizontally. 
+For \emph{A. perennans}, \emph{F. subverticillata}, \emph{L. arundinaceum}, and \emph{P. alsodes}, we have never observed stromata. 
+We have observed stromata only infrequently for \emph{E. villosus}, and even more rarely for \emph{E. virginicus} and \emph{P. sylvestris}. 
+For these species, stromata have only been observed on 35, 4, and 6 plants respectively, making up less than 0.3\% of all censused plants.
+These stromata observations occurred irregularly across years; in most years there were no stromata, and in a few years several plants produced stromata at the same time (Table S). 
+
+\paragraph*{Vital rate modeling}
+Equiped with this demographic data, we next fit statistical models for survival, growth, flowering (yes or no), fertility of flowering plants (no. of flowering tillers),  production of seed-bearing spikelets (no. per inflorescence), the average number of seeds per spikelet, and the recruitment of seedlings from the preceeding year's seed production.  
+We fit these vital rates as generalized linear mixed models, including a random year effect, with separate estimates of variance for symbiotic and symbiont-free plants, to quantify the effect of endophytes on interannual variance, along with other predictors as described below.
+
+\emph{Survival} - We modeled survival as a Bernoulli process, where the survival (0/1) of an individual i in year t+1 ($S_{t+1}$) was predicted by its host species ($h$), its size in year t ($x_t$), the plot-level endophyte status ($endo$), and the plants origin status ($origin$; whether it was initially transplanted or was naturally recruited into the plot).
+\begin{subequations} 
+	\label{eq:survival}
+	\begin{align}
+		S_{t+1} \sim Bernoulli(\hat{S}) \\
+		logit(\hat{S}) =  \beta_{0S_{[h]}} + \beta_{1S_{[h]}}ln(x_t) + \beta_{2S_{[h,e]}}(endo) + \beta_{3S_{[o]}}(origin) + \tau_{S_{[h,e,t]}} + \rho_{S_{[p]}} \\
+		\tau_{S_{[h,e,t]}} \sim Normal(0, \sigma^2_{\tau S_{[h,e]}})\\
+		\rho_{S_{[p]}} \sim Normal(0, \sigma^2_{\rho S})
+	\end{align}
+\end{subequations}
+
+Here, $\hat{S}$ is the survival probability, $\beta_{0S_{[h]}}$ is an intercept specific to each host species $h$, $\beta_{1S_{[h]}}$ is the size-dependent slope for each species, $\beta_{2S_{[h,e]}}$ is the effect of endophyte status $e$ for each species, $\beta_{3S_{[o]}}$ is the effect of the plant's recruitment origin $o$, $\tau_{S_{[h,e,t]}}$ is a normally distributed year effect for each species and endophyte status with variance $\sigma^2_{\tau S_{[h,e]}}$, and $\rho_{S_{[p]}}$ is a normally distributed plot effect for each plot $p$ with variance $\sigma^2_{\rho S}$ shared across species. 
+We separately modelled the survival of newly recruited seedlings, which were typically one tiller and non-reproductive, with a similar model ommitting size structure and the effect of the plant's origin status.
+
+
+%\begin{subequations} 
+%	\label{eq:survival_alt}
+%	\begin{align}
+	%	S_{t+1} \sim Bernoulli(\hat{S}) \\
+	%	logit(\hat{S}) =  \alpha_{S_{[h,e]}} + \beta_{o} + \beta_{S_{[h]}}log_e(x_t) + \tau_{S_t} + \rho_{S_p} \\
+	%	\tau_{S_t} \sim Normal(0, \sigma^2_{h,e})\\
+	%	\rho_{S_p} \sim Normal(0, \sigma_p)
+	%\end{align}
+%\end{subequations}
+
+\emph{Growth} - We modeled plant size in year t+1 ($G_{t+1}$) with the same predictors as described for survival.
+Because we measured size as positive integer-valued counts of tillers, we modeled it with a zero-truncated Poisson-inverse Gaussian distribution.
+
+\begin{subequations} 
+	\label{eq:growth}
+	\begin{align}
+		G_{t+1} \sim P-IG(\hat{G},\lambda_{G})) \\
+		exp(\hat{G}) =  \beta_{0G_{[h]}} + \beta_{1G_{[h]}}ln(x_t) + \beta_{2G_{[h,e]}}(endo) + \beta_{3G_{[o]}}(origin) + \tau_{G_{[h,e,t]}} + \rho_{G_{[p]}} \\
+		\tau_{G_{[h,e,t]}} \sim Normal(0, \sigma^2_{\tau G_{[h,e]}})\\
+		\rho_{G_{[p]}} \sim Normal(0, \sigma^2_{\rho G})\\
+		\lambda_{G} \sim Normal(1,\sigma)
+	\end{align}
+\end{subequations}
+\josh{Here, $\hat{G}$ is the expected mean size in year t+1, and $\lambda_G$ is a shape parameter to account for overdisperion in the data.}{I don't know if the mean and shape parameters are written correctly here, because in our model, we multiple the meanXtheta, where theta is the output of the IG with IG(1,lambda), and also if we need to write out a hierarchical Normal for lambda}. As with survival, we modelled the growth of newly recruited seedlings separately with a separate model omitting size structure and the plants' origin status. 
+
+\emph{Flowering} - We modeled whether or not a plant was flowering in year t+1 ($P_{t+1}$) as a Bernoulli process, in a similar manner as described above except that size structure for this vital rate is determined by the individual's size in year t+1.
+\begin{subequations} 
+	\label{eq:flowering}
+	\begin{align}
+		P_{t+1} \sim Bernoulli(\hat{P}) \\
+		logit(\hat{P}) =  \beta_{0P_{[h]}} + \beta_{1P_{[h]}}ln(x_{t+1}) + \beta_{2P_{[h,e]}}(endo) + \beta_{3P_{[o]}}(origin) + \tau_{P_{[h,e,t]}} + \rho_{P_{[p]}} \\
+		\tau_{P_{[h,e,t]}} \sim Normal(0, \sigma^2_{\tau P_{[h,e]}})\\
+		\rho_{P_{[p]}} \sim Normal(0, \sigma^2_{\rho P})
+	\end{align}
+\end{subequations}
+
+Where $\hat{P}$ is the probability of flowering and the other notation is as above.
+
+\emph{Fertility} - For a plant that is flowering in year t+1, its fertility is the number of reproductive tillers produced ($F_{t+1}$). 
+We modeled this count data with a Poisson-Inverse Gaussian distribution.
+
+\begin{subequations} 
+	\label{eq:fertility}
+	\begin{align}
+		F_{t+1} \sim P-IG(\hat{F},\lambda_{F})) \\
+		exp(\hat{F}) =  \beta_{0F_{[h]}} + \beta_{1F_{[h]}}ln(x_{t+1}) + \beta_{2F_{[h,e]}}(endo) + \beta_{3F_{[o]}}(origin) + \tau_{F_{[h,e,t]}} + \rho_{F_{[p]}} \\
+		\tau_{F_{[h,e,t]}} \sim Normal(0, \sigma^2_{\tau F_{[h,e]}})\\
+		\rho_{F_{[p]}} \sim Normal(0, \sigma^2_{\rho F})\\
+		\lambda_{F} \sim Normal(1,\sigma)
+	\end{align}
+\end{subequations}
+The notation is similar to Eqn. \ref{eq:growth}, but size-structure depends on size in year t+1, and $\hat{F}$ is the expected number of reproductive tiller for a reproducing plant in year t+1.
+
+\emph{Spikelets per Inflorescence} - We fit data on spikelet production in year t+1 ($K_{t+1}$), which is collected as integer counts on up to three inflorescences per reproducing plant, with a negative binomial distribution. 
+\begin{subequations} 
+	\label{eq:spikelets}
+	\begin{align}
+		K_{t+1} \sim NegBin(\hat{K}, \theta_K) \\
+		logit(\hat{K}) =  \beta_{0K_{[h]}} + \beta_{1K_{[h]}}ln(x_{t+1}) + \beta_{2K_{[h,e]}}(endo) + \beta_{3K_{[o]}}(origin) + \tau_{K_{[h,e,t]}} + \rho_{K_{[p]}} \\
+		\tau_{K_{[h,e,t]}} \sim Normal(0, \sigma^2_{\tau K_{[h,e]}})\\
+		\rho_{K_{[p]}} \sim Normal(0, \sigma^2_{\rho K})
+	\end{align}
+\end{subequations}
+
+Here, $\hat{K}$ is the expected number of spikelets per inflorescence, and $\theta$ is an overdispersion parameter. Other notation is as above.  
+
+\emph{Seed Production} - Because we had more detailed data across years and plants for spikelet production, we modelled the production of seeds per spikelet as species-level averages, omitting plot and year random effects. For plants with data on seed production, we calculated the number of seeds per spikelet from our counts of seeds and spikelets per inflorescence, and then modelled seeds per spikelet ($D$).
+
+\begin{subequations} 
+	\label{eq:seed}
+	\begin{align}
+		D_{t+1} \sim Normal(\hat{D}, \sigma^2_D) \\
+		\hat{D} =  \beta_{0D_{[h]}} + \beta_{1D_{[h,e]}}(endo)
+	\end{align}
+\end{subequations}
+
+In Eqn. \ref{eq:seed}, $\hat{D}$ is the mean value of seeds per spikelet, estimated for each species and endophyte status, and $\sigma^2_D$ is the variance.
+
+\emph{Seedling Recruitment} - Finally, we used a binomial distribution to model the recruitment of new seedlings in year t+1 ($R_t+1$) into the plots from seeds produced in year t, including the same random effects structure as in other models.
+
+\begin{subequations} 
+	\label{eq:recruitment}
+	\begin{align}
+		R_{t+1} \sim Binomial(\hat{R}, D_t) \\
+		\hat{R} =  \beta_{0R_{[h]}} + \beta_{1R_{[h,e]}}(endo) + \tau_{R_{[h,e,t]}} + \rho_{R_{[p]}} \\
+		\tau_{R_{[h,e,t]}} \sim Normal(0, \sigma^2_{\tau R_{[h,e]}})\\
+		\rho_{R_{[p]}} \sim Normal(0, \sigma^2_{\rho R})
+	\end{align}
+\end{subequations}
+
+Here, $\hat{R}$ is the expected number of recruits within each plot, and $D_t$ is the estimated number of seeds per plot in year t. 
+We estimated the number of seeds for each reproductive plant by multiplying the number of reproductive tillers by the mean number of spikelets per inflorescence and by the mean number of seeds per spikelet $\hat{D}$ from Eqn. \ref{eq:seed} drawn from the posterior distribution. 
+For plants with missing fertility or spikelet data, we used the expected number of reproductive tillers or of spikelets per infloresce from, drawing from the full posteriors of our models defined by Eqns. \ref{eq:fertility} and \ref{eq:spikelets} respectively. 
+We rounded this value to get the estimated seed production for each individual, and finally summed across all reproductive plants in each year and plot to get the total number of seeds produced. 
+
+
+These vital rates were modeled as following
+
+The first five vital rate models included the individual plant's size (using the natural logarithm of the number of tillers to ease model convergence and fitting), endophyte status for each plot, and whether the plant was part of the cohort of initially transplanted seedlings as predictors specific for each host species. 
+
+Models included random year effects, with separate estimates of variance for symbiotic and symbiont-free plants, to quantify the effect of endophytes on interannual variance. 
+All of the models, except for the seeds per spikelet model, included this year random effect specific to each species as well as a plot random effect to account for variation between plots shared across species. 
+
+The last two vital rate models were not size-structured and also did not include the plant's original transplant status. 
+Initial analyses indicated that one-tiller seedlings had different growth and survival rates than older plants, and so were modelled separately, including the same predictors without size structure or an effect to account for original transplant effects.
+Key to quantifying the effect of endophytes on interannual variance in these vital rates and consequently on host population growth, models included random year effects, with separate estimates of variance for symbiotic and symbiont-free plants. 
+
+Seeds per spikelet, which varies less between individuals, and based on fewer years of data, was estimated as a species-level mean for E+ and E- plants omitting both year and plot random effects.
+
+
+
+
+
+We ran each vital rate model for 2500 warm-up and 2500 MCMC sampling iterations with three chains using RStan \cite{rstan2022}. 
+We assessed model convergence with trace plots of posterior chains and checked for $\hat{R}$ values less than 1.01, indicating low within- and between-chain variation \cite{brooks1998general, gelman2006data}. 
+For those models that showed poor convergence, we extended the MCMC sampling to include 5000 warm-up and 5000 sampling iterations, which was only necessary for seedling growth. 
+For each of these vital rate models, we graphically check model fit with posterior predictive checks comparing simulated data from 500 posterior draws with the observed data (Fig. S)
+
+\paragraph*{Stochastic population model}
+
+\paragraph*{Mean-variance decomposition and simulation experiment}
+
+\paragraph*{Estimating climate drivers of environmental context-dependence}
+
+% For your review copy (i.e., the file you initially send in for
+% evaluation), you can use the {figure} environment and the
+% \includegraphics command to stream your figures into the text, placing
+% all figures at the end.  For the final, revised manuscript for
+% acceptance and production, however, PostScript or other graphics
+% should not be streamed into your compliled file.  Instead, set
+% captions as simple paragraphs (with a \noindent tag), setting them
+% off from the rest of the text with a \clearpage as shown  below, and
+% submit figures as separate files according to the Art Department's
+% instructions.
+
+
+
+\clearpage
+
+\noindent {\bf Fig. 1.} Please do not use figure environments to set
+up your figures in the final (post-peer-review) draft, do not include graphics in your
+source code, and do not cite figures in the text using \LaTeX\
+\verb+\ref+ commands.  Instead, simply refer to the figure numbers in
+the text per {\it Science\/} style, and include the list of captions at
+the end of the document, coded as ordinary paragraphs as shown in the
+\texttt{scifile.tex} template file.  Your actual figure files should
+be submitted separately.
+
+\noindent {\bf Table S1.} Summary of host-endophyte proprogation and transplant methods\\
+\begin{table}[ht]
+	\begin{adjustbox}{width=1\textwidth}
+\begin{tabular}{llll}
+
+	\bf{Host Species} & \bf{Symbiont Species} & \bf{Heat treatment duration (Temp.)}& \bf{Transplant date }\\
+	        \hline
+	\emph{Agrostis perennans} & \emph{E. amarillans}&12 min. hot water bath (60 $^{\circ}$C)&\\
+	\emph{Elymus villosus}, &\emph{E. elymi}&6 days drying oven (60 $^{\circ}$C)&\\
+	\emph{Elymus virginicus} &\emph{E. elymi or EviTG-1}&6 days drying oven (60 $^{\circ}$C)&\\
+	 \emph{Festuca subverticillata} &\emph{E. starrii}&6 days drying oven (60 $^{\circ}$C)&\\
+	 \emph{Lolium arundinaceum}, &\emph{E. coenophiala}&6 days drying oven (60 $^{\circ}$C)& \\
+	 \emph{Poa alsodes} &\emph{E. alsodes}& 7 days drying oven (60 $^{\circ}$C)&\\
+	 \emph{Poa sylvestris}&\emph{E. PsyTG-1}&7 days drying oven (60 $^{\circ}$C)& \\
+\end{tabular}
+\end{adjustbox}
+\end{table}
+
+
+%\tom{(6d in a drying oven at 60$^{\circ}$ C for \emph{E. villosus}, \emph{E. virginicus}, \emph{F. subverticillata},  and \emph{L. arundinaceum}; 7d in a drying oven at 60$^{\circ}$ C for \emph{P. alsodes}, and \emph{P. sylvestris}; and 12 min. in a hot water bath at 60$^{\circ}$ C for \emph{A. perennans})}{need to double check methods for temp, duration, etc.}
+
+\noindent {\bf Table S2.} Summary of host-endophyte life history and transmission traits\\
+\begin{table}[ht]
+	\begin{adjustbox}{width=1\textwidth}
+\begin{tabular}{lllll}
+	\bf{Host Species} & \bf{Symbiont Species}& \bf{Generation time} & $\textbf {R}_0$ &\bf{ Transmission type}\\
+	\hline
+	\emph{Agrostis perennans} &\emph{E. amarillans}&&&\\
+	\emph{Elymus villosus}, &\emph{E. elymi}&&&\\
+	\emph{Elymus virginicus} &\emph{E. elymi or EviTG-1}&&&\\
+	\emph{Festuca subverticillata} &\emph{E. starrii}&&&\\
+	\emph{Lolium arundinaceum}, &\emph{E. coenophiala}& &&\\
+	\emph{Poa alsodes} &\emph{E. alsodes}& &&\\
+	\emph{Poa sylvestris}&\emph{E. PsyTG-1}& &&\\
+\end{tabular}
+\end{adjustbox}
+\end{table}
+
+\end{document}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
