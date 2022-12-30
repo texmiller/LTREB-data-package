@@ -1904,7 +1904,7 @@ dim(LTREB_full_update_lag)
 ####### Merging in the endophyte checks ------------------------------
 ##############################################################################
 
-LTREB_endo_check <- read_csv(file = "~/Dropbox/EndodemogData/Fulldataplusmetadata/endo_demog_status.csv") %>%  
+LTREB_endo_check <- read_csv(file = "~/Dropbox/EndodemogData/Fulldataplusmetadata/endo_demog_status.csv")  
   dplyr::select(-recno,-check, -...11) %>% 
   rename("origin_from_check" = "origin", "endo_status_from_check" = "status", "plot_endo_for_check" = "endo") %>% 
   mutate(origin_01 = as.integer(case_when(origin_from_check == "O" ~ 0, 
@@ -2050,28 +2050,35 @@ climate <-
   ) %>% 
   left_join(station_data) # merging the station name, the distance to Lilly-Dickey Woods, and the lat long for each weather station
 
-#Some graphs to look at how the different stations's values compare 
+#Some graphs to look at how the different station's values compare 
+# climate_2 <- climate %>%
+#   dplyr::select(id, date, prcp, tobs) %>%
+#   distinct()  %>% 
+#   pivot_wider(names_from = id, values_from = c(prcp, tobs)) %>% 
+#   # filter(!is.na(prcp_USC00126056)) %>% 
+#   mutate(year = year(date)) %>% 
+#   group_by(year) %>% 
+#   summarize(annual_ppt_nashville = sum(prcp_USC00126056, na.rm = TRUE),
+#             annual_ppt_bloomington = sum(prcp_USC00120784, na.rm = TRUE),
+#             annual_temp_nashville = mean(tobs_USC00126056, na.rm = TRUE),
+#             annual_temp_bloomington = mean(tobs_USC00120784, na.rm = TRUE))
+# ppt_r2 <- cor(climate_2$annual_ppt_nashville, climate_2$annual_ppt_bloomington, use = "complete.obs")^2
+# temp_r2 <- cor(climate_2$annual_temp_nashville, climate_2$annual_temp_bloomington, use = "complete.obs")^2
+# climate_summary <- lm(climate_2$annual_ppt_nashville ~ 0+climate_2$annual_ppt_bloomington)
+# summary(climate_summary)
+# # 
+# # 
 # climate %>%
 #   dplyr::select(id, date, prcp, tmax) %>%
 #   distinct() %>%
-#   pivot_wider(id_cols = c(id,date), names_from = c(id), values_from = c(prcp, tmax)) %>%
-# ggplot()+
-#   geom_point(aes(x = prcp_USC00126056, y = tmax_USC00126056), col = "red")+
-#   geom_point(aes(x = prcp_USC00120784, y = tmax_USC00120784), col = "blue")+ #bloomington
-#   geom_point(aes(x = prcp_USC00121747, y = tmax_USC00121747), col = "green") #columbus
-# 
-# 
-# climate %>%
-#   dplyr::select(id, date, prcp, tmax) %>%
-#   distinct() %>%
-#   pivot_wider(id_cols = c(id,date), names_from = c(id), values_from = c(prcp, tmax)) %>%
+#   pivot_wider(names_from = c(id), values_from = c(prcp, tmax)) %>%
 #   ggplot()+
 #   geom_point(aes(x = prcp_USC00126056, y = prcp_USC00120784), col = "red")+ #nashville vs bloomington
-#   geom_point(aes(x = prcp_USC00126056, y = prcp_USC00121747), col = "blue")+ #nashville vs columbus
-#   geom_point(aes(x = prcp_USC00121747, y = prcp_USC00120784), col = "green")+ #columbus vs bloominton
+#   # geom_point(aes(x = prcp_USC00126056, y = prcp_USC00121747), col = "blue")+ #nashville vs columbus
+#   # geom_point(aes(x = prcp_USC00121747, y = prcp_USC00120784), col = "green")+ #columbus vs bloominton
 #   geom_abline(slope = 1, intercept = 0)
-# 
-# climate %>% 
+# # 
+# # climate %>% 
 #   dplyr::select(id, date, prcp, tmax) %>% 
 #   distinct() %>% 
 #   pivot_wider(id_cols = c(id,date), names_from = c(id), values_from = c(prcp, tmax)) %>% 

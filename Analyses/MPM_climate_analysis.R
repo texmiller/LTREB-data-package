@@ -244,21 +244,24 @@ spei3_range_df <- as_tibble(spei3_range_cube) %>%
   rename(spei_value = spei3_range)
 
 lambda_spei12_df <- lambda_spei12_df %>% 
-  left_join(spei12_range_df)
+  left_join(spei12_range_df) %>% 
+  filter(species != "s8")
+
 lambda_spei3_df <- lambda_spei3_df %>% 
-  left_join(spei3_range_df)
+  left_join(spei3_range_df) %>% 
+  filter(species != "s8")
 
 lambda_spei12_mean <- lambda_spei12_df %>% 
   left_join(spei12_range_df) %>% 
   group_by(spei_value,species,Endo,Species) %>% 
-  summarize(lambda_spei_mean = mean(lambda_spei)) %>% 
-  left_join(spei12_range_df)
+  summarize(lambda_spei_mean = mean(lambda_spei12)) %>% 
+  left_join(spei12_range_df) 
 
 lambda_spei3_mean <- lambda_spei3_df %>% 
   left_join(spei3_range_df) %>% 
   group_by(spei_value,species,Endo,Species) %>% 
-  summarize(lambda_spei_mean = mean(lambda_spei)) %>% 
-  left_join(spei3_range_df)
+  summarize(lambda_spei_mean = mean(lambda_spei3)) %>% 
+  left_join(spei3_range_df) 
 
 
 # Set color scheme based on analine blue
@@ -274,7 +277,7 @@ species_list <- c("AGPE", "ELRI", "ELVI", "FESU", "LOAR", "POAL", "POSY")
 
 spei12_lambda_plot <- ggplot(data = lambda_spei12_df)+
   geom_path(aes(x = spei_value, y = lambda_spei12, group = interaction(Endo,Iteration), color = Endo), alpha = .05, lwd = .4)+
-  geom_path(data = lambda_spei12_mean, aes(x = spei_value, y = lambda_spei_mean, group = Endo, color = Endo),lwd = 1)+
+  geom_point(data = lambda_spei12_mean, aes(x = spei_value, y = lambda_spei_mean, group = Endo, color = Endo),lwd = 1)+
   facet_wrap(~Species, scales = "free")+
   scale_color_manual(values = endophyte_color_scheme[c(2,6)])+
   theme_classic()+ theme(strip.background = element_blank()) + labs(title = "Population Growth (12 month SPEI)", subtitle = "Mean endophyte effect with 500 posteriors draws")
@@ -282,10 +285,20 @@ spei12_lambda_plot
 ggsave(spei12_lambda_plot, filename = "spei12_lamda_plot.png", width = 6, height = 6 )
 
 spei3_lambda_plot <- ggplot(data = lambda_spei3_df)+
-  geom_path(data = lambda_spei3_mean, aes(x = spei_value, y = lambda_spei_mean, group = Endo, color = Endo),lwd = 1)+
   geom_path(aes(x = spei_value, y = lambda_spei3, group = interaction(Endo,Iteration), color = Endo), alpha = .05, lwd = .4)+
+  geom_point(data = lambda_spei3_mean, aes(x = spei_value, y = lambda_spei_mean, group = Endo, color = Endo),lwd = 1)+
   facet_wrap(~Species, scales = "free")+
   scale_color_manual(values = endophyte_color_scheme[c(2,6)])+
   theme_classic()+ theme(strip.background = element_blank()) + labs(title = "Population Growth (3 month SPEI)", subtitle = "Mean endophyte effect with 500 posteriors draws")
 spei3_lambda_plot
 ggsave(spei3_lambda_plot, filename = "spei3_lamda_plot.png", width = 6, height = 6 )
+
+# calculating the slope for E+ and E- for each species
+lambda_spei3_slopes <- lambda_spei3_mean %>% 
+  group_by(Species, Endo) %>% 
+  summarize(spei_slope = max(lambda_spei_mean) - min(lambda_spei_mean))
+lambda_spei12_slopes <- lambda_spei12_mean %>% 
+  group_by(Species, Endo) %>% 
+  summarize(spei_slope = max(lambda_spei_mean) - min(lambda_spei_mean))
+
+  
