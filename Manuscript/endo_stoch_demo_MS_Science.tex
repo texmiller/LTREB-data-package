@@ -508,6 +508,10 @@ These stromata observations occurred irregularly across years; in most years the
 \paragraph*{Vital rate modeling}
 Equiped with this demographic data, we next fit statistical models for survival, growth, flowering (yes or no), fertility of flowering plants (no. of flowering tillers),  production of seed-bearing spikelets (no. per inflorescence), the average number of seeds per spikelet, and the recruitment of seedlings from the preceeding year's seed production.  
 We fit these vital rates as generalized linear mixed models, including a random year effect, with separate estimates of variance for symbiotic and symbiont-free plants, to quantify the effect of endophytes on interannual variance, along with other predictors as described below.
+We ran each vital rate model for 2500 warm-up and 2500 MCMC sampling iterations with three chains using RStan \cite{rstan2022}. 
+We assessed model convergence with trace plots of posterior chains and checked for $\hat{R}$ values less than 1.01, indicating low within- and between-chain variation \cite{brooks1998general, gelman2006data}. 
+For those models that showed poor convergence, we extended the MCMC sampling to include 5000 warm-up and 5000 sampling iterations, which was only necessary for seedling growth. 
+For each of these vital rate models, we graphically check model fit with posterior predictive checks comparing simulated data from 500 posterior draws with the observed data (Fig. S)
 
 \emph{Survival} - We modeled survival as a Bernoulli process, where the survival (0/1) of an individual i in year t+1 ($S_{t+1}$) was predicted by its host species ($h$), its size in year t ($x_t$), the plot-level endophyte status ($endo$), and the plants origin status ($origin$; whether it was initially transplanted or was naturally recruited into the plot).
 \begin{subequations} 
@@ -536,7 +540,6 @@ We separately modelled the survival of newly recruited seedlings, which were typ
 
 \emph{Growth} - We modeled plant size in year t+1 ($G_{t+1}$) with the same predictors as described for survival.
 Because we measured size as positive integer-valued counts of tillers, we modeled it with a zero-truncated Poisson-inverse Gaussian distribution.
-
 \begin{subequations} 
 	\label{eq:growth}
 	\begin{align}
@@ -564,7 +567,6 @@ Where $\hat{P}$ is the probability of flowering and the other notation is as abo
 
 \emph{Fertility} - For a plant that is flowering in year t+1, its fertility is the number of reproductive tillers produced ($F_{t+1}$). 
 We modeled this count data with a Poisson-Inverse Gaussian distribution.
-
 \begin{subequations} 
 	\label{eq:fertility}
 	\begin{align}
@@ -587,11 +589,9 @@ The notation is similar to Eqn. \ref{eq:growth}, but size-structure depends on s
 		\rho_{K_{[p]}} \sim Normal(0, \sigma^2_{\rho K})
 	\end{align}
 \end{subequations}
-
 Here, $\hat{K}$ is the expected number of spikelets per inflorescence, and $\theta$ is an overdispersion parameter. Other notation is as above.  
 
-\emph{Seed Production} - Because we had more detailed data across years and plants for spikelet production, we modelled the production of seeds per spikelet as species-level averages, omitting plot and year random effects. For plants with data on seed production, we calculated the number of seeds per spikelet from our counts of seeds and spikelets per inflorescence, and then modelled seeds per spikelet ($D$).
-
+\emph{Seed Production} - Because we had less detailed data across years and plants for seed production than for spikelet production, we modelled the production of seeds per spikelet as species-level averages for E+ and E- plants, omitting both plot and year random effects. For individuals with recorded counts of seed production, we calculated the number of seeds per spikelet from our counts of seeds and spikelets per inflorescence, and then modelled seeds per spikelet ($D$).
 \begin{subequations} 
 	\label{eq:seed}
 	\begin{align}
@@ -599,11 +599,9 @@ Here, $\hat{K}$ is the expected number of spikelets per inflorescence, and $\the
 		\hat{D} =  \beta_{0D_{[h]}} + \beta_{1D_{[h,e]}}(endo)
 	\end{align}
 \end{subequations}
-
 In Eqn. \ref{eq:seed}, $\hat{D}$ is the mean value of seeds per spikelet, estimated for each species and endophyte status, and $\sigma^2_D$ is the variance.
 
 \emph{Seedling Recruitment} - Finally, we used a binomial distribution to model the recruitment of new seedlings in year t+1 ($R_t+1$) into the plots from seeds produced in year t, including the same random effects structure as in other models.
-
 \begin{subequations} 
 	\label{eq:recruitment}
 	\begin{align}
@@ -613,40 +611,36 @@ In Eqn. \ref{eq:seed}, $\hat{D}$ is the mean value of seeds per spikelet, estima
 		\rho_{R_{[p]}} \sim Normal(0, \sigma^2_{\rho R})
 	\end{align}
 \end{subequations}
-
 Here, $\hat{R}$ is the expected number of recruits within each plot, and $D_t$ is the estimated number of seeds per plot in year t. 
 We estimated the number of seeds for each reproductive plant by multiplying the number of reproductive tillers by the mean number of spikelets per inflorescence and by the mean number of seeds per spikelet $\hat{D}$ from Eqn. \ref{eq:seed} drawn from the posterior distribution. 
 For plants with missing fertility or spikelet data, we used the expected number of reproductive tillers or of spikelets per infloresce from, drawing from the full posteriors of our models defined by Eqns. \ref{eq:fertility} and \ref{eq:spikelets} respectively. 
 We rounded this value to get the estimated seed production for each individual, and finally summed across all reproductive plants in each year and plot to get the total number of seeds produced. 
 
 
-These vital rates were modeled as following
-
-The first five vital rate models included the individual plant's size (using the natural logarithm of the number of tillers to ease model convergence and fitting), endophyte status for each plot, and whether the plant was part of the cohort of initially transplanted seedlings as predictors specific for each host species. 
-
-Models included random year effects, with separate estimates of variance for symbiotic and symbiont-free plants, to quantify the effect of endophytes on interannual variance. 
-All of the models, except for the seeds per spikelet model, included this year random effect specific to each species as well as a plot random effect to account for variation between plots shared across species. 
-
-The last two vital rate models were not size-structured and also did not include the plant's original transplant status. 
-Initial analyses indicated that one-tiller seedlings had different growth and survival rates than older plants, and so were modelled separately, including the same predictors without size structure or an effect to account for original transplant effects.
-Key to quantifying the effect of endophytes on interannual variance in these vital rates and consequently on host population growth, models included random year effects, with separate estimates of variance for symbiotic and symbiont-free plants. 
-
-Seeds per spikelet, which varies less between individuals, and based on fewer years of data, was estimated as a species-level mean for E+ and E- plants omitting both year and plot random effects.
-
-
-
-
-
-We ran each vital rate model for 2500 warm-up and 2500 MCMC sampling iterations with three chains using RStan \cite{rstan2022}. 
-We assessed model convergence with trace plots of posterior chains and checked for $\hat{R}$ values less than 1.01, indicating low within- and between-chain variation \cite{brooks1998general, gelman2006data}. 
-For those models that showed poor convergence, we extended the MCMC sampling to include 5000 warm-up and 5000 sampling iterations, which was only necessary for seedling growth. 
-For each of these vital rate models, we graphically check model fit with posterior predictive checks comparing simulated data from 500 posterior draws with the observed data (Fig. S)
 
 \paragraph*{Stochastic population model}
+Using the fitted vital rate models, we parameterized stochastic matrix population models to evaluate the effects of endophytes on the mean and variance in population growth rates.
 
 \paragraph*{Mean-variance decomposition and simulation experiment}
 
 \paragraph*{Estimating climate drivers of environmental context-dependence}
+To connect the variance buffering effects of endophytes with interannual climatic variability, we built climate-explicit stochastic matrix population models from the vital rate data.
+To do this, we first downloaded temperature and precipitation data from the weather station in Bloomington, IN,  approx. 27 km from our study site, using the rnoaa package \cite{}. 
+Compared to other weather stations in the area, the measurements from Bloomington contain the most complete climate record across the study period, and are correlated with more local measurements from Nashville, IN (total annual precipitation: $R^2$ = .60; mean annual temperature: $R^2$ = .62).
+At our study site, annual precipitation is more variable than annual mean temperature.
+Given endophytes known role in drought tolerance, we calculated the Standardised Precipitation-Evapotranspiration Index for 3 and 12 months preceding each annual censuses, reflecting drought during the growing season and across the year \cite{}.
+We repeated the process of fitting statistical models for each vital rate as described above with the inclusion of a parameter describing the relationship with the climate driver. 
+We fit separate vital rate models incorporating either the growing season or annual drought index.  
+Initial analyses indicated similar model fits for models including only a linear term and those with both linear and  quadratic terms describing the relationship between the climate driver and the vital rate response, and so we proceeded with models including only the linear term.
+Including annual climate predictors into the models should explain some interannual variance in vital rates, shrinking the variance associated with the fitted year random effects.
+We found that the chosen climate drivers had predictive value although a large degree of interannual variance remained. 
+
+We next built stochastic matrix population models incorporating the climate-dependence to assess the the response of symbiotic vs symbiont-free populations to drought. 
+While there is a large degree of uncertainty, population growth across species was greater during wetter years, particularly driven by the growing season climate. 
+For variance buffering to occur, we would expect symbiotic populations to be less sensitive to drought. 
+In line with this expectation, the overall slope of the growing season climate relationship was lower in symbiotic populations for \emph{A. perennans}, \emph{E. virginicus}, \emph{F. subverticillata}, \emph{P. alsodes}, which our simulations suggest will are the species benefit the most from variance buffering in more variable climates (Fig. SXX).
+
+
 
 % For your review copy (i.e., the file you initially send in for
 % evaluation), you can use the {figure} environment and the
