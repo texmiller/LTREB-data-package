@@ -1904,7 +1904,7 @@ dim(LTREB_full_update_lag)
 ####### Merging in the endophyte checks ------------------------------
 ##############################################################################
 
-LTREB_endo_check <- read_csv(file = "~/Dropbox/EndodemogData/Fulldataplusmetadata/endo_demog_status.csv")  
+LTREB_endo_check <- read_csv(file = "~/Dropbox/EndodemogData/Fulldataplusmetadata/endo_demog_status.csv") %>%  
   dplyr::select(-recno,-check, -...11) %>% 
   rename("origin_from_check" = "origin", "endo_status_from_check" = "status", "plot_endo_for_check" = "endo") %>% 
   mutate(origin_01 = as.integer(case_when(origin_from_check == "O" ~ 0, 
@@ -2039,7 +2039,9 @@ monitors <- c("USC00126056", "USC00120784", "USC00121747")
 # Getting lat, long and elevation for each station
 station_data <- ghcnd_stations() %>% 
   filter(id %in% monitors) %>% 
-  dplyr::select(id, name, latitude, longitude, elevation)
+  dplyr::select(id, name, latitude, longitude, elevation) %>% 
+  distinct()
+  
 
 # extract precipitation data for the three stations
 climate <- 
@@ -2113,7 +2115,7 @@ census_months <- data.frame(species = c("AGPE", "ELRI", "ELVI", "FESU", "LOAR", 
 LTREB_full_3 <- LTREB_full_2 %>% 
   left_join(census_months)
 
-  
+
 # Getting climate data for species with census month (just bloomington)
 
 climate_census_month <- climate %>% 
