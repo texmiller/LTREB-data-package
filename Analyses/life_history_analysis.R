@@ -1,0 +1,582 @@
+## Title: Grass endophyte life history metrics
+## Purpose: calculates life histoory metrics from matrix population model
+## and compares them to endophyte effects on mean and variance
+## Authors: Joshua and Tom
+#############################################################
+
+library(tidyverse)
+library(scales)
+library(popbio) # for MPM
+library(Rage) # for gen time, longevity etc.
+# library(countreg)
+library(actuar)
+library(rstan)
+library(patchwork)
+library(bbmle) # for AIC
+
+quote_bare <- function( ... ){
+  substitute( alist(...) ) %>% 
+    eval( ) %>% 
+    sapply( deparse )
+}
+
+#############################################################################################
+####### Read in Data and creating size bins------------------
+#############################################################################################
+
+# source("Analyses/endodemog_data_processing.R")
+
+tompath <- "C:/Users/tm9/Dropbox/EndodemogData/"
+joshpath <- "~/Dropbox/EndodemogData/"
+path<-joshpath
+
+LTREB_full <- read_csv(paste0(path,"Fulldataplusmetadata/LTREB_full.csv"))
+
+max_size <- LTREB_full %>% 
+  dplyr::select(species,species_index, size_t) %>% 
+  filter(!is.na(size_t)) %>% 
+  group_by(species, species_index) %>% 
+  summarise(actual_max_size = max(size_t),
+            max_size = quantile(size_t,probs=0.975),
+            max_size_99 = quantile(size_t,probs=0.99)) # The mean and sd effects plots look basically identical with either max size
+
+# ggplot(data = LTREB_full)+
+#   geom_histogram(aes(size_t)) +
+#   geom_vline(data = max_size, aes(xintercept = max_size))+
+#   geom_vline(data = max_size, aes(xintercept = max_size_99), col = "red")+
+#   facet_wrap(~species, scales = "free")
+
+#############################################################################################
+####### Read in matrix population functions ------------------
+#############################################################################################
+
+source("Analyses/MPM_functions.R")
+
+
+#############################################################################################
+####### Read in Stan vital rate model outputs ------------------
+#############################################################################################
+
+surv_fit_seedling <- read_rds(paste0(path,"/Model_Runs/endo_seedling_surv.rds"))
+surv_fit <- read_rds(paste0(path,"/Model_Runs/endo_spp_surv_woseedling.rds"))
+grow_fit_seedling <- read_rds(paste0(path,"/Model_Runs/endo_seedling_grow_PIG_10000iterations.rds"))
+grow_fit <- read_rds(paste0(path,"/Model_Runs/endo_spp_grow_PIG.rds"))
+flw_fit <- read_rds(paste0(path,"/Model_Runs/endo_spp_flw.rds"))
+fert_fit <- read_rds(paste0(path,"/Model_Runs/endo_spp_fert_PIG.rds"))
+spike_fit <- read_rds(paste0(path,"/Model_Runs/endo_spp_spike_year_plot_nb.rds"))
+seedmean_fit <- read_rds(paste0(path,"/Model_Runs/seed_mean.rds"))
+stos_fit <- read_rds(paste0(path,"/Model_Runs/endo_spp_s_to_s.rds")) 
+
+# surv_fit_seedling <- readRDS(url("https://www.dropbox.com/s/vf1mju5u4c4fs3t/endo_seedling_surv.rds?dl=1"))
+# surv_fit <- readRDS(url("https://www.dropbox.com/s/00bor35inv5dypd/endo_spp_surv_woseedling.rds?dl=1"))
+# grow_fit_seedling <- readRDS(url("https://www.dropbox.com/s/m0mw5z29slpm4p7/endo_seedling_grow_PIG_10000iterations.rds?dl=1"))
+# grow_fit <- readRDS(url("https://www.dropbox.com/s/0ze8aooi9axj3oq/endo_spp_grow_PIG.rds?dl=1"))
+# flw_fit <- readRDS(url("https://www.dropbox.com/s/ej65pn5k0km0z9c/endo_spp_flw.rds?dl=1"))
+# fert_fit <- readRDS(url("https://www.dropbox.com/s/pk4x1j97kazu6pb/endo_spp_fert_pig.rds?dl=1"))
+# spike_fit <- readRDS(url("https://www.dropbox.com/s/pjgui0n9tng6427/endo_spp_spike_year_plot_nb.rds?dl=1"))
+# seedmean_fit <- readRDS(url("https://www.dropbox.com/s/3ma5yc8iusu8bh0/endo_spp_seed_mean.rds?dl=1"))
+# stos_fit <- readRDS(url("https://www.dropbox.com/s/nf50hd76iw3hucw/endo_spp_s_to_s.rds?dl=1"))
+
+surv_par <- rstan::extract(surv_fit, pars =quote_bare(beta0,betasize,betaendo,betaorigin,
+                                                      tau_year, tau_plot))
+surv_sdlg_par <- rstan::extract(surv_fit_seedling, pars =quote_bare(beta0,betaendo,
+                                                                    tau_year, tau_plot))
+grow_par <- rstan::extract(grow_fit, pars = quote_bare(beta0,betasize,betaendo,betaorigin,
+                                                       tau_year, tau_plot,
+                                                       sigma))
+grow_sdlg_par <- rstan::extract(grow_fit_seedling, pars = quote_bare(beta0,betaendo,
+                                                                     tau_year, tau_plot,
+                                                                     sigma))
+flow_par <- rstan::extract(flw_fit, pars = quote_bare(beta0,betasize,betaendo,betaorigin,
+                                                      tau_year, tau_plot))
+fert_par <- rstan::extract(fert_fit, pars = quote_bare(beta0,betasize,betaendo,betaorigin,
+                                                       tau_year, tau_plot))
+spike_par <- rstan::extract(spike_fit, pars = quote_bare(beta0,betasize,betaendo,betaorigin,
+                                                         tau_year, tau_plot,
+                                                         phi))
+seed_par <- rstan::extract(seedmean_fit, pars = quote_bare(beta0,betaendo)) #no plot or year effect
+recruit_par <- rstan::extract(stos_fit, pars = quote_bare(beta0,betaendo,
+                                                          tau_year, tau_plot))
+# dim(surv_par$tau_year)
+# plot(surv_par$tau_year[,1,1,], grow_par$tau_year[,1,1,], col = levels(as_factor(grow_par$tau_year[1,1,1,])))
+#############################################################################################
+####### Run the MPM ------------------
+#############################################################################################
+
+# make the list of parameters and calculate mean lambdas
+n_draws <- 500 # the means are the same whether we do 500 or 1000 draws
+post_draws <- sample.int(7500,size=n_draws) # The models except for seedling growth have 7500 iterations. That one has more (15000 iterations) to help it converge.
+
+gen_time <- array(dim = c(7,2,n_draws))
+longev <- array(dim = c(7,2,n_draws))
+mean_life_expect <- array(dim = c(7,2,n_draws))
+var_life_expect <- array(dim = c(7,2,n_draws))
+R0 <- array(dim = c(7,2,n_draws))
+repro_age <- array(dim = c(7,2,n_draws))
+for(i in 1:length(post_draws)){
+  for(e in 1:2){
+    for(s in 1:7){
+      gen_time[s,e,i] <- gen_time(matU = bigmatrix(make_params(species=s,
+                                                               endo_mean=(e-1),
+                                                               endo_var=(e-1),
+                                                               original = 0, # should be =1 to represent recruit
+                                                               draw=post_draws[i],
+                                                               max_size=max_size,
+                                                               rfx=F,
+                                                               surv_par=surv_par,
+                                                               surv_sdlg_par = surv_sdlg_par,
+                                                               grow_par=grow_par,
+                                                               grow_sdlg_par = grow_sdlg_par,
+                                                               flow_par=flow_par,
+                                                               fert_par=fert_par,
+                                                               spike_par=spike_par,
+                                                               seed_par=seed_par,
+                                                               recruit_par=recruit_par), 
+                                                   extension = 100)$Tmat,
+                                  matR = bigmatrix(make_params(species=s,
+                                                               endo_mean=(e-1),
+                                                               endo_var=(e-1),
+                                                               original = 0, # should be =1 to represent recruit
+                                                               draw=post_draws[i],
+                                                               max_size=max_size,
+                                                               rfx=F,
+                                                               surv_par=surv_par,
+                                                               surv_sdlg_par = surv_sdlg_par,
+                                                               grow_par=grow_par,
+                                                               grow_sdlg_par = grow_sdlg_par,
+                                                               flow_par=flow_par,
+                                                               fert_par=fert_par,
+                                                               spike_par=spike_par,
+                                                               seed_par=seed_par,
+                                                               recruit_par=recruit_par), 
+                                                   extension = 100)$Fmat)
+      longev[s,e,i] <- longevity(matU = bigmatrix(make_params(species=s,
+                                                                        endo_mean=(e-1),
+                                                                        endo_var=(e-1),
+                                                                        original = 0, # should be =1 to represent recruit
+                                                                        draw=post_draws[i],
+                                                                        max_size=max_size,
+                                                                        rfx=F,
+                                                                        surv_par=surv_par,
+                                                                        surv_sdlg_par = surv_sdlg_par,
+                                                                        grow_par=grow_par,
+                                                                        grow_sdlg_par = grow_sdlg_par,
+                                                                        flow_par=flow_par,
+                                                                        fert_par=fert_par,
+                                                                        spike_par=spike_par,
+                                                                        seed_par=seed_par,
+                                                                        recruit_par=recruit_par), 
+                                                            extension = 100)$Tmat, start = 1, lx_crit = 0.05)
+      mean_life_expect[s,e,i] <- life_expect_mean(matU = bigmatrix(make_params(species=s,
+                                                              endo_mean=(e-1),
+                                                              endo_var=(e-1),
+                                                              original = 0, # should be =1 to represent recruit
+                                                              draw=post_draws[i],
+                                                              max_size=max_size,
+                                                              rfx=F,
+                                                              surv_par=surv_par,
+                                                              surv_sdlg_par = surv_sdlg_par,
+                                                              grow_par=grow_par,
+                                                              grow_sdlg_par = grow_sdlg_par,
+                                                              flow_par=flow_par,
+                                                              fert_par=fert_par,
+                                                              spike_par=spike_par,
+                                                              seed_par=seed_par,
+                                                              recruit_par=recruit_par), 
+                                                  extension = 100)$Tmat, start = 1)
+      var_life_expect[s,e,i] <- life_expect_var(matU = bigmatrix(make_params(species=s,
+                                                                               endo_mean=(e-1),
+                                                                               endo_var=(e-1),
+                                                                               original = 0, # should be =1 to represent recruit
+                                                                               draw=post_draws[i],
+                                                                               max_size=max_size,
+                                                                               rfx=F,
+                                                                               surv_par=surv_par,
+                                                                               surv_sdlg_par = surv_sdlg_par,
+                                                                               grow_par=grow_par,
+                                                                               grow_sdlg_par = grow_sdlg_par,
+                                                                               flow_par=flow_par,
+                                                                               fert_par=fert_par,
+                                                                               spike_par=spike_par,
+                                                                               seed_par=seed_par,
+                                                                               recruit_par=recruit_par), 
+                                                                   extension = 100)$Tmat, start = 1)
+      R0[s,e,i] <- net_repro_rate(matU = bigmatrix(make_params(species=s,
+                                                                         endo_mean=(e-1),
+                                                                         endo_var=(e-1),
+                                                                         original = 0, # should be =1 to represent recruit
+                                                                         draw=post_draws[i],
+                                                                         max_size=max_size,
+                                                                         rfx=F,
+                                                                         surv_par=surv_par,
+                                                                         surv_sdlg_par = surv_sdlg_par,
+                                                                         grow_par=grow_par,
+                                                                         grow_sdlg_par = grow_sdlg_par,
+                                                                         flow_par=flow_par,
+                                                                         fert_par=fert_par,
+                                                                         spike_par=spike_par,
+                                                                         seed_par=seed_par,
+                                                                         recruit_par=recruit_par), 
+                                                             extension = 100)$Tmat,
+                                            matR = bigmatrix(make_params(species=s,
+                                                                         endo_mean=(e-1),
+                                                                         endo_var=(e-1),
+                                                                         original = 0, # should be =1 to represent recruit
+                                                                         draw=post_draws[i],
+                                                                         max_size=max_size,
+                                                                         rfx=F,
+                                                                         surv_par=surv_par,
+                                                                         surv_sdlg_par = surv_sdlg_par,
+                                                                         grow_par=grow_par,
+                                                                         grow_sdlg_par = grow_sdlg_par,
+                                                                         flow_par=flow_par,
+                                                                         fert_par=fert_par,
+                                                                         spike_par=spike_par,
+                                                                         seed_par=seed_par,
+                                                                         recruit_par=recruit_par), 
+                                                             extension = 100)$Fmat)
+      repro_age[s,e,i] <- mature_age(matU = bigmatrix(make_params(species=s,
+                                                               endo_mean=(e-1),
+                                                               endo_var=(e-1),
+                                                               original = 0, # should be =1 to represent recruit
+                                                               draw=post_draws[i],
+                                                               max_size=max_size,
+                                                               rfx=F,
+                                                               surv_par=surv_par,
+                                                               surv_sdlg_par = surv_sdlg_par,
+                                                               grow_par=grow_par,
+                                                               grow_sdlg_par = grow_sdlg_par,
+                                                               flow_par=flow_par,
+                                                               fert_par=fert_par,
+                                                               spike_par=spike_par,
+                                                               seed_par=seed_par,
+                                                               recruit_par=recruit_par), 
+                                                   extension = 100)$Tmat,
+                                  matR = bigmatrix(make_params(species=s,
+                                                               endo_mean=(e-1),
+                                                               endo_var=(e-1),
+                                                               original = 0, # should be =1 to represent recruit
+                                                               draw=post_draws[i],
+                                                               max_size=max_size,
+                                                               rfx=F,
+                                                               surv_par=surv_par,
+                                                               surv_sdlg_par = surv_sdlg_par,
+                                                               grow_par=grow_par,
+                                                               grow_sdlg_par = grow_sdlg_par,
+                                                               flow_par=flow_par,
+                                                               fert_par=fert_par,
+                                                               spike_par=spike_par,
+                                                               seed_par=seed_par,
+                                                               recruit_par=recruit_par), 
+                                                   extension = 100)$Fmat)
+    }
+  }
+}
+
+#saving the generation time calculation and calculating mean for each species
+saveRDS(gen_time, file = "~/Dropbox/EndodemogData/Model_Runs/MPM_output/gen_time.rds")
+saveRDS(longev, file = "~/Dropbox/EndodemogData/Model_Runs/MPM_output/longev.rds")
+saveRDS(mean_life_expect, file = "~/Dropbox/EndodemogData/Model_Runs/MPM_output/mean_life_expect.rds")
+saveRDS(var_life_expect, file = "~/Dropbox/EndodemogData/Model_Runs/MPM_output/var_life_expect.rds")
+saveRDS(R0, file = "~/Dropbox/EndodemogData/Model_Runs/MPM_output/R0.rds")
+saveRDS(repro_age, file = "~/Dropbox/EndodemogData/Model_Runs/MPM_output/repro_age.rds")
+
+gen_time <- read_rds(file = "~/Dropbox/EndodemogData/Model_Runs/MPM_output/gen_time.rds")
+longev <- read_rds(file = "~/Dropbox/EndodemogData/Model_Runs/MPM_output/longev.rds")
+mean_life_expect <- read_rds(file = "~/Dropbox/EndodemogData/Model_Runs/MPM_output/mean_life_expect.rds")
+var_life_expect <- read_rds(file = "~/Dropbox/EndodemogData/Model_Runs/MPM_output/var_life_expect.rds")
+R0 <- read_rds(file = "~/Dropbox/EndodemogData/Model_Runs/MPM_output/R0.rds")
+repro_age <- read_rds(repro_age, file = "~/Dropbox/EndodemogData/Model_Runs/MPM_output/repro_age.rds")
+
+gen_time_summary <- longev_summary <- mean_life_expect_summary <- var_life_expect_summary <-  R0_summary <- repro_age_summary <- matrix(NA,7,3)
+for(s in 1:7){
+  gen_time_summary[s,1] <- mean(gen_time[s,1,])
+  gen_time_summary[s,2] <- mean(gen_time[s,2,])
+  gen_time_summary[s,3] <- mean(gen_time[s,,])
+  
+  longev_summary[s,1] <- mean(longev[s,1,])
+  longev_summary[s,2] <- mean(longev[s,2,])
+  longev_summary[s,3] <- mean(longev[s,,])
+  
+  mean_life_expect_summary[s,1] <- mean(mean_life_expect[s,1,])
+  mean_life_expect_summary[s,2] <- mean(mean_life_expect[s,2,])
+  mean_life_expect_summary[s,3] <- mean(mean_life_expect[s,,])
+  
+  var_life_expect_summary[s,1] <- mean(var_life_expect[s,1,])
+  var_life_expect_summary[s,2] <- mean(var_life_expect[s,2,])
+  var_life_expect_summary[s,3] <- mean(var_life_expect[s,,])
+  
+  R0_summary[s,1] <- mean(R0[s,1,])
+  R0_summary[s,2] <- mean(R0[s,2,])
+  R0_summary[s,3] <- mean(R0[s,,])
+  
+  repro_age_summary[s,1] <- mean(repro_age[s,1,])
+  repro_age_summary[s,2] <- mean(repro_age[s,2,])
+  repro_age_summary[s,3] <- mean(repro_age[s,,])
+}
+
+
+# reading in lambda_mean and lambda_var with 500 post draws from dropbox, derived from MPM_analysis script
+lambda_mean <- read_rds(file = "~/Dropbox/EndodemogData/Model_Runs/MPM_output/lambda_mean.rds")
+
+lambda_hold <- read_rds(file = "~/Dropbox/EndodemogData/Model_Runs/MPM_output/lambda_hold.rds")
+lambda_var <- read_rds(file = "~/Dropbox/EndodemogData/Model_Runs/MPM_output/lambda_var.rds")
+
+# Mean endophyte difference and quantiles
+lambda_means <- matrix(NA,8,2)
+lambda_mean_diff <- matrix(NA,8,7)
+for(s in 1:8){
+  lambda_means[s,1] <- mean(lambda_mean[s,1,])
+  lambda_means[s,2] <- mean(lambda_mean[s,2,])
+  lambda_mean_diff[s,1] = mean(lambda_mean[s,2,] - lambda_mean[s,1,])
+  lambda_mean_diff[s,2:7] = quantile(lambda_mean[s,2,] - lambda_mean[s,1,],probs=c(0.05,0.125,0.25,0.75,0.875,0.95))
+}
+
+# Calculating endophyte effect on sd and variance
+lambda_sds <- matrix(NA,8,2)
+lambda_vars <- matrix(NA,8,2)
+
+lambda_cv <- (lambda_var^2)/(lambda_mean) 
+
+lambda_cvs <- matrix(NA,8,2)
+
+lambda_sd_diff <- matrix(NA,8,7)
+lambda_var_diff <- matrix(NA,8,7)
+lambda_cv_diff <-  matrix(NA,8,7)
+for(s in 1:8){
+  lambda_sds[s,1] <- mean(lambda_var[s,1,])
+  lambda_sds[s,2] <- mean(lambda_var[s,2,])
+  
+  lambda_vars[s,1] <- mean(lambda_var[s,1,])^2
+  lambda_vars[s,2] <- mean(lambda_var[s,2,])^2
+  # 
+  lambda_cvs[s,1] <- mean(lambda_cv[s,1,])
+  lambda_cvs[s,2] <- mean(lambda_cv[s,2,])
+  
+  lambda_sd_diff[s,1] = mean(lambda_var[s,2,]) - mean(lambda_var[s,1,])
+  lambda_sd_diff[s,2:7] = quantile(lambda_var[s,2,] - lambda_var[s,1,],probs=c(0.05,0.125,0.25,0.75,0.875,0.95))
+  
+  lambda_var_diff[s,1] = mean(lambda_var[s,2,]^2 - lambda_var[s,1,]^2)
+  lambda_var_diff[s,2:7] = quantile(lambda_var[s,2,]^2 - lambda_var[s,1,]^2,probs=c(0.05,0.125,0.25,0.75,0.875,0.95))
+  
+  lambda_cv_diff[s,1] = mean(lambda_cv[s,2,] - lambda_cv[s,1,])
+  lambda_cv_diff[s,2:7] = quantile(lambda_cv[s,2,] - lambda_cv[s,1,],probs=c(0.05,0.125,0.25,0.75,0.875,0.95))
+  
+}
+#seed length measurements taken from Rudgers et al. 2009. doesn't have data for LOAR, so using FESU,
+seed_size <- c(1.75,7.25,8,3.75,1.75,3.45,2.6)
+#imperfect transmission measurements from LTREB proposal, filling in LOAR with 100 for now, and POSY rate seems really low though?
+imperfect_trans <- c(69.8,100,100,42.7,100,99.9,16.6)
+# count of branches in phylogeny from J of Sytematics Evolution, Volume: 53, Issue: 2, Pages: 117-137, First published: 02 March 2015, DOI: (10.1111/jse.12150) 
+# relatedness = c(7,5,5,10,7,7,10)
+subtribes <- c("Agrostinae", "Tritaceae","Tritaceae", "Loliinae", "Loliinae", "Poinae", "Poinae")
+
+
+empirical_ages <- LTREB_full %>% 
+  dplyr::select(species,species_index, pos, id) %>% 
+  # filter(!is.na(size_t)) %>% 
+  group_by(species, species_index, id) %>% 
+  summarise(age = n()) %>% 
+  group_by(species, species_index) %>% 
+  summarize(observed_max_age = max(age),
+            max_age_97.5 = quantile(age,probs=0.975),
+            max_age_99 = quantile(age,probs=0.99))
+
+traits_df <- empirical_ages
+traits_df$gen_time <- gen_time_summary[,3]
+traits_df$longev <- longev_summary[,3]
+traits_df$mean_life_expect <- mean_life_expect_summary[,3]
+traits_df$var_life_expect <- var_life_expect_summary[,3]
+traits_df$R0 <- R0_summary[,3]
+traits_df$repro_age <- repro_age_summary[,3]
+traits_df$seed_size <- seed_size
+traits_df$imperfect_trans <- imperfect_trans
+
+traits_df$sd_effect <- lambda_sd_diff[1:7,1]
+traits_df$cv_effect <- lambda_cv_diff[1:7,1]
+traits_df$mean_effect <- lambda_mean_diff[1:7,1]
+
+traits_df_long <- traits_df %>% 
+  pivot_longer(cols = c("observed_max_age", "max_age_97.5", "max_age_99", "gen_time", 
+                        "longev", "mean_life_expect", "var_life_expect", 
+                        "R0", "repro_age", "seed_size", "imperfect_trans"))
+
+ggplot(data = traits_df_long)+
+  geom_point(aes(y = sd_effect, x = value))+
+  geom_smooth(aes(y = sd_effect, x = value), method = "glm")+
+  facet_wrap(~name, scales = "free_x")
+
+ggplot(data = filter(traits_df_long, species != "LOAR"))+
+  geom_point(aes(y = sd_effect, x = value))+
+  geom_smooth(aes(y = sd_effect, x = value), method = "glm")+
+  facet_wrap(~name, scales = "free_x")
+
+ggplot(data = traits_df_long)+
+  geom_point(aes(y = cv_effect, x = value))+
+  geom_smooth(aes(y = cv_effect, x = value), method = "glm")+
+  facet_wrap(~name, scales = "free")
+
+ggplot(data = traits_df_long)+
+  geom_point(aes(y = mean_effect, x = value))+
+  geom_smooth(aes(y = mean_effect, x = value), method = "glm")+
+  facet_wrap(~name, scales = "free")
+
+ggplot(data = traits_df)+
+  geom_point(aes(x = mean_life_expect, y = var_life_expect))
+
+for_pca <- tibble(lambda_sd_diff[1:7,1], lambda_mean_diff[1:7,1],gen_time_summary[,3], longev_summary[,3], mean_life_expect_summary[,3], R0_summary[,3], relatedness , seed_size, subtribes)
+pc <- prcomp(for_pca[,1:8],
+             center = TRUE,
+             scale = FALSE)
+pc <- prcomp(for_pca[,1:2],
+               center = FALSE,
+               scale = FALSE)
+pc
+summary(pc)
+biplot(pc)
+
+plot( lambda_mean_diff[1:7,1], lambda_var_diff[1:7,1], col = as.factor(subtribes))
+
+pc <- prcomp(traits_df[,2:13])
+
+library(vegan)
+nmds <- envfit(pc,traits_df[,3:13])
+
+nmds <- envfit(pc,for_pca[,3:6], permu = 999)
+
+biplot(pc)
+plot(nmds)
+
+############################################################################################
+#####  Fitting regressions of the traits on the mean and variance effects        ###########
+############################################################################################
+
+
+# model selection
+lh_models <- list()
+# lh_models[[1]] <- lm(sd_effect ~ observed_max_age, data = traits_df)
+# lh_models[[2]] <- lm(sd_effect ~ max_age_97.5, data = traits_df)
+# lh_models[[3]] <- lm(sd_effect ~ max_age_99, data = traits_df)
+# lh_models[[4]] <- lm(sd_effect ~ gen_time, data = traits_df)
+# lh_models[[5]] <- lm(sd_effect ~ longev, data = traits_df)
+# lh_models[[6]] <- lm(sd_effect ~ mean_life_expect, data = traits_df)
+# lh_models[[7]] <- lm(sd_effect ~ var_life_expect, data = traits_df)
+# lh_models[[8]] <- lm(sd_effect ~ R0, data = traits_df)
+# lh_models[[9]] <- lm(sd_effect ~ seed_size, data = traits_df)
+# lh_models[[10]] <- lm(sd_effect ~ imperfect_trans, data = traits_df)
+# 
+# lh_models[[11]] <- lm(mean_effect ~ observed_max_age, data = traits_df)
+# lh_models[[12]] <- lm(mean_effect ~ max_age_97.5, data = traits_df)
+# lh_models[[13]] <- lm(mean_effect ~ max_age_99, data = traits_df)
+# lh_models[[14]] <- lm(mean_effect ~ gen_time, data = traits_df)
+# lh_models[[15]] <- lm(mean_effect ~ longev, data = traits_df)
+# lh_models[[16]] <- lm(mean_effect ~ mean_life_expect, data = traits_df)
+# lh_models[[17]] <- lm(mean_effect ~ var_life_expect, data = traits_df)
+# lh_models[[18]] <- lm(mean_effect ~ R0, data = traits_df)
+# lh_models[[19]] <- lm(mean_effect ~ seed_size, data = traits_df)
+# lh_models[[20]] <- lm(mean_effect ~ imperfect_trans, data = traits_df)
+
+lh_models[[1]] <- lm(cv_effect ~ observed_max_age, data = traits_df)
+lh_models[[2]] <- lm(cv_effect ~ max_age_99, data = traits_df)
+lh_models[[3]] <- lm(cv_effect ~ gen_time, data = traits_df)
+lh_models[[4]] <- lm(cv_effect ~ longev, data = traits_df)
+lh_models[[5]] <- lm(cv_effect ~ mean_life_expect, data = traits_df)
+lh_models[[6]] <- lm(cv_effect ~ R0, data = traits_df)
+lh_models[[7]] <- lm(cv_effect ~ seed_size, data = traits_df)
+lh_models[[8]] <- lm(cv_effect ~ imperfect_trans, data = traits_df)
+
+AICtab(lh_models)
+summary(lh_models[[1]]) #*
+summary(lh_models[[2]])#*
+summary(lh_models[[3]])
+summary(lh_models[[4]])#.06
+summary(lh_models[[5]])#.09
+summary(lh_models[[6]])#.07
+summary(lh_models[[7]])#*
+summary(lh_models[[8]])
+summary(lh_models[[9]])
+lh_predictions <- list()
+lh_predictions[[1]] <- predict(lh_models[[1]], newdata = data.frame(observed_max_age = seq(from = min(traits_df$observed_max_age), to = max(traits_df$observed_max_age), by = .1)),  type = "response")
+lh_predictions[[2]] <- predict(lh_models[[2]], newdata = data.frame(max_age_99 = seq(from = min(traits_df$max_age_99), to = max(traits_df$max_age_99), by = .1)),  type = "response")
+lh_predictions[[3]] <- predict(lh_models[[3]], newdata = data.frame(gen_time = seq(from = min(traits_df$gen_time), to = max(traits_df$gen_time), by = .1)),  type = "response")
+lh_predictions[[4]] <- predict(lh_models[[4]], newdata = data.frame(longev = seq(from = min(traits_df$longev), to = max(traits_df$longev), by = .1)),  type = "response")
+lh_predictions[[5]] <- predict(lh_models[[5]], newdata = data.frame(longev = seq(from = min(traits_df$longev), to = max(traits_df$longev), by = .1)),  type = "response")
+lh_predictions[[6]] <- predict(lh_models[[6]], newdata = data.frame(longev = seq(from = min(traits_df$longev), to = max(traits_df$longev), by = .1)),  type = "response")
+lh_predictions[[7]] <- predict(lh_models[[7]], newdata = data.frame(longev = seq(from = min(traits_df$longev), to = max(traits_df$longev), by = .1)),  type = "response")
+lh_predictions[[8]] <- predict(lh_models[[8]], newdata = data.frame(longev = seq(from = min(traits_df$longev), to = max(traits_df$longev), by = .1)),  type = "response")
+lh_predictions[[9]] <- predict(lh_models[[9]], newdata = data.frame(longev = seq(from = min(traits_df$longev), to = max(traits_df$longev), by = .1)),  type = "response")
+
+
+# reading in phylo tree of epichloe (Leuchtmann et al. 2014; https://doi.org/10.3852/13-251)
+library(ape)
+epichloe <- ape::read.nexus("/Users/joshuacfowler/Documents/R_projects/Grass-Endophyte-Stochastic-Demography/Analyses/T68066.nex")
+
+epichloe_species <- c("Epichloe_amarillans_ATCC_200744_ex._Agrostis_hyemalis", "Epichloe_elymi_ATCC_201555_ex._Elymus_villosus","Epichloe_amarillans_E1087_ex._Elymus_virginicus" , 
+                      "Epichloe_typhina_subsp._poae_e1097_ex._Poa_sylvestris", "Epichloe_coenophiala_ATCC_90664_tubBty_ex._Schedonorus_arundinaceus_6x",
+                      "Epichloe_elymi_e1081_ex._Bromus_kalmii", "Epichloe_sp._PauTG1_e55_tubBel_ex._Poa_autumnalis", "Epichloe_sinica_Rxy6106_tubBsy_ex._Roegneria_sp." ,"Epichloe_sibirica_MTIX85_ex._Achnatherum_sibiricum",
+                       "Epichloe_occultans_Lm2_tubBbo_ex._Lolium_multiflorum"                       
+                      , "Epichloe_occultans_Lro1_tubBbo_ex._Lolium_rigidum_var._rottboellioides"   
+                      , "Epichloe_occultans_Lrr1_tubBbo_ex._Lolium_rigidum_var._rigidum"               
+                      , "Epichloe_bromicola_ATCC_200749_ex._Bromus_erectus"                            
+                      , "Epichloe_bromicola_ATCC_201558_ex._Bromus_ramosus"                            
+                      , "Epichloe_sp._FalTG1_e507_tubBbo_ex._Festuca_altissima"                        
+                      , "Epichloe_bromicola_ATCC_200750_ex._Bromus_erectus"                            
+                      , "Epichloe_sinofestucae_Fnj66056_tubBbo_ex._Festuca_parvigluma"                 
+                      , "Epichloe_liyangensis_Ply9101_tubBbo_ex._Poa_pratensis"                        
+                      , "Epichloe_bromicola_AL8918x1_ex._Bromus_benekenii"                             
+                      , "Epichloe_bromicola_e362_ex._Hordelymus_europaeus"                             
+                      , "Epichloe_bromicola_AL8923x2_ex._Bromus_benekenii"                             
+                      , "Epichloe_siegelii_ATCC_74483_tubBbo_ex._Schedonorus_pratensis"                
+                      , "Epichloe_danica_D2_5_tubBbo_ex._Hordelymus_europaeus"                         
+                      , "Epichloe_sinofestucae_Fnj4604_tubBbo_ex._Festuca_parvigluma"                  
+                      , "Epichloe_sinofestucae_Fnj4602_tubBbo_ex._Festuca_parvigluma"                  
+                      , "Epichloe_bromicola_Rnj4201_ex._Roegneria_kamoji"                              
+                      , "Epichloe_sinofestucae_Fnj4603_tubBbo_ex._Festuca_parvigluma"                  
+                      , "Epichloe_hordelymi_e361_tubBbo_ex._Hordelymus_europaeus"                      
+                      , "Epichloe_bromicola_gi407180328_ex._Leymus_chinensis"                          
+                      , "Epichloe_bromicola_gi407180316_ex._Leymus_chinensis"                          
+                      , "Epichloe_bromicola_gi407180308_ex._Leymus_chinensis"                          
+                      , "Epichloe_bromicola_gi407180310_ex._Leymus_chinensis"                          
+                      , "Epichloe_bromicola_AL0814x1_ex._Elymus_repens"                                
+                      , "Epichloe_chisosa_ATCC_64037_tubBbo_ex._Achnatherum_eminens"                   
+                      , "Epichloe_sinica_Rxy6106_tubBbo_ex._Roegneria_sp."                             
+                      , "Epichloe_liyangensis_Ply9102_tubBbo_ex._Poa_pratensis"                        
+                      , "Epichloe_sinica_Rts2102_tubBbo_ex._Roegneria_sp."                             
+                      , "Epichloe_sinica_Rxy6107_tubBbo_ex._Roegneria_sp."                             
+                      , "Epichloe_sp._HboTG2_MYA_2503_tubBbo_ex._Hordeum_bogdanii"                     
+                      , "Epichloe_bromicola_e3635_ex._Hordeum_brevisubulatum"                          
+                      , "Epichloe_sp._HbrTG2_MYA_2504_tubBbo_ex._Hordeum_brevisubulatum"               
+                      , "Epichloe_glyceriae_ATCC_200747_ex._Glyceria_striata"                          
+                      , "Epichloe_glyceriae_ATCC_200755_ex._Glyceria_striata"                          
+                      , "Epichloe_funkii_e4096_tubBel_ex._Achnatherum_robustum"                        
+                      , "Epichloe_sp._HboTG1_e3676_tubBel_ex._Hordeum_bogdanii"                        
+                      , "Epichloe_canadensis_CWR_5_tubBel_ex._Elymus_canadensis"      ,
+                      "Epichloe_sp._PauTG1_e55_tubBty_ex._Poa_autumnalis")
+pruned.tree<-drop.tip(epichloe, setdiff(epichloe$tip.label, epichloe_species))
+pruned.tree<-drop.tip(epichloe, epichloe$tip.label[match(epichloe_species, epichloe$tip.label)])
+
+epichloe_distances <- cophenetic.phylo(epichloe)
+plot(epichloe)
+plot(pruned.tree)
+
+
+# Calculating pairwise distances between endophyte effects
+endo <- tibble(lambda_var_diff[1:7,1], lambda_mean_diff[1:7,1])
+dist_e <- dist(endo, method = "euclidean", diag = TRUE)
+
+#pairwise distance between gen time
+gen_time <- tibble(gen_time_summary[,3], longev_summary[,3], mean_life_expect_summary[,3], R0_summary[,3], seed_size, relatedness)
+dist_G <- dist(gen_time, method = "euclidean", diag = TRUE)
+
+dist_G <- dist(gen_time_summary[,3], method = "euclidean", diag = TRUE)
+dist_G <- dist(longev_summary[,3], method = "euclidean", diag = TRUE)
+dist_G <- dist(mean_life_expect_summary[,3], method = "euclidean", diag = TRUE)
+dist_G <- dist(R0_summary[,3], method = "euclidean", diag = TRUE)
+dist_G <- dist(seed_size, method = "euclidean", diag = TRUE)
+dist_G <- dist( relatedness, method = "euclidean", diag = TRUE)
+
+
+
+
+plot(dist_G, dist_e)
+
