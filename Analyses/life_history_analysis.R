@@ -5,6 +5,7 @@
 #############################################################
 
 library(tidyverse)
+library(cubelyr)
 library(scales)
 library(popbio) # for MPM
 library(Rage) # for gen time, longevity etc.
@@ -491,20 +492,65 @@ summary(lh_models[[2]])#*
 summary(lh_models[[3]])
 summary(lh_models[[4]])#.06
 summary(lh_models[[5]])#.09
-summary(lh_models[[6]])#.07
-summary(lh_models[[7]])#*
+summary(lh_models[[6]])#*
+summary(lh_models[[7]])
 summary(lh_models[[8]])
-summary(lh_models[[9]])
-lh_predictions <- list()
-lh_predictions[[1]] <- predict(lh_models[[1]], newdata = data.frame(observed_max_age = seq(from = min(traits_df$observed_max_age), to = max(traits_df$observed_max_age), by = .1)),  type = "response")
-lh_predictions[[2]] <- predict(lh_models[[2]], newdata = data.frame(max_age_99 = seq(from = min(traits_df$max_age_99), to = max(traits_df$max_age_99), by = .1)),  type = "response")
-lh_predictions[[3]] <- predict(lh_models[[3]], newdata = data.frame(gen_time = seq(from = min(traits_df$gen_time), to = max(traits_df$gen_time), by = .1)),  type = "response")
-lh_predictions[[4]] <- predict(lh_models[[4]], newdata = data.frame(longev = seq(from = min(traits_df$longev), to = max(traits_df$longev), by = .1)),  type = "response")
-lh_predictions[[5]] <- predict(lh_models[[5]], newdata = data.frame(longev = seq(from = min(traits_df$longev), to = max(traits_df$longev), by = .1)),  type = "response")
-lh_predictions[[6]] <- predict(lh_models[[6]], newdata = data.frame(longev = seq(from = min(traits_df$longev), to = max(traits_df$longev), by = .1)),  type = "response")
-lh_predictions[[7]] <- predict(lh_models[[7]], newdata = data.frame(longev = seq(from = min(traits_df$longev), to = max(traits_df$longev), by = .1)),  type = "response")
-lh_predictions[[8]] <- predict(lh_models[[8]], newdata = data.frame(longev = seq(from = min(traits_df$longev), to = max(traits_df$longev), by = .1)),  type = "response")
-lh_predictions[[9]] <- predict(lh_models[[9]], newdata = data.frame(longev = seq(from = min(traits_df$longev), to = max(traits_df$longev), by = .1)),  type = "response")
+
+# making data ranges for predictions
+newdata <- data.frame(observed_max_age = seq(from = min(traits_df$observed_max_age), to = max(traits_df$observed_max_age), length.out = 10),
+                      max_age_99 = seq(from = min(traits_df$max_age_99), to = max(traits_df$max_age_99), length.out = 10),
+                      gen_time = seq(from = min(traits_df$gen_time), to = max(traits_df$gen_time), length.out = 10),
+                      longev = seq(from = min(traits_df$longev), to = max(traits_df$longev), length.out = 10),
+                      mean_life_expect = seq(from = min(traits_df$mean_life_expect), to = max(traits_df$mean_life_expect), length.out = 10),
+                      R0 = seq(from = min(traits_df$R0), to = max(traits_df$R0), length.out = 10),
+                      seed_size = seq(from = min(traits_df$seed_size), to = max(traits_df$seed_size), length.out = 10),
+                      imperfect_trans = seq(from = min(traits_df$imperfect_trans), to = max(traits_df$imperfect_trans), length.out = 10)) 
+newdata_fit <- newdata %>%
+  rename_with(.fn = str_c, pattern = ".x") %>% 
+  mutate(row_id = row_number()) %>% 
+  mutate(observed_max_age.fit = predict(lh_models[[1]], newdata, type = "response"),
+         max_age_99.fit = predict(lh_models[[2]], newdata = newdata,  type = "response"),
+         gen_time.fit = predict(lh_models[[3]], newdata = newdata,  type = "response"),
+         longev.fit = predict(lh_models[[4]], newdata = newdata,   type = "response"),
+         mean_life_expect.fit = predict(lh_models[[5]], newdata = newdata,  type = "response"),
+         R0.fit =predict(lh_models[[6]], newdata = newdata,  type = "response"),
+         seed_size.fit =predict(lh_models[[7]], newdata = newdata,  type = "response"),
+         imperfect_trans.fit =predict(lh_models[[8]], newdata = newdata,  type = "response")) %>%
+  mutate(observed_max_age.lwr = predict(lh_models[[1]], newdata = newdata,  interval = "confidence", type = "response")[,2],
+         max_age_99.lwr = predict(lh_models[[2]], newdata = newdata, interval = "confidence", type = "response")[,2],
+         gen_time.lwr = predict(lh_models[[3]], newdata = newdata, interval = "confidence", type = "response")[,2],
+         longev.lwr = predict(lh_models[[4]], newdata = newdata,  interval = "confidence", type = "response")[,2],
+         mean_life_expect.lwr = predict(lh_models[[5]], newdata = newdata, interval = "confidence", type = "response")[,2],
+         R0.lwr =predict(lh_models[[6]], newdata = newdata, interval = "confidence", type = "response")[,2],
+         seed_size.lwr =predict(lh_models[[7]], newdata = newdata, interval = "confidence", type = "response")[,2],
+         imperfect_trans.lwr =predict(lh_models[[8]], newdata = newdata, interval = "confidence", type = "response")[,2]) %>%
+  mutate(observed_max_age.upr = predict(lh_models[[1]], newdata = newdata,  interval = "confidence", type = "response")[,3],
+         max_age_99.upr = predict(lh_models[[2]], newdata = newdata, interval = "confidence", type = "response")[,3],
+         gen_time.upr = predict(lh_models[[3]], newdata = newdata, interval = "confidence", type = "response")[,3],
+         longev.upr = predict(lh_models[[4]], newdata = newdata,  interval = "confidence", type = "response")[,3],
+         mean_life_expect.upr = predict(lh_models[[5]], newdata = newdata, interval = "confidence", type = "response")[,3],
+         R0.upr =predict(lh_models[[6]], newdata = newdata, interval = "confidence", type = "response")[,3],
+         seed_size.upr =predict(lh_models[[7]], newdata = newdata, interval = "confidence", type = "response")[,3],
+         imperfect_trans.upr =predict(lh_models[[8]], newdata = newdata, interval = "confidence", type = "response")[,3]) %>%
+  pivot_longer(cols = -row_id, names_to = c("name", "interval"), names_sep = "\\.") %>% 
+  pivot_wider(id_cols = c(row_id,name), names_from = interval, values_from = value) %>% 
+  mutate(significance = case_when(name == "observed_max_age" | name == "max_age_99" | name == "R0" ~ "<.05",
+                                  name == "longev" | name == "mean_life_expect" ~ "<.1",
+                                  TRUE ~ ">.1"))
+
+lh_plot <- ggplot()+
+  geom_ribbon(data = newdata_fit, aes(ymin = lwr, ymax = upr, x = x, alpha = significance))+
+  geom_line(data = newdata_fit, aes(y = fit, x = x, linetype = significance))+
+  geom_point(data = filter(traits_df_long, name !="var_life_expect" & name != "repro_age" & name != "max_age_97.5"), aes(y = cv_effect, x = value))+
+  facet_wrap(~name,nrow = 2, scales = "free_x", strip.position = "bottom")+
+  scale_linetype_manual(values = c("solid", "dashed", "dotted"))+
+  scale_alpha_manual(values = c(.5,.3,.1))+
+  theme_classic()+
+  theme(strip.background = element_blank(),
+        strip.placement = "outside")+
+  labs(x = "", y = expression(paste("Effect on CV", (lambda))))
+
+lh_plot
 
 
 # reading in phylo tree of epichloe (Leuchtmann et al. 2014; https://doi.org/10.3852/13-251)
