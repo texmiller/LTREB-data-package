@@ -24,8 +24,8 @@ Lkurtosis=function(x) log(kurtosis(x));
 #############################################################################################
 
 #  data are prepared in the endodemog_data_processing.R file, 
-source("Analyses/endodemog_data_processing.R")
-# LTREB_full <- read_csv("~/Dropbox/EndodemogData/Fulldataplusmetadata/LTREB_full.csv")
+# source("Analyses/endodemog_data_processing.R")
+LTREB_full <- read_csv("~/Dropbox/EndodemogData/Fulldataplusmetadata/LTREB_full.csv")
 
 
 #############################################################################################
@@ -119,7 +119,7 @@ LTREB_data_forfert <- LTREB_full %>%
 dim(LTREB_data_forfert)
 
 LTREB_data_forspike <- LTREB_full %>%
-  dplyr::select(-FLW_COUNT_T, -FLW_STAT_T, -SPIKE_A_T, -SPIKE_B_T, -SPIKE_C_T, -SPIKE_D_T, -SPIKE_AGPE_MEAN_T, -census_month, -year, -spei1, -spei12, -spei24, -annual_temp, -annual_precip, -endo_status_from_check, -plot_endo_for_check, -endo_mismatch, -dist_a, -dist_b) %>% 
+  dplyr::select(-FLW_COUNT_T, -FLW_STAT_T, -SPIKE_A_T, -SPIKE_B_T, -SPIKE_C_T, -SPIKE_D_T, -SPIKE_AGPE_MEAN_T, -census_month, -year, -spei1, -spei3, -spei12, -spei24, -annual_temp, -annual_precip, -endo_status_from_check, -plot_endo_for_check, -endo_mismatch, -dist_a, -dist_b) %>% 
   filter(!is.na(FLW_STAT_T1)) %>% 
   filter(FLW_STAT_T1>0) %>% 
   melt(id.var = c("plot_fixed" ,   "plot_index",         "pos"         ,           "id",
@@ -132,7 +132,7 @@ LTREB_data_forspike <- LTREB_full %>%
                   "FLW_COUNT_T1"      ,      "FLW_STAT_T1"),
        value.name = "spike_count_t1") %>% 
   rename(spikelet_id = variable) %>% 
-  filter(!is.na(spike_count_t1), spike_count_t1 > 0) %>% 
+  filter(!is.na(spike_count_t1)) %>% 
   mutate(spike_count_t1 = as.integer(spike_count_t1))
 
 # Looking at the data coverage across years, 
