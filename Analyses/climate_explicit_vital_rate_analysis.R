@@ -403,10 +403,10 @@ sm_surv_spei3 <- stan(file = "Analyses/climate_endo_spp_surv_flw.stan", data = s
 saveRDS(sm_surv_spei3, file = "~/Dropbox/EndodemogData/Model_Runs/climate_spei3_endo_spp_surv_woseedling_linear.rds")
 
 #Seedlling survival
-# Fit with no errors
+# fit with low ESS, so Ran for two times iter 
 sm_seed_surv_spei12 <- stan(file = "Analyses/climate_seedling_surv.stan", data = seed_surv_spei12_data_list,
-                     iter = mcmc_pars$iter,
-                     warmup = mcmc_pars$warmup,
+                     iter = mcmc_pars$iter*2,
+                     warmup = mcmc_pars$warmup*2,
                      chains = mcmc_pars$chains, 
                      thin = mcmc_pars$thin)
 saveRDS(sm_seed_surv_spei12, file = "~/Dropbox/EndodemogData/Model_Runs/climate_endo_seedling_surv_spei12.rds")
@@ -510,21 +510,19 @@ sm_flw_spei12 <- stan(file = "Analyses/climate_endo_spp_surv_flw.stan", data = f
                 warmup = mcmc_pars$warmup,
                 chains = mcmc_pars$chains, 
                 thin = mcmc_pars$thin)
-# saveRDS(sm_flw, file = "~/Dropbox/EndodemogData/Model_Runs/climate_endo_spp_flw.rds")
 saveRDS(sm_flw_spei12, file = "~/Dropbox/EndodemogData/Model_Runs/climate_endo_spp_flw_spei12.rds")
-
+# sm_flw_spei3 had max treedepth warning
 sm_flw_spei3 <- stan(file = "Analyses/climate_endo_spp_surv_flw.stan", data = flw_spei3_data_list,
                iter = mcmc_pars$iter,
                warmup = mcmc_pars$warmup,
                chains = mcmc_pars$chains, 
                thin = mcmc_pars$thin)
-# saveRDS(sm_flw, file = "~/Dropbox/EndodemogData/Model_Runs/climate_endo_spp_flw.rds")
 saveRDS(sm_flw_spei3, file = "~/Dropbox/EndodemogData/Model_Runs/climate_endo_spp_flw_spei3.rds")
 
 
 # Running the growth model with the PIG with climate effects
 # fits with no errors including polynomial term
-# running without the polynomial term , that gave the maximun treedepth warning
+# running without the polynomial term , no errors
 sm_grow_spei12 <- stan(file = "Analyses/climate_endo_spp_grow_fert_PIG.stan", data = grow_spei12_data_list,
                iter = mcmc_pars$iter,
                warmup = mcmc_pars$warmup,
@@ -558,7 +556,7 @@ sm_seedgrow_spei3 <- stan(file = "Analyses/climate_seedling_grow_PIG.stan", data
                     chains = mcmc_pars$chains, 
                     thin = mcmc_pars$thin)
 saveRDS(sm_seedgrow_spei3, file = "~/Dropbox/EndodemogData/Model_Runs/climate_seedling_grow_spei3_10000iterations.rds")
-# sm_seedgrow_linear <- readRDS(file = "~/Dropbox/EndodemogData/Model_Runs/climate_endo_seedling_grow_linear.rds")
+ # sm_seedgrow_linear <- readRDS(file = "~/Dropbox/EndodemogData/Model_Runs/climate_endo_seedling_grow_linear.rds")
 
 # linear fert model fits with no warnings or errors
 # nonlinear fert model fits with no warnings or errors
@@ -589,7 +587,7 @@ saveRDS(sm_spike_nb_spei12, file = "~/Dropbox/EndodemogData/Model_Runs/climate_e
 
 # saveRDS(sm_spike_nb, file = "~/Dropbox/EndodemogData/Model_Runs/climate_endo_spp_spike_linear.rds")
 # saveRDS(sm_spike_nb, file = "~/Dropbox/EndodemogData/Model_Runs/climate_endo_spp_spike_nonlinear.rds")
-# 3 month spei fitss with no errrors or warnings
+# 3 month spei fitss max treedepth warnings
 sm_spike_nb_spei3 <- stan(file = "Analyses/climate_endo_spp_spike_nb.stan", data = spike_spei3_data_list,
                     iter = mcmc_pars$iter,
                     warmup = mcmc_pars$warmup,
