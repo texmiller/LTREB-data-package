@@ -6,6 +6,7 @@ library(tidyverse)
 library(reshape2)
 library(lubridate)
 library(readxl)
+library(patchwork)
 
 ########################################################################################################################
 ###### Stroma observations metadata ---------------------------
@@ -172,6 +173,40 @@ stroma_summary <- stroma_full %>%
 
 
 
+########################################################################################################################
+###### Making a plot of the endophyte checks to quantify the level of plot endophyte status changes ---------------------------
+########################################################################################################################
 
+LTREB_status_changes_species <- LTREB_full %>% 
+  distinct(species, plot_fixed, id, endo_01, endo_mismatch) %>% 
+  group_by(species, endo_01) %>% 
+  summarize(Same = sum(endo_mismatch == 0, na.rm = TRUE),
+            `Endophyte Lost` = sum(endo_mismatch > 0, na.rm = TRUE),
+            `Endophyte Gain` = sum(endo_mismatch <0, na.rm = TRUE)) %>% 
+  # mutate(percent_gain = (gain_endo/same)*100, percent_lose = (lose_endo/same)*100) %>% 
+  pivot_longer(cols = c(Same, `Endophyte Lost`, `Endophyte Gain`))
 
-               
+endo_check_Eminus_plot <- ggplot(filter(LTREB_status_changes_species, endo_01 == 0 & name !="Endophyte Lost"))+
+  geom_bar(aes(x = name, y = value), stat = "identity")+
+  facet_wrap(~species, ncol = 1) +
+  labs(title = "E- Plots", y = "# of plants scored", x = "")+
+  scale_y_continuous(n.breaks = 4)+
+  scale_x_discrete(labels = function(x) str_wrap(x, width = 10))+
+  theme_classic()+
+  theme(axis.text.x = element_text(face = "bold"))
+# endo_check_Eminus_plot
+
+endo_check_Eplus_plot <- ggplot(filter(LTREB_status_changes_species, endo_01 == 1 & name !="Endophyte Gain"))+
+  geom_bar(aes(x = name, y = value), stat = "identity")+
+  facet_wrap(~species, ncol = 1) +
+  labs(title = "E+ Plots",y = "# of plants scored", x = "")+
+  scale_y_continuous(n.breaks = 4)+
+  scale_x_discrete(labels = function(x) str_wrap(x, width = 10))+
+  theme_classic()+
+  theme(axis.text.x = element_text(face = "bold"))
+# endo_check_Eplus_plot
+
+endo_check_plot <- endo_check_Eminus_plot+endo_check_Eplus_plot+
+  plot_layout(nrow = 1) + plot_annotation(title = "Endophyte Status Checks", tag_levels = "A")
+# endo_check_plot
+ggsave(endo_check_plot, filename = "endo_check_plot.png", width = 5, height = 7)
