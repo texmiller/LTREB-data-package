@@ -9,6 +9,7 @@ library(scales)
 library(bayesplot)
 library(popbio)
 # library(countreg)
+library(RColorBrewer)
 library(actuar)
 library(rstan)
 library(patchwork) # for putting plots together
@@ -30,8 +31,12 @@ quote_bare <- function( ... ){
 ####### Read in Data and creating size bins------------------
 #############################################################################################
 
-source("Analyses/endodemog_data_processing.R")
+# source("Analyses/endodemog_data_processing.R")
+tompath <- "C:/Users/tm9/Dropbox/EndodemogData/"
+joshpath <- "~/Dropbox/EndodemogData/"
+path<-joshpath
 
+LTREB_full <-  read_csv(paste0(joshpath,"Fulldataplusmetadata/LTREB_full.csv"))
 max_size <- LTREB_full %>% 
   dplyr::select(species,species_index, size_t) %>% 
   filter(!is.na(size_t)) %>% 
@@ -56,9 +61,6 @@ source("Analyses/MPM_functions.R")
 #############################################################################################
 ####### Read in Stan vital rate model outputs ------------------
 #############################################################################################
-tompath <- "C:/Users/tm9/Dropbox/EndodemogData/"
-joshpath <- "~/Dropbox/EndodemogData/"
-path<-joshpath
 
 surv_fit_seedling <- read_rds(paste0(path,"/Model_Runs/endo_seedling_surv.rds"))
 surv_fit <- read_rds(paste0(path,"/Model_Runs/endo_spp_surv_woseedling.rds"))
@@ -331,6 +333,10 @@ lambda_cv_df <- rbind(lambda_cv_obs_df, lambda_cv_samp_df)
 endophyte_color_scheme <- c("#fdedd3","#f3c8a8", "#5a727b", "#4986c7", "#181914",  "#163381")
 color_scheme_set(endophyte_color_scheme)
 # color_scheme_view()
+
+simulation_color_scheme <- c( "#163381", "#4986c7", "#bdc9e1", "#f1eef6")
+# scales::show_col(simulation_color_scheme)
+
 # And creating a color palette for each year
 yearcount = length(unique(LTREB_full$year_t))
 yearcolors<- colorRampPalette(brewer.pal(8,"Dark2"))(yearcount)
@@ -350,7 +356,7 @@ meanlambda_plot <- ggplot(data = filter(lambda_mean_df, sampling == "obs")) +
        x = "")+
   theme(panel.background = element_rect(fill = "white"),
         panel.grid = element_line(color = NA))
-meanlambda_plot
+# meanlambda_plot
 
 sdlambda_plot <- ggplot(data = lambda_sd_df) +
   geom_hline(yintercept = 0, col = "black") + 
@@ -365,7 +371,7 @@ sdlambda_plot <- ggplot(data = lambda_sd_df) +
        x = "")+
   theme(panel.background = element_rect(fill = "white"),
         panel.grid = element_line(color = NA))
-sdlambda_plot
+# sdlambda_plot
 
 cvlambda_plot <- ggplot(data = lambda_cv_df) +
   geom_hline(yintercept = 0, col = "black") + 
@@ -380,12 +386,12 @@ cvlambda_plot <- ggplot(data = lambda_cv_df) +
        x = "")+
   theme(panel.background = element_rect(fill = "white"),
         panel.grid = element_line(color = NA))
-cvlambda_plot
+# cvlambda_plot
 
 altogether <- meanlambda_plot + sdlambda_plot + cvlambda_plot + 
   plot_layout(nrow = 1) +
   plot_annotation(title = "Observed vs Modeled Year effects")
-ggsave(altogether, filename = "endo_effects_obsVSsampled.png", width = 12, height = 6)
+# ggsave(altogether, filename = "endo_effects_obsVSsampled.png", width = 12, height = 6)
 
 # I want to see the vital rate correlations
 LTREB_full %>% 
@@ -806,23 +812,31 @@ save_lambda_samp_extreme30_em <- read_rds(paste0(path,"/Model_Runs/MPM_output/sa
 ## look at mean and variance of lambda in observed and extreme samples
 cv<-function(x){sd(x)/mean(x)}
 
+trt_order <- c("All Years", "6 Extr. Years", "4 Extr. Years", "2 Extr. Years")
 mean_lambdaT_obs <- as.data.frame.table(apply(save_lambda_obs[,c(1,4),,],c(2,3,4),mean))
 mean_lambdaT_obs_extreme2 <- as.data.frame.table(apply(save_lambda_obs_extreme2[,c(1,4),,],c(2,3,4),mean))
 mean_lambdaT_obs_extreme4 <- as.data.frame.table(apply(save_lambda_obs_extreme4[,c(1,4),,],c(2,3,4),mean))
 mean_lambdaT_obs_extreme6 <- as.data.frame.table(apply(save_lambda_obs_extreme6[,c(1,4),,],c(2,3,4),mean))
 
 names(mean_lambdaT_obs)<-names(mean_lambdaT_obs_extreme2)<-names(mean_lambdaT_obs_extreme4)<-names(mean_lambdaT_obs_extreme6)<-c("Endo","Spp","Draw")
-mean_lambdaT_obs$Trt<-"control"
-mean_lambdaT_obs_extreme2$Trt<-"extreme2"
-mean_lambdaT_obs_extreme4$Trt<-"extreme4"
-mean_lambdaT_obs_extreme6$Trt<-"extreme6"
+mean_lambdaT_obs$Trt<-"All Years"
+mean_lambdaT_obs_extreme2$Trt<-"2 Extr. Years"
+mean_lambdaT_obs_extreme4$Trt<-"4 Extr. Years"
+mean_lambdaT_obs_extreme6$Trt<-"6 Extr. Years"
 mean_lambdaT_combo<-rbind(mean_lambdaT_obs,mean_lambdaT_obs_extreme2,
                           mean_lambdaT_obs_extreme4,mean_lambdaT_obs_extreme6)
 names(mean_lambdaT_combo)[4]<-"lambda"
+mean_lambdaT_combo <- as_tibble(mean_lambdaT_combo) %>% 
+  mutate(Species = case_when(Spp == "A" ~ "AGPE",Spp == "B" ~ "ELRI",Spp == "C" ~ "ELVI",Spp == "D" ~ "FESU",Spp == "E" ~ "LOAR",Spp == "F" ~ "POAL",Spp == "G" ~ "POSY"),
+         Endo = case_when(Endo == "A" ~ "E-", Endo == "B" ~ "E+"))
 
 ggplot(mean_lambdaT_combo)+
-  geom_boxplot(aes(y=lambda,fill=Trt))+
-  facet_wrap(~Spp, scales = "free")
+  geom_boxplot(aes(y=lambda,x = factor(Trt, levels = trt_order),fill = Trt))+
+  facet_wrap(~Species, scales = "free_y") +
+  scale_fill_manual(values = simulation_color_scheme)+
+  theme_classic()+
+  theme(axis.title.x = element_blank(),
+        axis.text.x = element_text())
 
 sd_lambdaT_obs <- as.data.frame.table(apply(save_lambda_obs[,c(1,4),,],c(2,3,4),sd))
 sd_lambdaT_obs_extreme2 <- as.data.frame.table(apply(save_lambda_obs_extreme2[,c(1,4),,],c(2,3,4),sd))
@@ -830,17 +844,24 @@ sd_lambdaT_obs_extreme4 <- as.data.frame.table(apply(save_lambda_obs_extreme4[,c
 sd_lambdaT_obs_extreme6 <- as.data.frame.table(apply(save_lambda_obs_extreme6[,c(1,4),,],c(2,3,4),sd))
 
 names(sd_lambdaT_obs)<-names(sd_lambdaT_obs_extreme2)<-names(sd_lambdaT_obs_extreme4)<-names(sd_lambdaT_obs_extreme6)<-c("Endo","Spp","Draw")
-sd_lambdaT_obs$Trt<-"control"
-sd_lambdaT_obs_extreme2$Trt<-"extreme2"
-sd_lambdaT_obs_extreme4$Trt<-"extreme4"
-sd_lambdaT_obs_extreme6$Trt<-"extreme6"
+sd_lambdaT_obs$Trt<-"All Years"
+sd_lambdaT_obs_extreme2$Trt<-"2 Extr. Years"
+sd_lambdaT_obs_extreme4$Trt<-"4 Extr. Years"
+sd_lambdaT_obs_extreme6$Trt<-"6 Extr. Years"
 sd_lambdaT_combo<-rbind(sd_lambdaT_obs,sd_lambdaT_obs_extreme2,
                           sd_lambdaT_obs_extreme4,sd_lambdaT_obs_extreme6)
 names(sd_lambdaT_combo)[4]<-"sd_lambda"
+sd_lambdaT_combo <- as_tibble(sd_lambdaT_combo) %>% 
+  mutate(Species = case_when(Spp == "A" ~ "AGPE",Spp == "B" ~ "ELRI",Spp == "C" ~ "ELVI",Spp == "D" ~ "FESU",Spp == "E" ~ "LOAR",Spp == "F" ~ "POAL",Spp == "G" ~ "POSY"),
+         Endo = case_when(Endo == "A" ~ "E-", Endo == "B" ~ "E+"))
 
 ggplot(sd_lambdaT_combo)+
-  geom_boxplot(aes(y=sd_lambda,fill=Trt))+
-  facet_wrap(~Spp, scales = "free")
+  geom_boxplot(aes(y=sd_lambda,x = factor(Trt, levels = trt_order),fill = Trt))+
+  facet_wrap(~Species, scales = "free_y") +
+  scale_fill_manual(values = simulation_color_scheme)+
+  theme_classic()+
+  theme(axis.title.x = element_blank(),
+        axis.text.x = element_text())
 
 ## same now but for Em years
 mean_lambdaT_obs_extreme2_em <- as.data.frame.table(apply(save_lambda_obs_extreme2_em[,c(1,4),,],c(2,3,4),mean))
@@ -848,34 +869,64 @@ mean_lambdaT_obs_extreme4_em <- as.data.frame.table(apply(save_lambda_obs_extrem
 mean_lambdaT_obs_extreme6_em <- as.data.frame.table(apply(save_lambda_obs_extreme6_em[,c(1,4),,],c(2,3,4),mean))
 
 names(mean_lambdaT_obs_extreme2_em)<-names(mean_lambdaT_obs_extreme4_em)<-names(mean_lambdaT_obs_extreme6_em)<-c("Endo","Spp","Draw")
-mean_lambdaT_obs_extreme2_em$Trt<-"extreme2"
-mean_lambdaT_obs_extreme4_em$Trt<-"extreme4"
-mean_lambdaT_obs_extreme6_em$Trt<-"extreme6"
+
+mean_lambdaT_obs_extreme2_em$Trt<-"2 Extr. Years"
+mean_lambdaT_obs_extreme4_em$Trt<-"4 Extr. Years"
+mean_lambdaT_obs_extreme6_em$Trt<-"6 Extr. Years"
 mean_lambdaT_combo_em<-rbind(mean_lambdaT_obs,mean_lambdaT_obs_extreme2_em,
                           mean_lambdaT_obs_extreme4_em,mean_lambdaT_obs_extreme6_em)
 names(mean_lambdaT_combo_em)[4]<-"lambda"
+mean_lambdaT_combo_em <- as_tibble(mean_lambdaT_combo_em) %>% 
+  mutate(Species = case_when(Spp == "A" ~ "AGPE",Spp == "B" ~ "ELRI",Spp == "C" ~ "ELVI",Spp == "D" ~ "FESU",Spp == "E" ~ "LOAR",Spp == "F" ~ "POAL",Spp == "G" ~ "POSY"),
+         Endo = case_when(Endo == "A" ~ "E-", Endo == "B" ~ "E+"))
 
-ggplot(mean_lambdaT_combo_em)+
-  geom_boxplot(aes(y=lambda,fill=Trt))+
-  facet_wrap(~Spp, scales = "free")
+sim_mean_boxplot <- ggplot(mean_lambdaT_combo_em)+
+  geom_boxplot(aes(y=lambda,x = factor(Trt, levels = trt_order),fill = Trt))+
+  facet_wrap(~Species, nrow = 1, scales = "free_y") +
+  scale_fill_manual(values = simulation_color_scheme)+
+  theme_classic()+
+  theme(axis.title.x = element_blank(),
+        axis.text.x = element_blank())+
+  labs(y = expression(paste("mean(",lambda["t"], ")")), fill = "Scenario")
+  
 
 sd_lambdaT_obs_extreme2_em <- as.data.frame.table(apply(save_lambda_obs_extreme2_em[,c(1,4),,],c(2,3,4),sd))
 sd_lambdaT_obs_extreme4_em <- as.data.frame.table(apply(save_lambda_obs_extreme4_em[,c(1,4),,],c(2,3,4),sd))
 sd_lambdaT_obs_extreme6_em <- as.data.frame.table(apply(save_lambda_obs_extreme6_em[,c(1,4),,],c(2,3,4),sd))
 
-names(sd_lambdaT_obs)<-names(sd_lambdaT_obs_extreme2_em)<-names(sd_lambdaT_obs_extreme4_em)<-names(sd_lambdaT_obs_extreme6_em)<-c("Endo","Spp","Draw")
-sd_lambdaT_obs$Trt<-"control"
-sd_lambdaT_obs_extreme2_em$Trt<-"extreme2"
-sd_lambdaT_obs_extreme4_em$Trt<-"extreme4"
-sd_lambdaT_obs_extreme6_em$Trt<-"extreme6"
+names(sd_lambdaT_obs_extreme2_em)<-names(sd_lambdaT_obs_extreme4_em)<-names(sd_lambdaT_obs_extreme6_em)<-c("Endo","Spp","Draw")
+sd_lambdaT_obs_extreme2_em$Trt<-"2 Extr. Years"
+sd_lambdaT_obs_extreme4_em$Trt<-"4 Extr. Years"
+sd_lambdaT_obs_extreme6_em$Trt<-"6 Extr. Years"
 sd_lambdaT_combo_em<-rbind(sd_lambdaT_obs,sd_lambdaT_obs_extreme2_em,
                         sd_lambdaT_obs_extreme4_em,sd_lambdaT_obs_extreme6_em)
 names(sd_lambdaT_combo_em)[4]<-"sd_lambda"
+sd_lambdaT_combo_em <- as_tibble(sd_lambdaT_combo_em) %>% 
+  mutate(Species = case_when(Spp == "A" ~ "AGPE",Spp == "B" ~ "ELRI",Spp == "C" ~ "ELVI",Spp == "D" ~ "FESU",Spp == "E" ~ "LOAR",Spp == "F" ~ "POAL",Spp == "G" ~ "POSY"),
+         Endo = case_when(Endo == "A" ~ "E-", Endo == "B" ~ "E+"))
 
-ggplot(sd_lambdaT_combo_em)+
-  geom_boxplot(aes(y=sd_lambda,fill=Trt))+
-  facet_wrap(~Spp, scales = "free")
+sim_sd_boxplot <- ggplot(sd_lambdaT_combo_em)+
+  geom_boxplot(aes(y=sd_lambda,x = factor(Trt, levels = trt_order),fill = Trt))+
+  facet_wrap(~Species, nrow = 1, scales = "free_y") +
+  scale_fill_manual(values = simulation_color_scheme)+
+  theme_classic()+
+  theme(axis.title.x = element_blank(),
+        axis.text.x = element_text(angle = 90, vjust = .5))+
+  labs(y = expression(paste("sd(",lambda["t"], ")")), fill = "Scenario")
 
+sim_boxplots <- sim_mean_boxplot+sim_sd_boxplot+
+  plot_layout(nrow = 2, guides = "collect")+ plot_annotation(tag_levels = "A")
+ggsave(sim_boxplots, filename = "sim_boxplots.png", width = 10, height = 6)
+# calc some summary stats for manuscript
+mean_lambdaT_em_summary <- mean_lambdaT_combo_em %>% 
+  group_by(Trt) %>% 
+  summarize(mean_lambda = mean(lambda))
+100-mean_lambdaT_em_summary[4,2]/mean_lambdaT_em_summary[1,2]*100
+
+sd_lambdaT_em_summary <- sd_lambdaT_combo_em %>% 
+  group_by(Trt) %>% 
+  summarize(mean_sd_lambda = mean(sd_lambda))
+100-sd_lambdaT_em_summary[4,2]/sd_lambdaT_em_summary[1,2]*100
 
 # calculate cross species mean and the posterior means
 lambdaS_obs_diff <- lambdaS_samp_diff <- array(NA,dim=c(4,4,8,7))
@@ -946,16 +997,19 @@ for(s in 1:8){
   lambdaS_samp_diff[4,4,s,] = lambdaS_samp_diff[4,1,s,]-lambdaS_samp_diff[4,2,s,]-lambdaS_samp_diff[4,3,s,]# mean variance interaction for extreme6_em
 }
 
+# calculating the certainty of a total effect above zero
+dim(lambdaS_obs)
+sum(lambdaS_obs[1,8,]>0)/500*100
 ################################################################
 ##### Plot of stochastic lambda contributions
 ################################################################
-dimnames(lambdaS_obs_diff) <- list(Scenario = c("normal","extreme2","extreme4","extreme6"), Contribution = c("Full Effect","Mean only","Variance only","Interaction"), Species = paste0("species",1:8), Quantile = c("mean","fifth","twelvepointfive","twentyfifth","seventyfifth","eightysevenpointfive","ninetyfifth"))
+dimnames(lambdaS_obs_diff) <- list(Scenario = c("All Years","2 Extr. Years","4 Extr. Years","6 Extr. Years"), Contribution = c("Full Effect","Mean only","Variance only","Interaction"), Species = c(species_list, "Species Mean"), Quantile = c("mean","fifth","twelvepointfive","twentyfifth","seventyfifth","eightysevenpointfive","ninetyfifth"))
 lambdaS_obs_diff_cube <- cubelyr::as.tbl_cube(lambdaS_obs_diff)
 lambdaS_obs_diff_df <- as_tibble(lambdaS_obs_diff_cube) %>% 
   pivot_wider(names_from = "Quantile", values_from = lambdaS_obs_diff) %>% 
   mutate(Sampling = "observed")
 
-dimnames(lambdaS_samp_diff) <- list(Scenario = c("normal","extreme2","extreme4","extreme6"), Contribution = c("Full Effect","Mean only","Variance only","Interaction"), Species = paste0("species",1:8), Quantile = c("mean","fifth","twelvepointfive","twentyfifth","seventyfifth","eightysevenpointfive","ninetyfifth"))
+dimnames(lambdaS_samp_diff) <- list(Scenario = c("All Years","2 Extr. Years","4 Extr. Years","6 Extr. Years"), Contribution = c("Full Effect","Mean only","Variance only","Interaction"), Species = c(species_list, "Species Mean"), Quantile = c("mean","fifth","twelvepointfive","twentyfifth","seventyfifth","eightysevenpointfive","ninetyfifth"))
 lambdaS_samp_diff_cube <- cubelyr::as.tbl_cube(lambdaS_samp_diff)
 lambdaS_samp_diff_df <- as_tibble(lambdaS_samp_diff_cube) %>% 
   pivot_wider(names_from = "Quantile", values_from = lambdaS_samp_diff) %>% 
@@ -963,19 +1017,27 @@ lambdaS_samp_diff_df <- as_tibble(lambdaS_samp_diff_cube) %>%
 
 lambdaS_diff_df <- lambdaS_obs_diff_df %>% 
   rbind(lambdaS_samp_diff_df)
+
 x_levels <- c( "Interaction", "Variance only", "Mean only", "Full Effect")
 contributions_obs_plot <- ggplot(data = lambdaS_obs_diff_df) +
   geom_hline(yintercept = 0, col = "black") +
-  geom_linerange(aes(x = Contribution, ymin = twentyfifth, ymax = seventyfifth, color = Scenario),position = position_dodge(width = .6), lwd = 2) +
-  geom_linerange(aes(x = Contribution, ymin = twelvepointfive, ymax = eightysevenpointfive, color = Scenario),position = position_dodge(width = .6), lwd = 1) +
-  geom_linerange(aes(x = Contribution, ymin = fifth, ymax = ninetyfifth, color = Scenario),position = position_dodge(width = .6)) +
-  geom_point(aes(y = mean, x = Contribution, fill = Scenario, pch = Contribution), position = position_dodge(width = .6), lwd = 3) +
+  geom_linerange(aes(x = Contribution, ymin = fifth, ymax = ninetyfifth, group = Scenario), color = "grey38",position = position_dodge(width = .7), lwd = .8) +
+  geom_linerange(aes(x = Contribution, ymin = twelvepointfive, ymax = eightysevenpointfive, group = Scenario),color = "grey38", position = position_dodge(width = .7), lwd = 1.5) +
+  geom_linerange(aes(x = Contribution, ymin = twentyfifth, ymax = seventyfifth, group = Scenario),color = "grey38", position = position_dodge(width = .7), lwd = 2.4) +
+  
+  geom_linerange(aes(x = Contribution, ymin = fifth, ymax = ninetyfifth, color = Scenario),position = position_dodge(width = .7), lwd = .4) +
+  geom_linerange(aes(x = Contribution, ymin = twelvepointfive, ymax = eightysevenpointfive, color = Scenario),position = position_dodge(width = .7), lwd = 1) +
+  geom_linerange(aes(x = Contribution, ymin = twentyfifth, ymax = seventyfifth, color = Scenario),position = position_dodge(width = .7), lwd = 2) +
+  
+  geom_point(aes(y = mean, x = Contribution, group = Scenario, pch = Contribution), color = "grey38", position = position_dodge(width = .7), lwd = 3.9) +
+  geom_point(aes(y = mean, x = Contribution, color = Scenario, pch = Contribution), position = position_dodge(width = .7), lwd = 3.5) +
   facet_wrap(~Species, nrow = 2, scales = "free") + coord_flip() +
-  scale_shape_manual(values = c(21, 22, 23,24))+
-  scale_fill_manual(values = c(endophyte_color_scheme[5],endophyte_color_scheme[6], endophyte_color_scheme[4], endophyte_color_scheme[3])) +
-  scale_color_manual(values = c(endophyte_color_scheme[5],endophyte_color_scheme[6], endophyte_color_scheme[4], endophyte_color_scheme[3]))+
+  scale_shape_manual(values = c(16,18,15,17))+
+  scale_fill_manual(values = c(simulation_color_scheme))+
+  scale_color_manual(values = c(simulation_color_scheme))+
+  scale_y_continuous(breaks = scales::pretty_breaks(n = 4))+
   scale_x_discrete(limits = x_levels)+
-  labs(title = "Observed Years", x = "", y = expression(paste("Endophyte effect on", " ", lambda["s"])))+
+  labs( x = "", y = expression(paste("Endophyte effect on", " ", lambda["s"])))+
   theme(panel.background = element_blank(),
         plot.background = element_rect(color = "white"),
         panel.grid.major.y = element_blank(),
@@ -983,12 +1045,14 @@ contributions_obs_plot <- ggplot(data = lambdaS_obs_diff_df) +
         panel.grid.minor.x = element_blank(),
         axis.line.x = element_line(size = .5, colour = "black"),
         axis.ticks.y = element_blank(),
-        axis.text.y = element_text(size = rel(1.5), face = "bold"),
-        axis.text.x = element_text(size = rel(1.5), face = "bold"),
+        axis.text.y = element_text(size = rel(1.2), face = "bold"),
+        axis.text.x = element_text(size = rel(1), face = "bold"),
         axis.title = element_text(size = rel(1.5)),
-        strip.background = element_blank())
+        strip.background = element_blank(),
+        strip.text = element_text(size = rel(1.3)),
+        legend.key = element_rect(fill = NA))
 # contributions_obs_plot
-# ggsave(contributions_obs_plot, filename = "contributions_obs_plot.tiff", width = 15, height = 6)
+ggsave(contributions_obs_plot, filename = "contributions_obs_plot.png", width = 11, height = 9)
 
 
 contributions_samp_plot <- ggplot(data = lambdaS_samp_diff_df) +
@@ -999,8 +1063,8 @@ contributions_samp_plot <- ggplot(data = lambdaS_samp_diff_df) +
   geom_point(aes(y = mean, x = Contribution, fill = Scenario, pch = Contribution), position = position_dodge(width = .6), lwd = 3) +
   facet_wrap(~Species, nrow = 2, scales = "free") + coord_flip() +
   scale_shape_manual(values = c(21, 22, 23,24))+
-  scale_fill_manual(values = c(endophyte_color_scheme[5],endophyte_color_scheme[6], endophyte_color_scheme[4], endophyte_color_scheme[3])) +
-  scale_color_manual(values = c(endophyte_color_scheme[5],endophyte_color_scheme[6], endophyte_color_scheme[4], endophyte_color_scheme[3]))+
+  scale_fill_manual(values = c(simulation_color_scheme))+
+  scale_color_manual(values = c(simulation_color_scheme))+
   scale_x_discrete(limits = x_levels)+
   labs(title = "Sampled Years", x = "", y = expression(paste("Endophyte effect on", " ", lambda["s"])))+
   theme(panel.background = element_blank(),
@@ -1019,6 +1083,45 @@ contributions_samp_plot <- ggplot(data = lambdaS_samp_diff_df) +
 
 contributions_plot <- contributions_obs_plot+contributions_samp_plot + plot_layout(ncol = 1)
 ggsave(contributions_plot, filename = "contributions_plot.tiff", width = 15, height = 20)
+
+
+# just the species mean obs contribution plot
+
+mean_contributions_obs_plot <- ggplot(data = filter(lambdaS_obs_diff_df, Species == "Species Mean")) +
+  geom_hline(yintercept = 0, col = "black") +
+  geom_linerange(aes(x = Contribution, ymin = fifth, ymax = ninetyfifth, group = Scenario), color = "grey38",position = position_dodge(width = .7), lwd = .8) +
+  geom_linerange(aes(x = Contribution, ymin = twelvepointfive, ymax = eightysevenpointfive, group = Scenario),color = "grey38", position = position_dodge(width = .7), lwd = 1.5) +
+  geom_linerange(aes(x = Contribution, ymin = twentyfifth, ymax = seventyfifth, group = Scenario),color = "grey38", position = position_dodge(width = .7), lwd = 2.4) +
+  
+  geom_linerange(aes(x = Contribution, ymin = fifth, ymax = ninetyfifth, color = Scenario),position = position_dodge(width = .7), lwd = .4) +
+  geom_linerange(aes(x = Contribution, ymin = twelvepointfive, ymax = eightysevenpointfive, color = Scenario),position = position_dodge(width = .7), lwd = 1) +
+  geom_linerange(aes(x = Contribution, ymin = twentyfifth, ymax = seventyfifth, color = Scenario),position = position_dodge(width = .7), lwd = 2) +
+  
+  geom_point(aes(y = mean, x = Contribution, group = Scenario, pch = Contribution), color = "grey38", position = position_dodge(width = .7), lwd = 3.9) +
+  geom_point(aes(y = mean, x = Contribution, color = Scenario, pch = Contribution), position = position_dodge(width = .7), lwd = 3.5) +
+  facet_wrap(~Species, nrow = 2, scales = "free") + coord_flip() +
+  scale_shape_manual(values = c(16,18,15,17))+
+  scale_fill_manual(values = c(simulation_color_scheme))+
+  scale_color_manual(values = c(simulation_color_scheme))+
+  scale_y_continuous(breaks = scales::pretty_breaks(n = 4))+
+  scale_x_discrete(limits = x_levels)+
+  labs( x = "", y = expression(paste("Endophyte effect on", " ", lambda["s"])))+
+  theme(panel.background = element_blank(),
+        plot.background = element_rect(color = "white"),
+        panel.grid.major.y = element_blank(),
+        panel.grid.major.x = element_blank(),
+        panel.grid.minor.x = element_blank(),
+        axis.line.x = element_line(size = .5, colour = "black"),
+        axis.ticks.y = element_blank(),
+        axis.text.y = element_text(size = rel(1.2), face = "bold"),
+        axis.text.x = element_text(size = rel(1), face = "bold"),
+        axis.title = element_text(size = rel(1.5)),
+        strip.background = element_blank(),
+        strip.text = element_blank(),
+        legend.key = element_rect(fill = NA))
+mean_contributions_obs_plot
+ggsave(mean_contributions_obs_plot, filename = "mean_contributions_obs_plot.png", width = 5, height =4)
+
 
 
 ## one random draw

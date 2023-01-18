@@ -8,10 +8,12 @@ library(tidyverse)
 library(scales)
 library(bayesplot)
 library(popbio)
-library(countreg)
+# library(countreg)
 library(actuar)
 library(rstan)
 library(patchwork) # for putting plots together
+library(ggrepel) # for labels that don't overlap
+
 
 # library(gridExtra)
 # library(grid)
@@ -57,7 +59,7 @@ source("Analyses/MPM_functions.R")
 #############################################################################################
 tompath <- "C:/Users/tm9/Dropbox/EndodemogData/"
 joshpath <- "~/Dropbox/EndodemogData/"
-path<-tompath
+path<-joshpath
 
 surv_fit_seedling <- read_rds(paste0(path,"/Model_Runs/endo_seedling_surv.rds"))
 surv_fit <- read_rds(paste0(path,"/Model_Runs/endo_spp_surv_woseedling.rds"))
@@ -110,6 +112,7 @@ n_draws <- 500 # the means are the same whether we do 500 or 1000 draws
 post_draws <- sample.int(7500,size=n_draws) # The models except for seedling growth have 7500 iterations. That one has more (15000 iterations) to help it converge.
 
 lambda_mean <- array(dim = c(8,2,n_draws))
+gen_time <- array(dim = c(7,2,n_draws))
 for(i in 1:length(post_draws)){
   for(e in 1:2){
     for(s in 1:7){
@@ -130,13 +133,41 @@ for(i in 1:length(post_draws)){
                                                          seed_par=seed_par,
                                                          recruit_par=recruit_par), 
                                              extension = 100)$MPMmat) # the extension parameter is used to fit the growth kernel to sizes larger than max size without losing probability density
+      gen_time[s,e,i] <- generation.time(bigmatrix(make_params(species=s,
+                                                         endo_mean=(e-1),
+                                                         endo_var=(e-1),
+                                                         original = 0, # should be =1 to represent recruit
+                                                         draw=post_draws[i],
+                                                         max_size=max_size,
+                                                         rfx=F,
+                                                         surv_par=surv_par,
+                                                         surv_sdlg_par = surv_sdlg_par,
+                                                         grow_par=grow_par,
+                                                         grow_sdlg_par = grow_sdlg_par,
+                                                         flow_par=flow_par,
+                                                         fert_par=fert_par,
+                                                         spike_par=spike_par,
+                                                         seed_par=seed_par,
+                                                         recruit_par=recruit_par), 
+                                             extension = 100)$MPMmat)
     }
     lambda_mean[8,e,i] <- mean(lambda_mean[1:7,e,i])
   }
 }
-# saving lambda_mean with 500 post draws too dropbox
+# saving lambda_mean with 500 post draws to dropbox
 saveRDS(lambda_mean, file = "~/Dropbox/EndodemogData/Model_Runs/MPM_output/lambda_mean.rds")
 lambda_mean <- read_rds(file = "~/Dropbox/EndodemogData/Model_Runs/MPM_output/lambda_mean.rds")
+
+#saving the generation time calculation and calculating mean for each species
+saveRDS(gen_time, file = "~/Dropbox/EndodemogData/Model_Runs/MPM_output/gen_time.rds")
+gen_time <- read_rds(file = "~/Dropbox/EndodemogData/Model_Runs/MPM_output/gen_time.rds")
+
+gen_time_summary <- matrix(NA,7,3)
+for(s in 1:7){
+  gen_time_summary[s,1] <- mean(gen_time[s,1,])
+  gen_time_summary[s,2] <- mean(gen_time[s,2,])
+  gen_time_summary[s,3] <- mean(gen_time[s,,])
+}
 
 # Mean endophyte difference and quantiles
 lambda_means <- matrix(NA,8,2)
@@ -311,7 +342,7 @@ lambda_mean_df <- as_tibble(lambda_mean_cube) %>%
 
 meanlambda_plot <- ggplot(data = lambda_mean_df) +
   geom_hline(yintercept = 0, col = "black") + 
-  geom_linerange(data = lambda_mean_diff_df, aes(x = species, y = mean, ymin = 0, ymax = mean, color = species)) + 
+  # geom_linerange(data = lambda_mean_diff_df, aes(x = species, y = mean, ymin = 0, ymax = mean, color = species)) + 
   geom_jitter( aes(y = lambda_diff, x = species, color = species), width = .2, alpha = .2) +
   stat_summary(aes(y = lambda_diff, x = species), fun = mean,geom = "point", size = 3) +
   geom_point(data = lambda_mean_diff_df, aes(y = mean, x = species, color = species), lwd = 2) +
@@ -321,12 +352,14 @@ meanlambda_plot <- ggplot(data = lambda_mean_df) +
        x = "",
        color = "Species")+
   theme(panel.background = element_rect(fill = "white"),
-        panel.grid = element_line(color = NA))
+        panel.grid = element_line(color = NA),
+        axis.line = element_line(color = "grey"),
+        legend.position = "none")
 meanlambda_plot
-ggsave(meanlambda_plot, filename = "meanlambda_plot_99thpercentilemaxsize.png", width = 8, height = 4)
+ggsave(meanlambda_plot, filename = "meanlambda_plot.png", width = 4, height = 5)
 
 # now for the effect on variance plot
-lambda_var_diff_df <- as_tibble(lambda_cv_diff)  %>% 
+lambda_cv_diff_df <- as_tibble(lambda_cv_diff)  %>% 
   rename( "mean" = V1, fifth = V2, twelfthpointfive = V3, twentyfifth = V4, seventyfifth = V5, eightyseventhpointfive = V6, ninetyfifth = V7) %>% 
   mutate(rownames = row.names(.)) %>% 
   mutate(species = case_when(rownames == 1 ~ "Agrostis perennans",
@@ -339,24 +372,24 @@ lambda_var_diff_df <- as_tibble(lambda_cv_diff)  %>%
                              rownames == 8 ~ "Species Mean"))
 
 
-ggplot(data = lambda_var_diff_df) +
-  geom_hline(yintercept = 0, col = "black") + 
-  geom_linerange(aes(y = mean, x = species, ymin = 0, ymax = mean), color = "white", lwd =4) +
-  geom_point(aes(y = mean, x = species, color = species), lwd = 4) +
-  geom_linerange(aes(y = mean, x = species, ymin = twentyfifth, ymax = seventyfifth, color = species), lwd = 2) +
-  geom_linerange(aes(y = mean, x = species, ymin = twelfthpointfive, ymax = eightyseventhpointfive, color = species), lwd = 1) +
-  geom_linerange(aes(y = mean, x = species, ymin = fifth, ymax = ninetyfifth, color = species)) +
-  scale_color_manual(values = c("#dbdb42", "#b8e3a0", "#7fcdbb", "#41b6c4", "#1d91c0", "#225ea8", "#0c2c84", "#A9A9A9")) +
-  coord_flip()+
-  theme(panel.background = element_rect(fill = "white"),
-        panel.grid = element_line(color = NA))
+# ggplot(data = lambda_var_diff_df) +
+#   geom_hline(yintercept = 0, col = "black") + 
+#   geom_linerange(aes(y = mean, x = species, ymin = 0, ymax = mean), color = "white", lwd =4) +
+#   geom_point(aes(y = mean, x = species, color = species), lwd = 4) +
+#   geom_linerange(aes(y = mean, x = species, ymin = twentyfifth, ymax = seventyfifth, color = species), lwd = 2) +
+#   geom_linerange(aes(y = mean, x = species, ymin = twelfthpointfive, ymax = eightyseventhpointfive, color = species), lwd = 1) +
+#   geom_linerange(aes(y = mean, x = species, ymin = fifth, ymax = ninetyfifth, color = species)) +
+#   scale_color_manual(values = c("#dbdb42", "#b8e3a0", "#7fcdbb", "#41b6c4", "#1d91c0", "#225ea8", "#0c2c84", "#A9A9A9")) +
+#   coord_flip()+
+#   theme(panel.background = element_rect(fill = "white"),
+#         panel.grid = element_line(color = NA))
 
 
 # Version with raw posterior draws
-dimnames(lambda_var) <- list(Species = paste0("s",1:8), Endo = paste0("e",1:2), Iteration= paste0("i",1:n_draws))
-lambda_var_cube <- cubelyr::as.tbl_cube(lambda_var)
-lambda_var_df <- as_tibble(lambda_var_cube) %>% 
-  pivot_wider(names_from = Endo, values_from = lambda_var) %>% 
+dimnames(lambda_cv) <- list(Species = paste0("s",1:8), Endo = paste0("e",1:2), Iteration= paste0("i",1:n_draws))
+lambda_cv_cube <- cubelyr::as.tbl_cube(lambda_cv)
+lambda_cv_df <- as_tibble(lambda_cv_cube) %>% 
+  pivot_wider(names_from = Endo, values_from = lambda_cv) %>% 
   mutate(lambda_diff = e2-e1) %>% 
   mutate(species = case_when(Species == "s1" ~ "Agrostis perennans",
                              Species == "s2" ~ "Elymus villosus",
@@ -367,29 +400,32 @@ lambda_var_df <- as_tibble(lambda_var_cube) %>%
                              Species == "s7" ~ "Poa sylvestris",
                              Species == "s8" ~ "Species Mean"))
 
-lambdavar_plot <- ggplot(data = lambda_var_df) +
+lambdavar_plot <- ggplot(data = lambda_cv_df) +
   geom_hline(yintercept = 0, col = "black") + 
-  geom_linerange(data = lambda_var_diff_df, aes(x = species, y = mean, ymin = 0, ymax = mean, color = species))+
+  # geom_linerange(data = lambda_var_diff_df, aes(x = species, y = mean, ymin = 0, ymax = mean, color = species))+
   geom_jitter( aes(y = lambda_diff, x = species, color = species), width = .2, alpha = .2) +
   stat_summary(aes(y = lambda_diff, x = species), fun = mean,geom = "point", size = 3) +
-  geom_point(data = lambda_var_diff_df, aes(y = mean, x = species, color = species), lwd = 2) +
+  geom_point(data = lambda_cv_diff_df, aes(y = mean, x = species, color = species), lwd = 2) +
   scale_color_manual(values = c("#dbdb42", "#b8e3a0", "#7fcdbb", "#41b6c4", "#1d91c0", "#225ea8", "#0c2c84", "#A9A9A9")) +
-  coord_flip(ylim = c(-.5,.25)) +  #There's a few iterations out at -1.5
+  coord_flip(ylim = c(-.75,.25)) +  #There's a few iterations out at -1.5
   labs(y = expression(paste("Effect on ", "CV(",lambda,")")),
        x = "",
        color = "Species")+
   theme(panel.background = element_rect(fill = "white"),
-        panel.grid = element_line(color = NA))
+        panel.grid = element_line(color = NA),
+        axis.line = element_line(color = "grey"),
+        legend.position = "none")
 lambdavar_plot
-ggsave(lambdavar_plot, filename = "lambdavar_plot_coefficientofvariation.png", width = 8, height = 4)
+ggsave(lambdavar_plot, filename = "lambdavar_plot_coefficientofvariation.png", width = 4, height = 5)
 
-endo_lambdaeffects_plot <-  meanlambda_plot +lambdavar_plot + plot_layout(nrow = 1)
+endo_lambdaeffects_plot <-  meanlambda_plot +lambdavar_plot + plot_layout(nrow = 1, guides = "collect")
+endo_lambdaeffects_plot
 ggsave(endo_lambdaeffects_plot, filename = "endo_lambdaeffects_plot.png", width = 12, height = 6)
 
 
 
 # a plot of variance by mean effects
-lambda_var_join <- lambda_var_df %>% 
+lambda_var_join <- lambda_cv_df %>% 
   rename( varlambda_diff = lambda_diff, var_e1 = e1, var_e2 = e2)
 
 lambda_mean_join <- lambda_mean_df %>% 
@@ -498,28 +534,29 @@ sppmean_meanvar <- ggplot(data = filter(lambda_join_df, species == "Species Mean
         plot.title = element_text(size = 10),
         legend.position = "none")
 # sppmean_meanvar
-
 meanvar_biplot <- ggplot(data = lambda_join_df) +
   geom_hline(yintercept = 0) + geom_vline(xintercept = 0)+
   # geom_point(aes(x = meanlambda_diff, y = varlambda_diff, color = species), alpha = .5) +
   geom_point(data = summarylambda_join_df, aes(x = avg_meandiff, y = avg_vardiff, color = species), lwd  = 3) +
-  geom_text(data = summarylambda_join_df, aes(x = avg_meandiff, y = (avg_vardiff-.005), label = species), lwd  = 3) +
-  # xlim(-.4,.4) + ylim(-.3,.3)+
-  xlim(-.05,.2) + ylim(-.08,.05)+
+  geom_label_repel(data = summarylambda_join_df, aes(x = avg_meandiff, y = (avg_vardiff), label = species), lwd  = 3) +
+  xlim(-.05,.17) + ylim(-.26,.05)+
+  # xlim(-.05,.2) + ylim(-.08,.05)+
   scale_color_manual(values = c("#dbdb42", "#b8e3a0", "#7fcdbb", "#41b6c4", "#1d91c0", "#225ea8", "#0c2c84", "#A9A9A9")) +
   xlab(expression(paste("Effect on ", bar(lambda)))) +
-  ylab(expression(paste("Effect on ", "Var(",lambda,")"))) +
+  ylab(expression(paste("Effect on ", "CV(",lambda,")"))) +
   theme(panel.background = element_blank(), 
         axis.line = element_blank(),
         legend.position = "none")
-# meanvar_biplot
-# ggsave(meanvar_biplot, filename = "meanvar_biplot.png", width = 6, height = 5)
+meanvar_biplot
+ggsave(meanvar_biplot, filename = "meanvar_biplot.png", width = 5, height = 5)
 
 meanvar_biplot_post <- meanvar_biplot + (agpe_meanvar+ elri_meanvar + elvi_meanvar +fesu_meanvar + loar_meanvar + poal_meanvar + posy_meanvar + sppmean_meanvar )+
   plot_layout(ncol = 2, nrow = 1, widths = unit(c(9, 1), c("cm", "null")), heights = unit(c(9, 1), c('cm', 'null')))
 meanvar_biplot_post
 ggsave(meanvar_biplot_post, filename = "meanvar_biplot_post.png", width = 10, height = 5)
 
+
+meanvar_biplot_with_
 #############################################################################################
 ####### Stochastic lambda simulations ------------------
 #############################################################################################
@@ -1473,5 +1510,14 @@ summary_lambda_sd <- lambda_var_df %>%
             percent_endo_comparison = 100-(mean(e1)/mean(e2))*100,
             percent_difflessthanzero = (sum(lambda_diff<0)/n())*100,
             draws = n())
+
+summary_lambda_cv <- lambda_cv_df  %>% 
+  # filter(sampling == "obs") %>% 
+  group_by(species, Species) %>% 
+  summarize(cv_lambda_diff = mean(lambda_diff),
+            percent_endo_comparison = 100-(mean(e1)/mean(e2))*100,
+            percent_difflessthanzero = (sum(lambda_diff<0)/n())*100,
+            draws = n())
+
 
 
