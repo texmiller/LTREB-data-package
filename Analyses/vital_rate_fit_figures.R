@@ -5,6 +5,7 @@
 
 library(tidyverse)
 library(RColorBrewer)
+library(viridis)
 library(rstan)
 library(StanHeaders)
 library(bayesplot)
@@ -28,8 +29,13 @@ quote_bare <- function( ... ){
 #############################################################################################
 
 #  data are prepared in the endodemog_data_processing.R file, 
-source("Analyses/endodemog_data_processing.R")
-# LTREB_full <- read_csv("~/Dropbox/EndodemogData/Fulldataplusmetadata/LTREB_full.csv")
+# source("Analyses/endodemog_data_processing.R")
+species_factor_key <- c("AGPE" = 1, "ELRI" = 2, "ELVI" = 3, 
+                        "FESU" = 4, "LOAR" = 5, "POAL" = 6, 
+                        "POSY" = 7)
+LTREB_full <- read_csv("~/Dropbox/EndodemogData/Fulldataplusmetadata/LTREB_full.csv")
+LTREB_repro1 <- read_csv("~/Dropbox/EndodemogData/Fulldataplusmetadata/LTREB_repro1.csv")
+
 ## Clean up the main data frame for NA's, other small data entry errors
 LTREB_data_forsurv <- LTREB_full %>% 
   filter(!is.na(surv_t1)) %>% 
@@ -87,7 +93,7 @@ LTREB_data_forfert <- LTREB_full %>%
 dim(LTREB_data_forfert)
 
 LTREB_data_forspike <- LTREB_full %>%
-  dplyr::select(-FLW_COUNT_T, -FLW_STAT_T, -SPIKE_A_T, -SPIKE_B_T, -SPIKE_C_T, -SPIKE_D_T, -SPIKE_AGPE_MEAN_T, -census_month, -year, -spei1, -spei12, -spei24, -annual_temp, -annual_precip, -endo_status_from_check, -plot_endo_for_check, -endo_mismatch, -dist_a, -dist_b) %>% 
+  dplyr::select(-FLW_COUNT_T, -FLW_STAT_T, -SPIKE_A_T, -SPIKE_B_T, -SPIKE_C_T, -SPIKE_D_T, -SPIKE_AGPE_MEAN_T, -census_month, -year, -spei1, -spei3, -spei12, -spei24, -annual_temp, -annual_precip, -endo_status_from_check, -plot_endo_for_check, -endo_mismatch, -dist_a, -dist_b) %>% 
   filter(!is.na(FLW_STAT_T1)) %>% 
   filter(FLW_STAT_T1>0) %>% 
   reshape2::melt(id.var = c("plot_fixed" ,   "plot_index",         "pos"         ,           "id",
@@ -100,7 +106,7 @@ LTREB_data_forspike <- LTREB_full %>%
                   "FLW_COUNT_T1"      ,      "FLW_STAT_T1"),
        value.name = "spike_count_t1") %>% 
   rename(spikelet_id = variable) %>% 
-  filter(!is.na(spike_count_t1), spike_count_t1 > 0) %>% 
+  filter(!is.na(spike_count_t1)) %>% 
   mutate(spike_count_t1 = as.integer(spike_count_t1))
 
 
@@ -214,12 +220,12 @@ spike_data_list <- list(nYear = max(unique(LTREB_data_forspike$year_t_index)),
                         origin_01 = LTREB_data_forspike$origin_01)
 str(spike_data_list)
 
-LTREB_data_for_seedmeans <- LTREB_repro1 %>% 
+LTREB_data_for_seedmeans <- LTREB_repro1 %>%  
   mutate(seed_per_spike = seed/spikelets) %>% 
   mutate(SEED_PER_SPIKE= case_when(species != "AGPE" ~ seed_per_spike,
                                    species == "AGPE" & tillerid_fixed == "multitillermean" ~ seed, # AGPE has some of its seeds data already recorded as seed/spike
                                    species == "AGPE" & tillerid_fixed != "multitillermean" ~ seed_per_spike)) %>% 
-  mutate(species_index = as.integer(recode(species, !!!species_factor_key))) %>% 
+  mutate(species_index = as.integer(recode(species, !!!species_factor_key))) %>%
   mutate(endo_index = as.integer(as.factor(endo_01+1)))  %>% 
   filter(!is.na(SEED_PER_SPIKE), SEED_PER_SPIKE >0)
 
@@ -303,7 +309,7 @@ y_recruit_sim <- readRDS(file = "yrep_stosmodel.rds")
 # Set color scheme based on analine blue
 endophyte_color_scheme <- c("#fdedd3","#f3c8a8", "#5a727b", "#4986c7", "#181914",  "#163381")
 color_scheme_set(endophyte_color_scheme)
-# color_scheme_view()
+color_scheme_view()
 # And creating a color palette for each year
 yearcount = length(unique(LTREB_full$year_t))
 yearcolors<- colorRampPalette(brewer.pal(8,"Dark2"))(yearcount)
@@ -317,10 +323,10 @@ surv_densplot <- ppc_dens_overlay(surv_data_list$y, y_s_sim) + theme_classic() +
 # surv_densplot
 # ggsave(surv_densplot, filename = "surv_densplot.png", width = 4, height = 4)
 
-mean_s_plot <-   ppc_stat(surv_data_list$y, y_s_sim, stat = "mean")
-sd_s_plot <- ppc_stat(surv_data_list$y, y_s_sim, stat = "sd")
-skew_s_plot <- ppc_stat(surv_data_list$y, y_s_sim, stat = "skewness")
-kurt_s_plot <- ppc_stat(surv_data_list$y, y_s_sim, stat = "Lkurtosis")
+mean_s_plot <-   ppc_stat(surv_data_list$y, y_s_sim, stat = "mean") + legend_none()+labs(title = "Mean")
+sd_s_plot <- ppc_stat(surv_data_list$y, y_s_sim, stat = "sd")+ legend_none()+labs(title = "SD")
+skew_s_plot <- ppc_stat(surv_data_list$y, y_s_sim, stat = "skewness")+ legend_none()+labs(title = "Skew")
+kurt_s_plot <- ppc_stat(surv_data_list$y, y_s_sim, stat = "Lkurtosis")+ legend_none()+labs(title = "Kurtosis")
 surv_moments <- mean_s_plot+sd_s_plot+skew_s_plot+kurt_s_plot + plot_annotation(title = "Survival")
 # surv_moments
 # ggsave(surv_moments, filename = "surv_momentplot.png", width = 4, height = 4)
@@ -330,10 +336,10 @@ seedsurv_densplot <- ppc_dens_overlay(seed_surv_data_list$y, y_seed_s_sim) + the
 # seedsurv_densplot
 # ggsave(seedsurv_densplot, filename = "seedsurv_densplot.png", width = 4, height = 4)
 
-mean_s_plot <-   ppc_stat(seed_surv_data_list$y, y_seed_s_sim, stat = "mean")
-sd_s_plot <- ppc_stat(seed_surv_data_list$y, y_seed_s_sim, stat = "sd")
-skew_s_plot <- ppc_stat(seed_surv_data_list$y, y_seed_s_sim, stat = "skewness")
-kurt_s_plot <- ppc_stat(seed_surv_data_list$y, y_seed_s_sim, stat = "Lkurtosis")
+mean_s_plot <-   ppc_stat(seed_surv_data_list$y, y_seed_s_sim, stat = "mean") + legend_none()+labs(title = "Mean")
+sd_s_plot <- ppc_stat(seed_surv_data_list$y, y_seed_s_sim, stat = "sd")+ legend_none()+labs(title = "SD")
+skew_s_plot <- ppc_stat(seed_surv_data_list$y, y_seed_s_sim, stat = "skewness")+ legend_none()+labs(title = "Skew")
+kurt_s_plot <- ppc_stat(seed_surv_data_list$y, y_seed_s_sim, stat = "Lkurtosis")+ legend_none()+labs(title = "Kurtosis")
 seedsurv_moments <- mean_s_plot+sd_s_plot+skew_s_plot+kurt_s_plot + plot_annotation(title = "Seedling Survival")
 # seedsurv_moments
 # ggsave(seedsurv_moments, filename = "seedsurv_momentsplot.png", width = 4, height = 4)
@@ -343,64 +349,64 @@ flw_densplot <- ppc_dens_overlay(flw_data_list$y, y_f_sim) + theme_classic() + l
 # flw_densplot
 # ggsave(flw_densplot, filename = "flw_densplot.png", width = 4, height = 4)
 
-mean_f_plot <-   ppc_stat(flw_data_list$y, y_f_sim, stat = "mean")
-sd_f_plot <- ppc_stat(flw_data_list$y, y_f_sim, stat = "sd")
-skew_f_plot <- ppc_stat(flw_data_list$y, y_f_sim, stat = "skewness")
-kurt_f_plot <- ppc_stat(flw_data_list$y, y_f_sim, stat = "Lkurtosis")
+mean_f_plot <-   ppc_stat(flw_data_list$y, y_f_sim, stat = "mean") + legend_none()+labs(title = "Mean")
+sd_f_plot <- ppc_stat(flw_data_list$y, y_f_sim, stat = "sd")+ legend_none()+labs(title = "SD")
+skew_f_plot <- ppc_stat(flw_data_list$y, y_f_sim, stat = "skewness")+ legend_none()+labs(title = "Skew")
+kurt_f_plot <- ppc_stat(flw_data_list$y, y_f_sim, stat = "Lkurtosis")+ legend_none()+labs(title = "Kurtosis")
 flw_moments <- mean_f_plot+sd_f_plot+skew_f_plot+kurt_f_plot +plot_annotation(title = "Flowering")
 # flw_moments
 # ggsave(flw_moments, filename = "flw_momentsplot.png", width = 4, height = 4)
 
 # Growth (with the poisson inverse gaussian distribution)
-grow_densplot <- ppc_dens_overlay(grow_data_list$y, y_g_sim) + xlim(0,60) + theme_classic() + labs(title = "Adult Growth with PIG", x = "No. of Tillers", y = "Density")
+grow_densplot <- ppc_dens_overlay(grow_data_list$y, y_g_sim) + xlim(0,60) + theme_classic() + labs(title = "Adult Growth ", x = "No. of Tillers", y = "Density")
 # grow_densplot
 # ggsave(grow_densplot, filename = "grow_densplot.png", width = 4, height = 4)
 
-mean_g_plot <-   ppc_stat(grow_data_list$y, y_g_sim, stat = "mean")
-sd_g_plot <- ppc_stat(grow_data_list$y, y_g_sim, stat = "sd")
-skew_g_plot <- ppc_stat(grow_data_list$y, y_g_sim, stat = "skewness")
-kurt_g_plot <- ppc_stat(grow_data_list$y, y_g_sim, stat = "Lkurtosis")
-grow_moments <- mean_g_plot+sd_g_plot+skew_g_plot+kurt_g_plot+ plot_annotation(title = "Growth PIG")
+mean_g_plot <-   ppc_stat(grow_data_list$y, y_g_sim, stat = "mean") + legend_none()+labs(title = "Mean")
+sd_g_plot <- ppc_stat(grow_data_list$y, y_g_sim, stat = "sd")+ legend_none()+labs(title = "SD")
+skew_g_plot <- ppc_stat(grow_data_list$y, y_g_sim, stat = "skewness")+ legend_none()+labs(title = "Skew")
+kurt_g_plot <- ppc_stat(grow_data_list$y, y_g_sim, stat = "Lkurtosis")+ legend_none()+labs(title = "Kurtosis")
+grow_moments <- mean_g_plot+sd_g_plot+skew_g_plot+kurt_g_plot+ plot_annotation(title = "Growth")
 # grow_moments
 # ggsave(grow_moments, filename = "grow_momentsplot.png", width = 4, height = 4)
 
 # seedling growth (with poisson inverse gaussian distribution)
-seedgrow_densplot <- ppc_dens_overlay(seed_grow_data_list$y, y_seed_g_sim) + xlim(0,60) + theme_classic() + labs(title = "Seedling Growth with PIG", x = "No. of Tillers", y = "Density")
+seedgrow_densplot <- ppc_dens_overlay(seed_grow_data_list$y, y_seed_g_sim) + xlim(0,60) + theme_classic() + labs(title = "Seedling Growth", x = "No. of Tillers", y = "Density")
 # seedgrow_densplot
 # ggsave(seedgrow_densplot, filename = "seed_grow_densplot.png", width = 4, height = 4)
 
-mean_seed_g_plot <-   ppc_stat(seed_grow_data_list$y, y_seed_g_sim, stat = "mean")
-sd_seed_g_plot <- ppc_stat(seed_grow_data_list$y, y_seed_g_sim, stat = "sd")
-skew_seed_g_plot <- ppc_stat(seed_grow_data_list$y, y_seed_g_sim, stat = "skewness")
-kurt_seed_g_plot <- ppc_stat(seed_grow_data_list$y, y_seed_g_sim, stat = "Lkurtosis")
-seedgrow_moments <- mean_seed_g_plot+sd_seed_g_plot+skew_seed_g_plot+kurt_seed_g_plot+ plot_annotation(title = "Seedling Growth PIG")
+mean_seed_g_plot <-   ppc_stat(seed_grow_data_list$y, y_seed_g_sim, stat = "mean")+ legend_none()+labs(title = "Mean")
+sd_seed_g_plot <- ppc_stat(seed_grow_data_list$y, y_seed_g_sim, stat = "sd")+ legend_none()+labs(title = "SD")
+skew_seed_g_plot <- ppc_stat(seed_grow_data_list$y, y_seed_g_sim, stat = "skewness")+ legend_none()+labs(title = "Skew")
+kurt_seed_g_plot <- ppc_stat(seed_grow_data_list$y, y_seed_g_sim, stat = "Lkurtosis")+ legend_none()+labs(title = "Kurtosis")
+seedgrow_moments <- mean_seed_g_plot+sd_seed_g_plot+skew_seed_g_plot+kurt_seed_g_plot+ plot_annotation(title = "Seedling Growth")
 # seedgrow_moments
 # ggsave(seedgrow_moments, filename = "seedgrow_momentsplot.png", width = 4, height = 4)
 
 # Fertility
-fert_densplot <- ppc_dens_overlay(fert_data_list$y, y_fert_sim) + xlim(0,40) + ggtitle("Fertility with PIG")
+fert_densplot <- ppc_dens_overlay(fert_data_list$y, y_fert_sim) + xlim(0,40) + theme_classic() + labs(title = "Fertility", x = "No. of Reproductive Tillers", y = "Density")
 # fert_densplot
 # ggsave(fert_densplot, filename = "fert_densplot_withPIG.png", width = 4, height = 4)
 
 # This doesn't fit all the moments quite as well, but it's likely good enough
-mean_fert_plot <-   ppc_stat(fert_data_list$y, y_fert_sim, stat = "mean")
-sd_fert_plot <- ppc_stat(fert_data_list$y, y_fert_sim, stat = "sd")
-skew_fert_plot <- ppc_stat(fert_data_list$y, y_fert_sim, stat = "skewness")
-kurt_fert_plot <- ppc_stat(fert_data_list$y, y_fert_sim, stat = "Lkurtosis")
-fert_moments <- mean_fert_plot+sd_fert_plot+skew_fert_plot+kurt_fert_plot + plot_annotation(title = "Fertility with PIG")
+mean_fert_plot <-   ppc_stat(fert_data_list$y, y_fert_sim, stat = "mean")+ legend_none()+labs(title = "Mean")
+sd_fert_plot <- ppc_stat(fert_data_list$y, y_fert_sim, stat = "sd")+ legend_none()+labs(title = "SD")
+skew_fert_plot <- ppc_stat(fert_data_list$y, y_fert_sim, stat = "skewness")+ legend_none()+labs(title = "Skew")
+kurt_fert_plot <- ppc_stat(fert_data_list$y, y_fert_sim, stat = "Lkurtosis")+ legend_none()+labs(title = "Kurtosis")
+fert_moments <- mean_fert_plot+sd_fert_plot+skew_fert_plot+kurt_fert_plot + plot_annotation(title = "Fertility")
 # fert_moments
 # ggsave(fert_moments, filename = "fert_momentsplot_withPIG.png", width = 4, height = 4)
 
 # Spikelets per infl
-spike_densplot <- ppc_dens_overlay(spike_data_list$y, y_spike_sim) + xlim(0,250) + ggtitle("Spikelet Count")
+spike_densplot <- ppc_dens_overlay(spike_data_list$y, y_spike_sim) + xlim(0,250) + theme_classic() + labs(title = "Spikelet Count", x = "Spikelets/Inflorescence", y = "Density")
 # spike_densplot
 # ggsave(spike_densplot, filename = "spike_densplot.png", width = 4, height = 4)
 
-mean_spike_plot <-   ppc_stat(spike_data_list$y, y_spike_sim, stat = "mean")
-sd_spike_plot <- ppc_stat(spike_data_list$y, y_spike_sim, stat = "sd")
-skew_spike_plot <- ppc_stat(spike_data_list$y, y_spike_sim, stat = "skewness")
-kurt_spike_plot <- ppc_stat(spike_data_list$y, y_spike_sim, stat = "Lkurtosis")
-spike_moments <- mean_spike_plot+sd_spike_plot+skew_spike_plot+kurt_spike_plot+ plot_annotation(title = "Spikelets per Infl. ZTNB")
+mean_spike_plot <-   ppc_stat(spike_data_list$y, y_spike_sim, stat = "mean")+ legend_none()+labs(title = "Mean")
+sd_spike_plot <- ppc_stat(spike_data_list$y, y_spike_sim, stat = "sd")+ legend_none()+labs(title = "SD")
+skew_spike_plot <- ppc_stat(spike_data_list$y, y_spike_sim, stat = "skewness")+ legend_none()+labs(title = "Skew")
+kurt_spike_plot <- ppc_stat(spike_data_list$y, y_spike_sim, stat = "Lkurtosis")+ legend_none()+labs(title = "Kurtosis")
+spike_moments <- mean_spike_plot+sd_spike_plot+skew_spike_plot+kurt_spike_plot+ plot_annotation(title = "Spikelets per Infl.")
 # spike_moments
 # ggsave(spike_moments, filename = "spike_momentsplot.png", width = 4, height = 4)
 
@@ -408,22 +414,22 @@ spike_moments <- mean_spike_plot+sd_spike_plot+skew_spike_plot+kurt_spike_plot+ 
 seedmean_densplot <-ppc_dens_overlay(seed_mean_data_list$seed, y_seedmean_sim)+ theme_classic() + labs(title = "Seed Means", x = "Seeds per Spikelet.", y = "Density") 
 # ggsave(seedmean_densplot, filename = "seedmean_densplot.png", width = 4, height = 4)
 
-mean_sm_plot <-   ppc_stat(seed_mean_data_list$seed, y_seedmean_sim, stat = "mean")
-sd_sm_plot <- ppc_stat(seed_mean_data_list$seed, y_seedmean_sim, stat = "sd")
-skew_sm_plot <- ppc_stat(seed_mean_data_list$seed, y_seedmean_sim, stat = "skewness")
-kurt_sm_plot <- ppc_stat(seed_mean_data_list$seed, y_seedmean_sim, stat = "Lkurtosis")
+mean_sm_plot <-   ppc_stat(seed_mean_data_list$seed, y_seedmean_sim, stat = "mean")+ legend_none()+labs(title = "Mean")
+sd_sm_plot <- ppc_stat(seed_mean_data_list$seed, y_seedmean_sim, stat = "sd")+ legend_none()+labs(title = "SD")
+skew_sm_plot <- ppc_stat(seed_mean_data_list$seed, y_seedmean_sim, stat = "skewness")+ legend_none()+labs(title = "Skew")
+kurt_sm_plot <- ppc_stat(seed_mean_data_list$seed, y_seedmean_sim, stat = "Lkurtosis")+ legend_none()+labs(title = "Kurtosis")
 seedmean_moments <- mean_sm_plot + sd_sm_plot + skew_sm_plot + kurt_sm_plot
 # seedmean_moments
 # ggsave(seedmean_moments, filename = "seedmean_moments.png", width = 4, height = 4)
 
 # Seed to Seedling
-stos_densplot <- ppc_dens_overlay(s_to_s_data_list$tot_recruit_t1, y_recruit_sim) +xlim(0,75) + labs(title = "Recruitment", x = "Successful Germination", y = "Density") 
+stos_densplot <- ppc_dens_overlay(s_to_s_data_list$tot_recruit_t1, y_recruit_sim) +xlim(0,40) + theme_classic() + labs(title = "Recruitment", x = "Successful Germination", y = "Density") 
 # ggsave(stos_densplot, filename = "stos_densplot.png", width = 4, height = 4)
 
-mean_stos_plot <-   ppc_stat(s_to_s_data_list$tot_recruit_t1, y_recruit_sim, stat = "mean")
-sd_stos_plot <- ppc_stat(s_to_s_data_list$tot_recruit_t1, y_recruit_sim, stat = "sd")
-skew_stos_plot <- ppc_stat(s_to_s_data_list$tot_recruit_t1, y_recruit_sim, stat = "skewness")
-kurt_stos_plot <- ppc_stat(s_to_s_data_list$tot_recruit_t1, y_recruit_sim, stat = "Lkurtosis")
+mean_stos_plot <-   ppc_stat(s_to_s_data_list$tot_recruit_t1, y_recruit_sim, stat = "mean")+ legend_none()+labs(title = "Mean")
+sd_stos_plot <- ppc_stat(s_to_s_data_list$tot_recruit_t1, y_recruit_sim, stat = "sd")+ legend_none()+labs(title = "SD")
+skew_stos_plot <- ppc_stat(s_to_s_data_list$tot_recruit_t1, y_recruit_sim, stat = "skewness")+ legend_none()+labs(title = "Skew")
+kurt_stos_plot <- ppc_stat(s_to_s_data_list$tot_recruit_t1, y_recruit_sim, stat = "Lkurtosis")+ legend_none()+labs(title = "Kurtosis")
 stos_moments <- mean_stos_plot+sd_stos_plot+skew_stos_plot+kurt_stos_plot
 # stos_moments
 # ggsave(stos_moments, filename = "stos_moments.png", width = 4, height = 4)
@@ -431,17 +437,20 @@ stos_moments <- mean_stos_plot+sd_stos_plot+skew_stos_plot+kurt_stos_plot
 
 # all together
 ## Plot for all models fits and moments
-fitsandmoments_plot <- (surv_densplot + surv_moments)/
-                       (seedsurv_densplot + seedsurv_moments)/
-                       (grow_densplot + grow_moments)/ 
-                       (seedgrow_densplot + seedgrow_moments)/
-                       (flw_densplot + flw_moments)/
-                       (fert_densplot + fert_moments)/
-                       (spike_densplot + spike_moments)/
-                       (seedmean_densplot + seedmean_moments)/
-                       (stos_densplot + stos_moments)+
-                       plot_annotation(title = "Vital rate fits and moments with 500 posterior draws")
-ggsave(fitsandmoments_plot, filename = "fitsandmoments_plot.png", width = 18, height = 20)
+fm_layout <- "
+AB
+CD
+EG
+HI
+J#
+"
+fitsandmoments_plot <- wrap_plots(A = (surv_densplot | surv_moments), B = (seedsurv_densplot | seedsurv_moments), 
+  C = (grow_densplot | grow_moments), D = (seedgrow_densplot | seedgrow_moments),
+  E =(flw_densplot | flw_moments), G = (fert_densplot | fert_moments),
+  H = (spike_densplot | spike_moments), I = (seedmean_densplot | seedmean_moments),
+  J = (stos_densplot | stos_moments), design = fm_layout, guides = "collect") +
+  plot_annotation(title = "Vital rate fits and moments with 500 posterior draws")
+ggsave(fitsandmoments_plot, filename = "fitsandmoments_plot.png", width = 12, height = 15)
 
 
 
@@ -471,35 +480,34 @@ size_moments_ppc <- function(data,y_name,sim, n_bins, title = NA){
     mutate(size_bin = cut_number(logsize_t, n_bins)) %>%
     pivot_longer(., cols = starts_with("V"), names_to = "post_draw", values_to = "sim") %>%
     group_by(size_bin, post_draw) %>%
-    summarize( mean_sim = mean((sim)),
-               sd_sim = sd((sim)),
-               skew_sim = skewness((sim)),
-               kurt_sim = Lkurtosis((sim)),
+    summarize( Mean = mean((sim)),
+               SD = sd((sim)),
+               Skew = skewness((sim)),
+               Kurtosis = Lkurtosis((sim)),
                bin_mean = mean(logsize_t),
                bin_n = n())
   sim_medians <- sim_moments %>%
     group_by(size_bin, bin_mean) %>%
-    summarize(median_mean_sim = median(mean_sim),
-              median_sd_sim = median(sd_sim),
-              median_skew_sim = median(skew_sim),
-              median_kurt_sim = median(kurt_sim))
+    summarize(median_mean_sim = median(Mean),
+              median_sd_sim = median(SD),
+              median_skew_sim = median(Skew),
+              median_kurt_sim = median(Kurtosis))
   meanplot <-  ggplot(data = bins)+
-    geom_point(data = sim_moments, aes(x = bin_mean, y = mean_sim), color = "gray72") +
+    geom_point(data = sim_moments, aes(x = bin_mean, y = Mean), color = "gray72") +
     geom_point(data = sim_medians, aes(x = bin_mean, y = median_mean_sim),shape = 1, color = "black") +
-    geom_point(aes(x = bin_mean, y = mean_t1), shape = 1, color = "firebrick2") +
-    theme_classic()
+    geom_point(aes(x = bin_mean, y = mean_t1), shape = 1, color = "firebrick2") + xlab("log(size_t)") + theme_classic()
   sdplot <-  ggplot(data = bins)+
-    geom_point(data = sim_moments, aes(x = bin_mean, y = sd_sim), color = "gray72") +
+    geom_point(data = sim_moments, aes(x = bin_mean, y = SD), color = "gray72") +
     geom_point(data = sim_medians, aes(x = bin_mean, y = median_sd_sim),shape = 1, color = "black") +
-    geom_point(aes(x = bin_mean, y = sd_t1), shape = 1, color = "firebrick2") + theme_classic()
+    geom_point(aes(x = bin_mean, y = sd_t1), shape = 1, color = "firebrick2") + xlab("log(size_t)") + theme_classic()
   skewplot <-  ggplot(data = bins)+
-    geom_point(data = sim_moments, aes(x = bin_mean, y = skew_sim), color = "gray72") +
+    geom_point(data = sim_moments, aes(x = bin_mean, y = Skew), color = "gray72") +
     geom_point(data = sim_medians, aes(x = bin_mean, y = median_skew_sim),shape = 1, color = "black") +
-    geom_point(aes(x = bin_mean, y = skew_t1), shape = 1, color = "firebrick2") + theme_classic()
+    geom_point(aes(x = bin_mean, y = skew_t1), shape = 1, color = "firebrick2") + xlab("log(size_t)") + theme_classic()
   kurtplot <- ggplot(data = bins)+
-    geom_point(data = sim_moments, aes(x = bin_mean, y = kurt_sim), color = "gray72") +
+    geom_point(data = sim_moments, aes(x = bin_mean, y = Kurtosis), color = "gray72") +
     geom_point(data = sim_medians, aes(x = bin_mean, y = median_kurt_sim),shape = 1, color = "black") +
-    geom_point(aes(x = bin_mean, y = kurt_t1), shape = 1, color = "firebrick2") + theme_classic()
+    geom_point(aes(x = bin_mean, y = kurt_t1), shape = 1, color = "firebrick2") + xlab("log(size_t)") + theme_classic()
   size_ppc_plot <- meanplot+ sdplot+skewplot+ kurtplot+plot_annotation(title = title)
   return(size_ppc_plot)
 }
@@ -509,11 +517,11 @@ PIG_growth_size_ppc <- size_moments_ppc(data = LTREB_data_forgrow,
                                         sim = y_g_sim, 
                                         n_bins = 6, 
                                         title = "Growth PIG")
+# PIG_growth_size_ppc
 # ggsave(PIG_growth_size_ppc, filename = "PIG_growth_size_pcc.png", width = 4, height = 4)
 
-size_ppc_plot <- (PIG_growth_size_ppc+ plot_annotation(title = 'Growth'))+
-  plot_annotation(title = "Size specific vital rate moments")
-# size_ppc_plot
+size_ppc_plot <- (PIG_growth_size_ppc+ plot_annotation(title = 'Growth modeled with PIG', subtitle = "Size specific vital rate moments"))
+size_ppc_plot
 ggsave(size_ppc_plot, filename = "size_ppc_plot.png", width = 6, height = 8)
 
 ## Traceplots for select parameters from all vital rates for AGPE
@@ -710,10 +718,10 @@ recruit_sigmayear_hist <- ggplot(data = recruit_sigmayear_df)+
 # posterior histograms of E+ and E- variance
 
 endo_sigmayear_histograms <- surv_sigmayear_hist + seedsurv_sigmayear_hist + grow_sigmayear_hist + seedgrow_sigmayear_hist + flow_sigmayear_hist + fert_sigmayear_hist + spike_sigmayear_hist + recruit_sigmayear_hist+
-  plot_layout( nrow  = 1, guides = "collect")+
+  plot_layout( nrow  = 2, guides = "collect")+
   plot_annotation(title = "Endophyte effect on interannual SD across vital rates by species")
 
-ggsave(endo_sigmayear_histograms, filename = "endo_sigmayear_histograms.png", width = 30, height = 15)
+ggsave(endo_sigmayear_histograms, filename = "endo_sigmayear_histograms.png", width = 20, height = 15)
 
 
 
@@ -869,11 +877,11 @@ spike_mean[x,e,s,2:3] <- quantile(spike_iter[x,e,s,], probs = c(.1,.9), na.rm = 
   }
 }
 
-dimnames(surv_mean) <- list(paste0("size", 1:length(x_seq[,1])), c("Eminus","Eplus"), species_list, c("mean","twenty","eighty"))
-dimnames(grow_mean) <- list(paste0("size", 1:length(x_seq[,1])), c("Eminus","Eplus"), species_list, c("mean","twenty","eighty"))
-dimnames(flw_mean) <- list(paste0("size", 1:length(x_seq[,1])), c("Eminus","Eplus"), species_list, c("mean","twenty","eighty"))
-dimnames(fert_mean) <- list(paste0("size", 1:length(x_seq[,1])), c("Eminus","Eplus"), species_list, c("mean","twenty","eighty"))
-dimnames(spike_mean) <- list(paste0("size", 1:length(x_seq[,1])), c("Eminus","Eplus"), species_list, c("mean","twenty","eighty"))
+dimnames(surv_mean) <- list(paste0("size", 1:length(x_seq[,1])), c("E-","E+"), species_list, c("mean","twenty","eighty"))
+dimnames(grow_mean) <- list(paste0("size", 1:length(x_seq[,1])), c("E-","E+"), species_list, c("mean","twenty","eighty"))
+dimnames(flw_mean) <- list(paste0("size", 1:length(x_seq[,1])), c("E-","E+"), species_list, c("mean","twenty","eighty"))
+dimnames(fert_mean) <- list(paste0("size", 1:length(x_seq[,1])), c("E-","E+"), species_list, c("mean","twenty","eighty"))
+dimnames(spike_mean) <- list(paste0("size", 1:length(x_seq[,1])), c("E-","E+"), species_list, c("mean","twenty","eighty"))
 
 # Now the same thing for each year specific vital rate
 for(i in 1:length(post_draws)){
@@ -995,11 +1003,11 @@ for(x in 1:length(x_seq[,1])){
   }
 }
 
-dimnames(survyear_mean) <- list(paste0("size", 1:length(x_seq[,1])), c("Eminus","Eplus"), species_list,c(2008:2021), c("mean","twenty","eighty"))
-dimnames(growyear_mean) <- list(paste0("size", 1:length(x_seq[,1])), c("Eminus","Eplus"), species_list,c(2008:2021), c("mean","twenty","eighty"))
-dimnames(flwyear_mean) <- list(paste0("size", 1:length(x_seq[,1])), c("Eminus","Eplus"), species_list,c(2008:2021), c("mean","twenty","eighty"))
-dimnames(fertyear_mean) <- list(paste0("size", 1:length(x_seq[,1])), c("Eminus","Eplus"), species_list,c(2008:2021), c("mean","twenty","eighty"))
-dimnames(spikeyear_mean) <- list(paste0("size", 1:length(x_seq[,1])), c("Eminus","Eplus"), species_list,c(2008:2021), c("mean","twenty","eighty"))
+dimnames(survyear_mean) <- list(paste0("size", 1:length(x_seq[,1])), c("E-","E+"), species_list,c(2008:2021), c("mean","twenty","eighty"))
+dimnames(growyear_mean) <- list(paste0("size", 1:length(x_seq[,1])), c("E-","E+"), species_list,c(2008:2021), c("mean","twenty","eighty"))
+dimnames(flwyear_mean) <- list(paste0("size", 1:length(x_seq[,1])), c("E-","E+"), species_list,c(2008:2021), c("mean","twenty","eighty"))
+dimnames(fertyear_mean) <- list(paste0("size", 1:length(x_seq[,1])), c("E-","E+"), species_list,c(2008:2021), c("mean","twenty","eighty"))
+dimnames(spikeyear_mean) <- list(paste0("size", 1:length(x_seq[,1])), c("E-","E+"), species_list,c(2008:2021), c("mean","twenty","eighty"))
 
 
 #Now I'm gonna make these into  tidy dataframes for plotting
@@ -1018,7 +1026,7 @@ surv_mean_df <- as_tibble(surv_mean) %>%
   mutate(no_row = row_number()) %>% 
   pivot_longer(cols = starts_with("E"),
                values_to = c("surv") ) %>% 
-  separate(name, c("Endo", "Species","quantile")) %>% 
+  separate(name, c("Endo", "Species","quantile"), "\\.") %>% 
   pivot_wider(id_cols = c("no_row", "Endo", "Species"), names_from = "quantile", values_from = "surv") %>% 
   left_join(x_seq_df)
 
@@ -1026,15 +1034,15 @@ survyear_mean_df <- as_tibble(survyear_mean) %>%
   mutate(no_row = row_number()) %>% 
   pivot_longer(cols = -no_row,
                values_to = c("surv")) %>% 
-  separate(name, c("Endo", "Species", "Year", "quantile")) %>% 
+  separate(name, c("Endo", "Species", "Year", "quantile"), "\\.") %>% 
   pivot_wider(id_cols = c("no_row", "Endo", "Species", "Year"), names_from = "quantile", values_from = "surv") %>% 
   left_join(x_seq_df)
 
 grow_mean_df <- as_tibble(grow_mean) %>%    
   mutate(no_row = row_number()) %>% 
   pivot_longer(cols = starts_with("E"),
-               values_to = c("size_t1") ) %>% 
-  separate(name, c("Endo", "Species","quantile")) %>% 
+               values_to = c("size_t1") )  %>% 
+  separate(name, c("Endo", "Species","quantile"), "\\.") %>%   
   pivot_wider(id_cols = c("no_row", "Endo", "Species"), names_from = "quantile", values_from = "size_t1") %>% 
   left_join(x_seq_df)
 
@@ -1042,7 +1050,7 @@ growyear_mean_df <- as_tibble(growyear_mean) %>%
   mutate(no_row = row_number()) %>% 
   pivot_longer(cols = starts_with("E"),
                values_to = c("size_t1") ) %>% 
-  separate(name, c("Endo", "Species", "Year", "quantile")) %>% 
+  separate(name, c("Endo", "Species", "Year", "quantile"), "\\.") %>% 
   pivot_wider(id_cols = c("no_row", "Endo", "Species", "Year"), names_from = "quantile", values_from = "size_t1") %>% 
   left_join(x_seq_df)
 
@@ -1050,7 +1058,7 @@ flw_mean_df <- as_tibble(flw_mean) %>%
   mutate(no_row = row_number()) %>% 
   pivot_longer(cols = starts_with("E"),
                values_to = c("flw_t1") ) %>% 
-  separate(name, c("Endo", "Species","quantile")) %>% 
+  separate(name, c("Endo", "Species","quantile"), "\\.") %>% 
   pivot_wider(id_cols = c("no_row", "Endo", "Species"), names_from = "quantile", values_from = "flw_t1") %>% 
   left_join(x_seq_df)
 
@@ -1058,7 +1066,7 @@ flwyear_mean_df <- as_tibble(flwyear_mean) %>%
   mutate(no_row = row_number()) %>% 
   pivot_longer(cols = starts_with("E"),
                values_to = c("flw_t1") ) %>% 
-  separate(name, c("Endo", "Species", "Year", "quantile")) %>% 
+  separate(name, c("Endo", "Species", "Year", "quantile"), "\\.") %>% 
   pivot_wider(id_cols = c("no_row", "Endo", "Species", "Year"), names_from = "quantile", values_from = "flw_t1") %>% 
   left_join(x_seq_df)
 
@@ -1066,7 +1074,7 @@ fert_mean_df <- as_tibble(fert_mean) %>%
   mutate(no_row = row_number()) %>% 
   pivot_longer(cols = starts_with("E"),
                values_to = c("fert_t1") ) %>% 
-  separate(name, c("Endo", "Species","quantile")) %>% 
+  separate(name, c("Endo", "Species","quantile"), "\\.") %>% 
   pivot_wider(id_cols = c("no_row", "Endo", "Species"), names_from = "quantile", values_from = "fert_t1") %>% 
   left_join(x_seq_df)
 
@@ -1074,7 +1082,7 @@ fertyear_mean_df <- as_tibble(fertyear_mean) %>%
   mutate(no_row = row_number()) %>% 
   pivot_longer(cols = starts_with("E"),
                values_to = c("fert_t1") ) %>% 
-  separate(name, c("Endo", "Species", "Year", "quantile")) %>% 
+  separate(name, c("Endo", "Species", "Year", "quantile"), "\\.") %>% 
   pivot_wider(id_cols = c("no_row", "Endo", "Species", "Year"), names_from = "quantile", values_from = "fert_t1") %>% 
   left_join(x_seq_df)
 
@@ -1082,7 +1090,7 @@ spike_mean_df <- as_tibble(spike_mean) %>%
   mutate(no_row = row_number()) %>% 
   pivot_longer(cols = starts_with("E"),
                values_to = c("spike_t1") ) %>% 
-  separate(name, c("Endo", "Species","quantile")) %>% 
+  separate(name, c("Endo", "Species","quantile"), "\\.") %>% 
   pivot_wider(id_cols = c("no_row", "Endo", "Species"), names_from = "quantile", values_from = "spike_t1") %>% 
   left_join(x_seq_df)
 
@@ -1090,7 +1098,7 @@ spikeyear_mean_df <- as_tibble(spikeyear_mean) %>%
   mutate(no_row = row_number()) %>% 
   pivot_longer(cols = starts_with("E"),
                values_to = c("spike_t1") ) %>% 
-  separate(name, c("Endo", "Species", "Year", "quantile")) %>% 
+  separate(name, c("Endo", "Species", "Year", "quantile"), "\\.") %>% 
   pivot_wider(id_cols = c("no_row", "Endo", "Species", "Year"), names_from = "quantile", values_from = "spike_t1") %>% 
   left_join(x_seq_df)
 
@@ -1107,8 +1115,8 @@ bin_by_size_t <- function(df_raw, vr, nbins){
     summarise(mean_size = mean((logsize_t),na.rm=T),
               mean_vr = mean({{vr}},na.rm=T),
               samplesize = n()) %>% 
-    mutate(Endo = case_when(Endo == 0 ~ "Eminus", 
-                           Endo == 1 ~ "Eplus"))
+    mutate(Endo = case_when(Endo == 0 ~ "E-", 
+                           Endo == 1 ~ "E+"))
   
   return(size_bin_df)
 }
@@ -1122,8 +1130,8 @@ bin_by_size_t1 <- function(df_raw, vr, nbins){
     summarise(mean_size = mean((logsize_t1),na.rm=T),
               mean_vr = mean({{vr}},na.rm=T),
               samplesize = n()) %>% 
-    mutate(Endo = case_when(Endo == 0 ~ "Eminus", 
-                           Endo == 1 ~ "Eplus"))
+    mutate(Endo = case_when(Endo == 0 ~ "E-", 
+                           Endo == 1 ~ "E+"))
   
   return(size_bin_df)
 }
@@ -1138,8 +1146,8 @@ bin_by_year_size_t <- function(df_raw, vr, nbins){
     summarise(mean_size = mean((logsize_t),na.rm=T),
               mean_vr = mean({{vr}},na.rm=T),
               samplesize = n()) %>% 
-    mutate(Endo = case_when(Endo == 0 ~ "Eminus", 
-                            Endo == 1 ~ "Eplus"))
+    mutate(Endo = case_when(Endo == 0 ~ "E-", 
+                            Endo == 1 ~ "E+"))
   
   return(size_bin_df)
 }
@@ -1153,8 +1161,8 @@ bin_by_year_size_t1 <- function(df_raw, vr, nbins){
     summarise(mean_size = mean((logsize_t1),na.rm=T),
               mean_vr = mean({{vr}},na.rm=T),
               samplesize = n()) %>% 
-    mutate(Endo = case_when(Endo == 0 ~ "Eminus", 
-                            Endo == 1 ~ "Eplus"))
+    mutate(Endo = case_when(Endo == 0 ~ "E-", 
+                            Endo == 1 ~ "E+"))
   
   return(size_bin_df)
 }
@@ -1182,108 +1190,110 @@ surv_meanplot <- ggplot()+
   geom_point(data = surv_sizebin, aes(x = mean_size, y = mean_vr, size = samplesize, shape = Endo), alpha = .5) +
   geom_ribbon(data = surv_mean_df, aes(x = log_x_seq, ymin = twenty, ymax = eighty, fill = Endo), alpha = .3)+
   geom_line(data = surv_mean_df, aes(x = log_x_seq, y = mean, linetype = Endo)) +
-  scale_shape_manual(values = c(19,1))+ scale_fill_manual(values = c( endophyte_color_scheme[5], endophyte_color_scheme[3]))+
+  scale_shape_manual(values = c(1,19)) + scale_linetype_manual(values = c(2,1)) + scale_fill_manual(values = c( endophyte_color_scheme[3], endophyte_color_scheme[5]))+
   facet_wrap(~Species, scales = "free", ncol = 1) + 
-  theme_classic() + theme(strip.background = element_blank()) + labs(title = "Adult Survival", subtitle = "Mean endophyte effect with 80% credible intervals")
+  theme_classic() + theme(strip.background = element_blank()) + labs(title = "Adult Survival", y = "Survival Probability", x = "log(size_t)", lwd = "Sample Size")
 # surv_meanplot
 
 surv_yearplot <- ggplot()+
   geom_point(data = surv_yearsizebin, aes(x = mean_size, y = mean_vr, size = samplesize, col = as.factor(Year), shape = Endo), alpha = .5) +
   # geom_ribbon(data = survyear_mean_df, aes(x = log_x_seq, ymin = twenty, ymax = eighty, fill = Endo), alpha = .3)+
   geom_line(data = survyear_mean_df, aes(x = log_x_seq, y = mean, linetype = Endo, col = Year)) +
-  scale_shape_manual(values = c(19,1))+ 
+  scale_shape_manual(values = c(1,19)) + scale_linetype_manual(values = c(2,1)) +
   scale_color_manual(values = yearcolors)+
   facet_wrap(~Species + Endo, scales = "free", ncol = 2) + 
-  theme_classic() + theme(strip.background = element_blank()) + labs(title = "Adult Survival", subtitle = "Endophyte effect on interannual variation")
+  theme_classic() + theme(strip.background = element_blank()) + labs(title = "Adult Survival", y = "Survival Probability", x = "log(size_t)", lwd = "Sample Size", col = "Year")
 # surv_yearplot
 
 grow_meanplot <- ggplot()+
   geom_point(data = grow_sizebin, aes(x = mean_size, y = mean_vr, size = samplesize, shape = Endo), alpha = .5) +
   geom_ribbon(data = grow_mean_df, aes(x = log_x_seq, ymin = twenty, ymax = eighty, fill = Endo), alpha = .3)+
   geom_line(data = grow_mean_df, aes(x = log_x_seq, y = mean, linetype = Endo)) +
-  scale_shape_manual(values = c(19,1))+ scale_fill_manual(values = c( endophyte_color_scheme[5], endophyte_color_scheme[3]))+
+  scale_shape_manual(values = c(1,19)) + scale_linetype_manual(values = c(2,1)) + scale_fill_manual(values = c( endophyte_color_scheme[3], endophyte_color_scheme[5]))+
   facet_wrap(~Species, scales = "free", ncol = 1) +
-  theme_classic() + theme(strip.background = element_blank()) + labs(title = "Adult Growth", subtitle = "Mean endophyte effect with 80% credible intervals")
+  theme_classic() + theme(strip.background = element_blank()) + labs(title = "Adult Growth", y = "# of Tillers", x = "log(size_t)", lwd = "Sample Size")
 # grow_meanplot
 
 grow_yearplot <- ggplot()+
   geom_point(data = grow_yearsizebin, aes(x = mean_size, y = mean_vr, size = samplesize, col = as.factor(Year), shape = Endo), alpha = .5) +
   # geom_ribbon(data = growyear_mean_df, aes(x = log_x_seq, ymin = twenty, ymax = eighty, fill = Endo), alpha = .3)+
   geom_line(data = growyear_mean_df, aes(x = log_x_seq, y = mean, linetype = Endo, col = Year)) +
-  scale_shape_manual(values = c(19,1))+ 
+  scale_shape_manual(values = c(1,19)) + scale_linetype_manual(values = c(2,1)) + 
   scale_color_manual(values = yearcolors)+
   facet_wrap(~Species + Endo, scales = "free", ncol = 2) + 
-  theme_classic() + theme(strip.background = element_blank()) + labs(title = "Adult Growth", subtitle = "Endophyte effect on interannual variation")
+  theme_classic() + theme(strip.background = element_blank()) + labs(title = "Adult Growth",  y = "# of Tillers", x = "log(size_t)", lwd = "Sample Size", col = "Year")
 # grow_yearplot
 
 flw_meanplot <- ggplot()+
   geom_point(data = flw_sizebin, aes(x = mean_size, y = mean_vr, size = samplesize, shape = Endo), alpha = .5) +
   geom_ribbon(data = flw_mean_df, aes(x = log_x_seq, ymin = twenty, ymax = eighty, fill = Endo), alpha = .3)+
   geom_line(data = flw_mean_df, aes(x = log_x_seq, y = mean, linetype = Endo)) +
-  scale_shape_manual(values = c(19,1))+ scale_fill_manual(values = c( endophyte_color_scheme[5], endophyte_color_scheme[3]))+
+  scale_shape_manual(values = c(1,19)) + scale_linetype_manual(values = c(2,1)) + scale_fill_manual(values = c( endophyte_color_scheme[3], endophyte_color_scheme[5]))+
   facet_wrap(~Species, scales = "free", ncol = 1) + 
-  theme_classic() + theme(strip.background = element_blank())+ labs(title = "Flowering", subtitle = "Mean endophyte effect with 80% credible intervals")
+  theme_classic() + theme(strip.background = element_blank())+ labs(title = "Flowering", y = "Flowering Probability", x = "log(size_t1)", lwd = "Sample Size")
 # flw_meanplot
 
 flw_yearplot <- ggplot()+
   geom_point(data = flw_yearsizebin, aes(x = mean_size, y = mean_vr, size = samplesize, col = as.factor(Year), shape = Endo), alpha = .5) +
   # geom_ribbon(data = flwyear_mean_df, aes(x = log_x_seq, ymin = twenty, ymax = eighty, fill = Endo), alpha = .3)+
   geom_line(data = flwyear_mean_df, aes(x = log_x_seq, y = mean, linetype = Endo, col = Year)) +
-  scale_shape_manual(values = c(19,1))+ 
-  scale_color_manual(values = yearcolors)+
+  scale_shape_manual(values = c(1,19)) + scale_linetype_manual(values = c(2,1)) + 
   facet_wrap(~Species + Endo, scales = "free", ncol = 2) + 
-  theme_classic() + theme(strip.background = element_blank()) + labs(title = "Flowering", subtitle = "Endophyte effect on interannual variation")
+  scale_color_manual(values = yearcolors)+
+  theme_classic() + theme(strip.background = element_blank()) + labs(title = "Flowering", y = "Flowering Probability", x = "log(size_t1)", lwd = "Sample Size", col = "Year")
 # flw_yearplot
 
 fert_meanplot <- ggplot()+
   geom_point(data = fert_sizebin, aes(x = mean_size, y = mean_vr, size = samplesize, shape = Endo), alpha = .5) +
   geom_ribbon(data = fert_mean_df, aes(x = log_x_seq, ymin = twenty, ymax = eighty, fill = Endo), alpha = .3)+
   geom_line(data = fert_mean_df, aes(x = log_x_seq, y = mean, linetype = Endo)) +
-  scale_shape_manual(values = c(19,1))+ scale_fill_manual(values = c( endophyte_color_scheme[5], endophyte_color_scheme[3]))+
+  scale_shape_manual(values = c(1,19)) + scale_linetype_manual(values = c(2,1)) + scale_fill_manual(values = c( endophyte_color_scheme[3], endophyte_color_scheme[5]))+
   facet_wrap(~Species, scales = "free", ncol = 1) + 
-  theme_classic() + theme(strip.background = element_blank())+ labs(title = "Fertility", subtitle = "Mean endophyte effect with 80% credible intervals")
+  theme_classic() + theme(strip.background = element_blank())+ labs(title = "Fertility", y = "# of Repro. Tillers", x = "log(size_t1)", lwd = "Sample Size")
 # fert_meanplot
 
 fert_yearplot <- ggplot()+
   geom_point(data = fert_yearsizebin, aes(x = mean_size, y = mean_vr, size = samplesize, col = as.factor(Year), shape = Endo), alpha = .5) +
   # geom_ribbon(data = fertyear_mean_df, aes(x = log_x_seq, ymin = twenty, ymax = eighty, fill = Endo), alpha = .3)+
   geom_line(data = fertyear_mean_df, aes(x = log_x_seq, y = mean, linetype = Endo, col = Year)) +
-  scale_shape_manual(values = c(19,1))+ 
+  scale_shape_manual(values = c(1,19)) + scale_linetype_manual(values = c(2,1)) + 
   scale_color_manual(values = yearcolors)+
   facet_wrap(~Species + Endo, scales = "free", ncol = 2) + 
-  theme_classic() + theme(strip.background = element_blank()) + labs(title = "Fertility", subtitle = "Endophyte effect on interannual variation")
+  theme_classic() + theme(strip.background = element_blank()) + labs(title = "Fertility",  y = "# of Repro. Tillers", x = "log(size_t1)", lwd = "Sample Size", col = "Year")
 # fert_yearplot
 
 spike_meanplot <- ggplot()+
   geom_point(data = spike_sizebin, aes(x = mean_size, y = mean_vr, size = samplesize, shape = Endo), alpha = .5) +
   geom_ribbon(data = spike_mean_df, aes(x = log_x_seq, ymin = twenty, ymax = eighty, fill = Endo), alpha = .3)+
   geom_line(data = spike_mean_df, aes(x = log_x_seq, y = mean, linetype = Endo)) +
-  scale_shape_manual(values = c(19,1))+ scale_fill_manual(values = c( endophyte_color_scheme[5], endophyte_color_scheme[3]))+
+  scale_shape_manual(values = c(1,19)) + scale_linetype_manual(values = c(2,1)) + scale_fill_manual(values = c( endophyte_color_scheme[3], endophyte_color_scheme[5]))+
   facet_wrap(~Species, scales = "free", ncol = 1) + 
-  theme_classic() + theme(strip.background = element_blank())+ labs(title = "Spikes/Infl.", subtitle = "Mean endophyte effect with 80% credible intervals")
+  theme_classic() + theme(strip.background = element_blank())+ labs(title = "Spikes/Infl.", y = "Spikelet/Infl.", x = "log(size_t1)", lwd = "Sample Size")
 # spike_meanplot
 
 spike_yearplot <- ggplot()+
   geom_point(data = spike_yearsizebin, aes(x = mean_size, y = mean_vr, size = samplesize, col = as.factor(Year), shape = Endo), alpha = .5) +
   # geom_ribbon(data = spikeyear_mean_df, aes(x = log_x_seq, ymin = twenty, ymax = eighty, fill = Endo), alpha = .3)+
   geom_line(data = spikeyear_mean_df, aes(x = log_x_seq, y = mean, linetype = Endo, col = Year)) +
-  scale_shape_manual(values = c(19,1))+ 
+  scale_shape_manual(values = c(1,19)) + scale_linetype_manual(values = c(2,1)) + 
   scale_color_manual(values = yearcolors)+
   facet_wrap(~Species + Endo, scales = "free", ncol = 2) + 
-  theme_classic() + theme(strip.background = element_blank()) + labs(title = "Spikes/Infl.", subtitle = "Endophyte effect on interannual variation")
+  theme_classic() + theme(strip.background = element_blank()) + labs(title = "Spikes/Infl.", y = "Spikelet/Infl.", x = "log(size_t1)", lwd = "Sample Size", col = "Year")
 # spike_yearplot
 
-meaneffect_fitplot <- surv_meanplot+grow_meanplot+flw_meanplot+fert_meanplot+spike_meanplot + plot_layout( nrow  = 1)
-# ggsave(meaneffect_fitplot, filename = "meaneffect_fitplot.png", width = 20, height = 25 )  
+meaneffect_fitplot <- surv_meanplot+grow_meanplot+flw_meanplot+fert_meanplot+spike_meanplot + 
+  plot_layout( nrow  = 1) + plot_annotation(title = "Endophyte effect on mean of size-structured vital rates", subtitle = "with 80% credible intervals")& 
+  theme(text = element_text(size = 16))
+ggsave(meaneffect_fitplot, filename = "meaneffect_fitplot.png", width = 20, height = 18 )
 
 
-vareffect_fitplot <- surv_yearplot+grow_yearplot+flw_yearplot+fert_yearplot+spike_yearplot + plot_layout( nrow  = 1)
-# ggsave(vareffect_fitplot, filename = "vareffect_fitplot.png", width = 30, height = 25 )  
+vareffect_fitplot <- surv_yearplot+grow_yearplot+flw_yearplot+fert_yearplot+spike_yearplot +
+  plot_layout( nrow  = 1) + plot_annotation(title = "Endophyte effect on interannual variance of size-structured vital rates", subtitle = "with 80% credible intervals")& 
+  theme(text = element_text(size = 16))
+ggsave(vareffect_fitplot, filename = "vareffect_fitplot.png", width = 30, height = 25 )
 
-meanvareffect_fitplot <-  surv_meanplot + surv_yearplot+grow_meanplot +grow_yearplot +flw_meanplot+flw_yearplot+fert_meanplot +fert_yearplot +spike_meanplot +spike_yearplot + plot_layout( nrow  = 1,
-                                                                                                                                                            widths = c(1,2,1,2,1,2,1,2,1,2),
-                                                                                                                                                            guides = "collect",
-                                                                                                                                                            )
+meanvareffect_fitplot <-  surv_meanplot + surv_yearplot+grow_meanplot +grow_yearplot +flw_meanplot+flw_yearplot+fert_meanplot +fert_yearplot +spike_meanplot +spike_yearplot + 
+  plot_layout( nrow  = 1,widths = c(1,2,1,2,1,2,1,2,1,2),guides = "collect")
 ggsave(meanvareffect_fitplot, filename = "meanvareffect_fitplot.png", width = 40, height = 25 )  
 
 
@@ -1292,37 +1302,95 @@ AGPEgrow_meanplot <- ggplot()+
   geom_point(data = filter(grow_sizebin, Species == "AGPE"), aes(x = mean_size, y = mean_vr, size = samplesize, shape = Endo), alpha = .5) +
   geom_ribbon(data = filter(grow_mean_df, Species == "AGPE"), aes(x = log_x_seq, ymin = twenty, ymax = eighty, fill = Endo), alpha = .3)+
   geom_line(data = filter(grow_mean_df, Species == "AGPE"), aes(x = log_x_seq, y = mean, linetype = Endo)) +
-  scale_shape_manual(values = c(19,1))+ scale_fill_manual(values = c( endophyte_color_scheme[5], endophyte_color_scheme[3]))+
+  scale_shape_manual(values = c(1,19))+ scale_linetype_manual(values = c(2,1))  + scale_fill_manual(values = c( endophyte_color_scheme[3], endophyte_color_scheme[5]))+
   facet_wrap(~Species, scales = "free", ncol = 1) +
-  theme_classic() + theme(strip.background = element_blank()) + labs(title = "Adult Growth", subtitle = "Mean endophyte effect with 80% credible intervals")
+  theme_classic() + 
+  theme(axis.title = element_text(size = 16),
+        axis.text = element_text(size = 12),
+        legend.title = element_text(size = 12),
+        legend.text = element_text(size = 9),
+        strip.background = element_blank(), 
+        strip.text.x = element_blank()) + 
+  labs(y = "# of tillers in year t+1", x = "log(# of tillers in year t)", lwd = "Sample Size")
 AGPEgrow_meanplot
+ggsave(AGPEgrow_meanplot, filename = "AGPEgrow_meanplot.png", width = 4, height = 4)
 
 AGPEgrow_yearplot <- ggplot()+
   geom_point(data = filter(grow_yearsizebin, Species == "AGPE"), aes(x = mean_size, y = mean_vr, size = samplesize, col = as.factor(Year), shape = Endo), alpha = .5) +
   geom_line(data = filter(growyear_mean_df, Species == "AGPE"), aes(x = log_x_seq, y = mean, linetype = Endo, col = Year)) +
-  scale_shape_manual(values = c(19,1))+ 
+  scale_shape_manual(values = c(1,19))+ 
   scale_color_manual(values = yearcolors)+ # this is using the set of colors above, but you could also supply hex codes
+  scale_linetype_manual(values = c(2,1))+
   facet_wrap(~Species + Endo, scales = "free", ncol = 2) + 
-  theme_classic() + theme(strip.background = element_blank()) + labs(title = "Adult Growth", subtitle = "Endophyte effect on interannual variation")
-AGPEgrow_yearplot
+  theme_classic() + theme(strip.background = element_blank(), strip.text.x = element_blank()) + labs(title = "Adult Growth", y = "# of tillers in year t+1", x = "log(# of tillers in year t)")
+# AGPEgrow_yearplot
 
 FESUsurv_meanplot <- ggplot()+
   geom_point(data = filter(surv_sizebin, Species == "FESU"), aes(x = mean_size, y = mean_vr, size = samplesize, shape = Endo), alpha = .5) +
   geom_ribbon(data = filter(surv_mean_df, Species == "FESU"), aes(x = log_x_seq, ymin = twenty, ymax = eighty, fill = Endo), alpha = .3)+
   geom_line(data = filter(surv_mean_df, Species == "FESU"), aes(x = log_x_seq, y = mean, linetype = Endo)) +
-  scale_shape_manual(values = c(19,1))+ scale_fill_manual(values = c( endophyte_color_scheme[5], endophyte_color_scheme[3]))+
+  scale_shape_manual(values = c(1,19))+  scale_linetype_manual(values = c(2,1))+ scale_fill_manual(values = c( endophyte_color_scheme[3], endophyte_color_scheme[5]))+
   facet_wrap(~Species, scales = "free", ncol = 1) + 
-  theme_classic() + theme(strip.background = element_blank()) + labs(title = "Adult Survival", subtitle = "Mean endophyte effect with 80% credible intervals")
+  theme_classic() + 
+  theme(axis.title = element_text(size = 16),
+        axis.text = element_text(size = 12),
+        legend.title = element_text(size = 12),
+        legend.text = element_text(size = 9),
+        strip.background = element_blank(), 
+        strip.text.x = element_blank()) + 
+  labs( y = "Survival Probability", x = "log(# of tillers in year t)", lwd = "Sample Size")
 FESUsurv_meanplot
+ggsave(FESUsurv_meanplot, filename = "FESUsurv_meanplot.png", width = 4, height = 4)
 
 FESUsurv_yearplot <- ggplot()+
   geom_point(data = filter(surv_yearsizebin, Species == "FESU"), aes(x = mean_size, y = mean_vr, size = samplesize, col = as.factor(Year), shape = Endo), alpha = .5) +
   geom_line(data = filter(survyear_mean_df, Species == "FESU"), aes(x = log_x_seq, y = mean, linetype = Endo, col = Year)) +
-  scale_shape_manual(values = c(19,1))+ 
+  scale_shape_manual(values = c(1,19))+ 
   scale_color_manual(values = yearcolors)+
+  scale_linetype_manual(values = c(2,1))+
   facet_wrap(~Species + Endo, scales = "free", ncol = 2) + 
-  theme_classic() + theme(strip.background = element_blank()) + labs(title = "Adult Survival", subtitle = "Endophyte effect on interannual variation")
+  theme_classic() + 
+  theme(axis.title = element_text(size = 16),
+        axis.text = element_text(size = 12),
+        legend.title = element_text(size = 12),
+        legend.text = element_text(size = 9),
+        strip.background = element_blank(),
+        strip.text = element_blank()) + 
+  labs( y = "Survival Probability", x = "log(# of tillers in year t)", col = "Year", fill = "Year", lwd = "Sample Size")
 FESUsurv_yearplot
+ggsave(FESUsurv_yearplot, filename = "FESUsurv_yearplot.png", width = 8, height = 4)
+
+POALfert_meanplot <- ggplot()+
+  geom_point(data = filter(fert_sizebin, Species == "POAL"), aes(x = mean_size, y = mean_vr, size = samplesize, shape = Endo), alpha = .5) +
+  geom_ribbon(data = filter(fert_mean_df, Species == "POAL"), aes(x = log_x_seq, ymin = twenty, ymax = eighty, fill = Endo), alpha = .3)+
+  geom_line(data = filter(fert_mean_df, Species == "POAL"), aes(x = log_x_seq, y = mean, linetype = Endo)) +
+  scale_shape_manual(values = c(1,19))+   scale_linetype_manual(values = c(2,1))+ scale_fill_manual(values = c( endophyte_color_scheme[3], endophyte_color_scheme[5]))+ 
+  facet_wrap(~Species, scales = "free", ncol = 1) + 
+  theme_classic() + theme(strip.background = element_blank())+ labs(title = "Adult Fertility", y = "# of repro. tillers", x = "log(# of tillers in year t+1)", col = "Year", fill = "Year", lwd = "Sample Size")
+# POALfert_meanplot
+ggsave(POALfert_meanplot, filename = "POALfert_meanplot.png", width = 3.5, height = 4)
+
+
+POALfert_yearplot <- ggplot()+
+  geom_point(data = filter(fert_yearsizebin, Species == "POAL"), aes(x = mean_size, y = mean_vr, size = samplesize, col = as.factor(Year), shape = Endo), alpha = .5) +
+  # geom_ribbon(data = fertyear_mean_df, aes(x = log_x_seq, ymin = twenty, ymax = eighty, fill = Endo), alpha = .3)+
+  geom_line(data = filter(fertyear_mean_df, Species == "POAL"), aes(x = log_x_seq, y = mean, linetype = Endo, col = Year)) +
+  scale_shape_manual(values = c(1,19))+ 
+  scale_color_manual(values = yearcolors)+
+  scale_linetype_manual(values = c(2,1))+
+  facet_wrap(~Species + Endo, ncol = 2) + 
+  theme_classic() + 
+  theme(axis.title = element_text(size = 16),
+        axis.text = element_text(size = 12),
+        legend.title = element_text(size = 12),
+        legend.text = element_text(size = 9),
+        strip.background = element_blank(),
+        strip.text = element_blank()) + 
+  labs( y = "# of repro. tillers", x = "log(# of tillers in year t+1)", col = "Year", fill = "Year", lwd = "Sample Size")
+# POALfert_yearplot
+ggsave(POALfert_yearplot, filename = "POALfert_yearplot.png",  width = 8, height = 4)
+
+
 
 AGPE_growplot <- AGPEgrow_meanplot+AGPEgrow_yearplot+plot_layout( nrow  = 1,
                                                                  widths = c(1,2),
@@ -1333,6 +1401,11 @@ FESU_survplot <- FESUsurv_meanplot+FESUsurv_yearplot+plot_layout( nrow  = 1,
                                                                   widths = c(1,2),
                                                                   guides = "collect")
 ggsave(FESU_survplot, filename = "FESU_survplot.png", height = 4, width = 8)
+
+POAL_fertplot <- POALfert_meanplot+POALfert_yearplot+plot_layout( nrow  = 1,
+                                                                  widths = c(1,2),
+                                                                  guides = "collect")
+ggsave(POAL_fertplot, filename = "POAL_fertplot.png", height = 4, width = 8)
 
 
 ######## making a heatmap of each vital rate for degree of buffering #####
@@ -1397,12 +1470,12 @@ dimnames(fert_par$sigmaendo) <- list(Draw = paste0("i",1:dim(fert_par$sigmaendo)
 fert_sigmaendo_cube <- cubelyr::as.tbl_cube(fert_par$sigmaendo)
 fert_sigmaendo_df <- as_tibble(fert_sigmaendo_cube)  %>% 
   rename(estimate = `fert_par$sigmaendo`)%>% 
-  mutate(vital_rate = "Panicle Production", effect = "Variance")
+  mutate(vital_rate = "Inflorescence Production", effect = "Variance")
 dimnames(fert_par$betaendo) <- list(Draw = paste0("i",1:dim(fert_par$betaendo)[1]), Species = species_list)
 fert_betaendo_cube <- cubelyr::as.tbl_cube(fert_par$betaendo)
 fert_betaendo_df <- as_tibble(fert_betaendo_cube)  %>% 
   rename(estimate = `fert_par$betaendo`)%>% 
-  mutate(vital_rate = "Panicle Production", effect = "Mean")
+  mutate(vital_rate = "Inflorescence Production", effect = "Mean")
 #spike
 dimnames(spike_par$sigmaendo) <- list(Draw = paste0("i",1:dim(spike_par$sigmaendo)[1]), Species = species_list)
 spike_sigmaendo_cube <- cubelyr::as.tbl_cube(spike_par$sigmaendo)
@@ -1441,8 +1514,18 @@ endo_vr_effects_summary <- endo_vr_effects_df %>%
   group_by(Species, vital_rate, effect) %>% 
   summarize(average_effect = mean(estimate))
 
+endo_vr_effects_overallsd <- endo_vr_effects_df %>% 
+  group_by(effect) %>% 
+  summarize(sd = sd(estimate)) %>% 
+  pivot_wider(names_from = c(effect), values_from = c(sd))
+
+endo_vr_effects_standardized <- endo_vr_effects_summary %>% 
+  mutate(stand_effect = case_when(effect == "Mean" ~ average_effect/endo_vr_effects_overallsd$Mean,
+                                  effect == "Variance" ~ average_effect/endo_vr_effects_overallsd$Variance))
+
+
 #now we can make a heat map based on those means
-vr_order <- c("Survival","Seedling Survival", "Growth", "Seedling Growth", "Flowering", "Panicle Production", "Spikelets/Infl.", "Germination")
+vr_order <- c("Survival","Seedling Survival", "Growth", "Seedling Growth", "Flowering", "Inflorescence Production", "Spikelets/Infl.", "Germination")
 meanvar_effect_heatmap <- ggplot()+
   geom_tile(data = endo_vr_effects_summary, aes(x = Species, y = factor(vital_rate, levels=vr_order), fill = average_effect), color = "lightgrey")+
   scale_fill_gradient2(limits = c(-1.6, 1.6), low = "#d8b365",mid="#f5f5f5",high="#5ab4ac")+
@@ -1453,14 +1536,37 @@ meanvar_effect_heatmap <- ggplot()+
 
 meanvar_effect_heatmap
 
-#pulling out 500 random draws from each vital rate/species/effect
+#Version filling by the standardized effect size
+stand_effect_heatmap <- ggplot()+
+  geom_tile(data = endo_vr_effects_standardized, aes(x = Species, y = factor(vital_rate, levels=vr_order), fill = stand_effect), color = "lightgrey")+
+  scale_fill_distiller(limits = c(), palette = "BrBG", direction = 1)+
+  scale_y_discrete(labels = function(x) str_wrap(x, width = 10))+
+  facet_wrap(~effect)+
+  labs(x = "Species", y = "Vital Rate", fill = "Standardized Effect")+  
+  theme_minimal()+
+  theme(text = element_text(size = 16),
+        axis.title = element_text(size = 18),
+        axis.text.y = element_text(size = 10),
+        axis.text.x = element_text(size = 12, angle = 45, hjust = 1),
+        legend.position = "none")
+stand_effect_heatmap
+
+ggsave(stand_effect_heatmap, file = "stand_effect_heatmap.png", width = 7.5, height = 5)
+
+
+par(mfrow=c(4,1),mar=c(2,4,0,0))
+hist(filter(endo_vr_effects_standardized, effect == "Mean")$average_effect)
+hist(filter(endo_vr_effects_standardized, effect == "Mean")$stand_effect)
+hist(filter(endo_vr_effects_standardized, effect == "Variance")$average_effect)
+hist(filter(endo_vr_effects_standardized, effect == "Variance")$stand_effect)
+#pulling out 100 random draws from each vital rate/species/effect
 thinned_endo_vr_effects_df <- endo_vr_effects_df %>% 
   group_by(vital_rate, effect, Species) %>% 
   slice_sample(n=100)
 
 meanvar_effect_pointmap <- ggplot()+
-  geom_tile(data = filter(endo_vr_effects_summary, effect == "Mean"), aes(x = Species, y = factor(vital_rate, levels=vr_order), fill = average_effect), color = "lightgrey")+
-  geom_jitter(data = filter(thinned_endo_vr_effects_df, effect == "Mean"), aes(x = Species, y = factor(vital_rate, levels=vr_order), color = estimate), alpha = .8)+
+  geom_tile(data = filter(endo_vr_effects_summary), aes(x = Species, y = factor(vital_rate, levels=vr_order), fill = average_effect), color = "lightgrey")+
+  geom_jitter(data = filter(thinned_endo_vr_effects_df), aes(x = Species, y = factor(vital_rate, levels=vr_order), color = estimate), alpha = .8)+
   scale_fill_gradient2(limit= c(-5.5,5.5),low = "#d8b365",mid="#f5f5f5",high="#5ab4ac")+
   scale_color_gradient2(low = "#d8b365",mid="#f5f5f5",high="#5ab4ac")+
   facet_wrap(~effect)+
@@ -1468,10 +1574,3 @@ meanvar_effect_pointmap <- ggplot()+
   theme_minimal()+
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
 meanvar_effect_pointmap
-
-library(ggbeeswarm)
-meanvar_effect_dotplot <- ggplot()+
-  geom_quasirandom(data = filter(thinned_endo_vr_effects_df, effect == "Variance"), aes(x = Species, y = factor(vital_rate, levels=vr_order), color = estimate), alpha = .7)+
-  scale_color_gradient2(limits = c(-1,1),low = "#d8b365",mid="#D3D3D3",high="#5ab4ac")+
-  facet_wrap(~effect)
-meanvar_effect_dotplot
