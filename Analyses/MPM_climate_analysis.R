@@ -264,6 +264,54 @@ lambda_spei3_mean <- lambda_spei3_df %>%
   left_join(spei3_range_df) 
 
 
+# reading in lambda_mean and lambda_var with 500 post draws from dropbox, derived from MPM_analysis script
+lambda_mean <- read_rds(file = "~/Dropbox/EndodemogData/Model_Runs/MPM_output/lambda_mean.rds")
+
+lambda_hold <- read_rds(file = "~/Dropbox/EndodemogData/Model_Runs/MPM_output/lambda_hold.rds")
+lambda_var <- read_rds(file = "~/Dropbox/EndodemogData/Model_Runs/MPM_output/lambda_var.rds")
+
+# Mean endophyte difference and quantiles
+lambda_means <- matrix(NA,8,2)
+lambda_mean_diff <- matrix(NA,8,7)
+for(s in 1:8){
+  lambda_means[s,1] <- mean(lambda_mean[s,1,])
+  lambda_means[s,2] <- mean(lambda_mean[s,2,])
+  lambda_mean_diff[s,1] = mean(lambda_mean[s,2,] - lambda_mean[s,1,])
+  lambda_mean_diff[s,2:7] = quantile(lambda_mean[s,2,] - lambda_mean[s,1,],probs=c(0.05,0.125,0.25,0.75,0.875,0.95))
+}
+
+# Calculating endophyte effect on sd and variance
+lambda_sds <- matrix(NA,8,2)
+lambda_vars <- matrix(NA,8,2)
+
+lambda_cv <- (lambda_var)/(lambda_mean) # this is the "variance penalty" term not the true CV right now
+
+lambda_cvs <- matrix(NA,8,2)
+
+lambda_sd_diff <- matrix(NA,8,7)
+lambda_var_diff <- matrix(NA,8,7)
+lambda_cv_diff <-  matrix(NA,8,7)
+for(s in 1:8){
+  lambda_sds[s,1] <- mean(lambda_var[s,1,])
+  lambda_sds[s,2] <- mean(lambda_var[s,2,])
+  
+  lambda_vars[s,1] <- mean(lambda_var[s,1,])^2
+  lambda_vars[s,2] <- mean(lambda_var[s,2,])^2
+  # 
+  lambda_cvs[s,1] <- mean(lambda_cv[s,1,])
+  lambda_cvs[s,2] <- mean(lambda_cv[s,2,])
+  
+  lambda_sd_diff[s,1] = mean(lambda_var[s,2,]) - mean(lambda_var[s,1,])
+  lambda_sd_diff[s,2:7] = quantile(lambda_var[s,2,] - lambda_var[s,1,],probs=c(0.05,0.125,0.25,0.75,0.875,0.95))
+  
+  lambda_var_diff[s,1] = mean(lambda_var[s,2,]^2 - lambda_var[s,1,]^2)
+  lambda_var_diff[s,2:7] = quantile(lambda_var[s,2,]^2 - lambda_var[s,1,]^2,probs=c(0.05,0.125,0.25,0.75,0.875,0.95))
+  
+  lambda_cv_diff[s,1] = mean(lambda_cv[s,2,] - lambda_cv[s,1,])
+  lambda_cv_diff[s,2:7] = quantile(lambda_cv[s,2,] - lambda_cv[s,1,],probs=c(0.05,0.125,0.25,0.75,0.875,0.95))
+  
+}
+##### Making a plot
 # Set color scheme based on analine blue
 endophyte_color_scheme <- c("#fdedd3","#f3c8a8", "#5a727b", "#4986c7", "#181914",  "#163381")
 color_scheme_set(endophyte_color_scheme)
@@ -277,28 +325,73 @@ species_list <- c("AGPE", "ELRI", "ELVI", "FESU", "LOAR", "POAL", "POSY")
 
 spei12_lambda_plot <- ggplot(data = lambda_spei12_df)+
   geom_path(aes(x = spei_value, y = lambda_spei12, group = interaction(Endo,Iteration), color = Endo), alpha = .05, lwd = .4)+
-  geom_point(data = lambda_spei12_mean, aes(x = spei_value, y = lambda_spei_mean, group = Endo, color = Endo),lwd = 1)+
-  facet_wrap(~Species, scales = "free")+
+  geom_line(data = lambda_spei12_mean, aes(x = spei_value, y = lambda_spei_mean, group = Endo, color = Endo),lwd = 1)+
+  facet_wrap(~Species, scales = "free", nrow = 2)+
   scale_color_manual(values = endophyte_color_scheme[c(2,6)])+
-  theme_classic()+ theme(strip.background = element_blank()) + labs(title = "Population Growth (12 month SPEI)", subtitle = "Mean endophyte effect with 500 posteriors draws")
-spei12_lambda_plot
+  theme_classic()+ theme(strip.background = element_blank()) + 
+  labs(x = "12-month SPEI", y = expression("Pop. Growth Rate " (lambda)))
+# spei12_lambda_plot
 ggsave(spei12_lambda_plot, filename = "spei12_lamda_plot.png", width = 6, height = 6 )
 
 spei3_lambda_plot <- ggplot(data = lambda_spei3_df)+
   geom_path(aes(x = spei_value, y = lambda_spei3, group = interaction(Endo,Iteration), color = Endo), alpha = .05, lwd = .4)+
-  geom_point(data = lambda_spei3_mean, aes(x = spei_value, y = lambda_spei_mean, group = Endo, color = Endo),lwd = 1)+
-  facet_wrap(~Species, scales = "free")+
+  geom_line(data = lambda_spei3_mean, aes(x = spei_value, y = lambda_spei_mean, group = Endo, color = Endo),lwd = 1)+
+  facet_wrap(~Species, scales = "free", nrow = 2)+
   scale_color_manual(values = endophyte_color_scheme[c(2,6)])+
-  theme_classic()+ theme(strip.background = element_blank()) + labs(title = "Population Growth (3 month SPEI)", subtitle = "Mean endophyte effect with 500 posteriors draws")
-spei3_lambda_plot
+  theme_classic()+ theme(strip.background = element_blank()) + 
+  labs(x = "3-month SPEI", y = expression("Pop. Growth Rate " (lambda)))
+# spei3_lambda_plot
 ggsave(spei3_lambda_plot, filename = "spei3_lamda_plot.png", width = 6, height = 6 )
+
+spei_combo_lambda_plot <- spei3_lambda_plot + spei12_lambda_plot +
+  plot_layout(nrow = 2, guides = "collect") + plot_annotation(tag_levels = "A")
+ggsave(spei_combo_lambda_plot, filename = "spei_combo_lambda_plot.png", width = 8, height = 10)
 
 # calculating the slope for E+ and E- for each species
 lambda_spei3_slopes <- lambda_spei3_mean %>% 
-  group_by(Species, Endo) %>% 
-  summarize(spei_slope = max(lambda_spei_mean) - min(lambda_spei_mean))
-lambda_spei12_slopes <- lambda_spei12_mean %>% 
-  group_by(Species, Endo) %>% 
-  summarize(spei_slope = max(lambda_spei_mean) - min(lambda_spei_mean))
+  filter(spei == "spei1" | spei == "spei10") %>% 
+  pivot_wider(names_from = c(spei), values_from = c(spei_value, lambda_spei_mean)) %>% 
+  mutate(change_lambda = lambda_spei_mean_spei10-lambda_spei_mean_spei1,
+         change_spei = spei_value_spei10 - spei_value_spei1,
+         slope = change_lambda/change_spei) %>% 
+  arrange(Species)
+lambda_spei3_slopes_diff <- lambda_spei3_slopes %>% 
+  ungroup() %>% 
+  dplyr::select(Species, Endo, slope) %>% 
+  pivot_wider(names_prefix = expr("slope"), names_from = Endo, values_from = slope) %>% 
+  mutate(slope_ratio = abs(`slopeE-`/`slopeE+`)) 
+lambda_spei3_slopes_diff$sd_effect <- lambda_sd_diff[1:7,1]
+lambda_spei3_slopes_diff$cv_effect <- lambda_cv_diff[1:7,1]
+lambda_spei3_slopes_diff$mean_effect <- lambda_mean_diff[1:7,1]
 
-  
+ggplot(data = lambda_spei3_slopes_diff)+
+  geom_point(aes(x = sd_effect, y = slope_ratio))
+ggplot(data = lambda_spei3_slopes_diff)+
+  geom_point(aes(x = cv_effect, y = slope_ratio))
+ggplot(data = lambda_spei3_slopes_diff)+
+  geom_point(aes(x = mean_effect, y = slope_ratio))
+
+
+lambda_spei12_slopes <- lambda_spei12_mean %>% 
+  filter(spei == "spei1" | spei == "spei10") %>% 
+  pivot_wider(names_from = c(spei), values_from = c(spei_value, lambda_spei_mean)) %>% 
+  mutate(change_lambda = lambda_spei_mean_spei10-lambda_spei_mean_spei1,
+         change_spei = spei_value_spei10 - spei_value_spei1,
+         slope = change_lambda/change_spei) %>% 
+  arrange(Species)
+lambda_spei12_slopes_diff <- lambda_spei12_slopes %>% 
+  ungroup() %>% 
+  dplyr::select(Species, Endo, slope) %>% 
+  pivot_wider(names_prefix = expr("slope"), names_from = Endo, values_from = slope) %>% 
+  mutate(slope_ratio = abs(`slopeE-`/`slopeE+`))
+lambda_spei12_slopes_diff$sd_effect <- lambda_sd_diff[1:7,1]
+lambda_spei12_slopes_diff$cv_effect <- lambda_cv_diff[1:7,1]
+lambda_spei12_slopes_diff$mean_effect <- lambda_mean_diff[1:7,1]
+
+
+ggplot(data = lambda_spei12_slopes_diff)+
+  geom_point(aes(x = sd_effect, y = slope_ratio))
+ggplot(data = lambda_spei12_slopes_diff)+
+  geom_point(aes(x = cv_effect, y = slope_ratio))
+ggplot(data = lambda_spei12_slopes_diff)+
+  geom_point(aes(x = mean_effect, y = slope_ratio))
