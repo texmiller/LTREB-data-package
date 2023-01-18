@@ -28,7 +28,13 @@ quote_bare <- function( ... ){
 #############################################################################################
 
 #  data are prepared in the endodemog_data_processing.R file, 
-source("Analyses/endodemog_data_processing.R")
+# source("Analyses/endodemog_data_processing.R")
+species_factor_key <- c("AGPE" = 1, "ELRI" = 2, "ELVI" = 3, 
+                        "FESU" = 4, "LOAR" = 5, "POAL" = 6, 
+                        "POSY" = 7)
+LTREB_full <- read_csv("~/Dropbox/EndodemogData/Fulldataplusmetadata/LTREB_full.csv")
+LTREB_repro1 <- read_csv("~/Dropbox/EndodemogData/Fulldataplusmetadata/LTREB_repro1.csv")
+
 # LTREB_full <- read_csv("~/Dropbox/EndodemogData/Fulldataplusmetadata/LTREB_full.csv")
 ## Clean up the main data frame for NA's, other small data entry errors
 LTREB_data_forsurv <- LTREB_full %>% 
@@ -90,7 +96,7 @@ LTREB_data_forspike <- LTREB_full %>%
   dplyr::select(-FLW_COUNT_T, -FLW_STAT_T, -SPIKE_A_T, -SPIKE_B_T, -SPIKE_C_T, -SPIKE_D_T, -SPIKE_AGPE_MEAN_T, -census_month, -year, -spei1,-spei24, -annual_temp, -annual_precip, -endo_status_from_check, -plot_endo_for_check, -endo_mismatch, -dist_a, -dist_b) %>% 
   filter(!is.na(FLW_STAT_T1)) %>% 
   filter(FLW_STAT_T1>0) %>% 
-  melt(id.var = c("plot_fixed" ,   "plot_index",         "pos"         ,           "id",
+  reshape2::melt(id.var = c("plot_fixed" ,   "plot_index",         "pos"         ,           "id",
                   "species"       ,         "species_index"  ,        "endo_01",
                   "endo_index"  ,           "origin_01"       ,       "birth" , "spei12",
                   "year_t1"         ,       "year_t1_index"       ,   "surv_t1" ,
@@ -253,7 +259,7 @@ seed_mean_data_list <- list(seed = LTREB_data_for_seedmeans$SEED_PER_SPIKE,
                             nEndo =   length(unique(LTREB_data_for_seedmeans$endo_01)))
 str(seed_mean_data_list)
 
-s_to_s_data_list <- read_rds("s_to_s_data_list.rds")
+s_to_s_data_list <- read_rds("Analyses/s_to_s_data_list.rds")
 
 
 
@@ -1091,14 +1097,53 @@ spike_speiplot <- ggplot()+
 spei_effect_fitplot <- surv_speiplot+grow_speiplot+flw_speiplot+fert_speiplot+spike_speiplot + plot_layout( nrow  = 1)
 ggsave(spei_effect_fitplot, filename = "spei_effect_fitplot.png", width = 20, height = 25 )
 
+######################################################################
+## Making a plot of the climate time series at the site
+######################################################################
 
+LTREB_climateforplot <- LTREB_full %>% 
+  group_by(species, year) %>% 
+  summarize(spei3 = unique(spei3),
+            spei12 = unique(spei12),
+            annual_temp = unique(annual_temp),
+            annual_precip = unique(annual_precip)) %>%  # converting precip units to mm. from tenths of mm. 
+  pivot_longer(cols = c(spei3, spei12, annual_temp, annual_precip))
 
+# Making the plot with just climate data for Elymus census, which is tthe middle of the season, and has nearly the highest sd in spei3 (AGPE has higher, but is the most disimilar census timing)
+precip_plot <- ggplot(filter(LTREB_climateforplot, species == "ELVI" & name == "annual_precip"))+
+  geom_path(aes(x = year, y = value), col = "blue3")+
+  scale_y_continuous(name = "Annual Ppt. \n (mm)")+
+  theme_minimal()+
+  labs(y = "Annual Ppt. (mm)", x = "Year")+
+  theme()
+# precip_plot
 
+temp_plot<- ggplot(filter(LTREB_climateforplot, species == "ELVI" & name == "annual_temp"))+
+  geom_path(aes(x = year, y = value), col = "firebrick1")+
+  theme_minimal()+
+  scale_y_continuous(name = "Mean Annual Temp. \n(Celsius)")+
+  labs(y = "Mean Annual Temp. (Celsius)", x = "Year")+
+  theme(axis.text.x = element_blank(),
+        axis.title.x = element_blank())
+# temp_plot
 
+spei3_plot<- ggplot(filter(LTREB_climateforplot, species == "ELVI" & name == "spei3"))+
+  geom_path(aes(x = year, y = value), col = "thistle3")+
+  theme_minimal()+
+  labs(y = "3-month SPEI", x = "Year")+
+  theme(axis.text.x = element_blank(),
+        axis.title.x = element_blank())
+# spei3_plot
 
+spei12_plot<- ggplot(filter(LTREB_climateforplot, species == "ELVI" & name == "spei12"))+
+  geom_path(aes(x = year, y = value), col = "plum4")+
+  theme_minimal()+
+  labs(y = "12-month SPEI", x = "Year")+
+  theme(axis.text.x = element_blank(),
+        axis.title.x = element_blank())
+# spei12_plot
 
-
-
-
-
-
+climate_plot <- spei3_plot + spei12_plot +  temp_plot + precip_plot +
+  plot_layout(ncol = 1) + plot_annotation(tag_levels="A")
+climate_plot
+ggsave(climate_plot, filename = "climate_plot.png", width =8, height =6.5)
