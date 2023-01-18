@@ -364,8 +364,8 @@ for(s in 1:8){
   lambda_cv_diff[s,2:7] = quantile(lambda_cv[s,2,] - lambda_cv[s,1,],probs=c(0.05,0.125,0.25,0.75,0.875,0.95))
   
 }
-#seed length measurements taken from Rudgers et al. 2009. doesn't have data for LOAR, so using FESU,
-seed_size <- c(1.75,7.25,8,3.75,1.75,3.45,2.6)
+#seed length measurements taken from Rudgers et al. 2009. from Flora of North America
+seed_size <- c(1.75,7.25,8,3.75,7,3.45,2.6)
 #imperfect transmission measurements from LTREB proposal, filling in LOAR with 100 for now, and POSY rate seems really low though?
 imperfect_trans <- c(69.8,100,100,42.7,100,99.9,16.6)
 # count of branches in phylogeny from J of Sytematics Evolution, Volume: 53, Issue: 2, Pages: 117-137, First published: 02 March 2015, DOI: (10.1111/jse.12150) 
@@ -474,7 +474,7 @@ summary(lh_models[[3]])
 summary(lh_models[[4]])#.06
 summary(lh_models[[5]])#.09
 summary(lh_models[[6]])#*
-summary(lh_models[[7]])
+summary(lh_models[[7]])#.05
 summary(lh_models[[8]])
 
 # making data ranges for predictions
@@ -516,7 +516,7 @@ newdata_fit <- newdata %>%
   pivot_longer(cols = -row_id, names_to = c("name", "interval"), names_sep = "\\.") %>% 
   pivot_wider(id_cols = c(row_id,name), names_from = interval, values_from = value) %>% 
   mutate(significance = case_when(name == "observed_max_age" | name == "max_age_99" | name == "R0" ~ "<.05",
-                                  name == "longev" | name == "mean_life_expect" ~ "<.1",
+                                  name == "longev" | name == "mean_life_expect" | name == "seed_size" ~ "<.1",
                                   TRUE ~ ">.1")) %>% 
   mutate(name_label = case_when(name == "observed_max_age" ~ "Obs. Max Age", name == "max_age_99" ~ "99th Percentile Max Age", name == "R0" ~ "R0",
          name == "longev" ~ "Longevity", name == "mean_life_expect" ~ "Mean Life Expectancy",
@@ -754,6 +754,7 @@ mle_plot <- lh_plot <- ggplot()+
   geom_ribbon(data = filter(newdata_fit, name == "mean_life_expect"), aes(ymin = lwr, ymax = upr, x = x), alpha = .4)+
   geom_line(data = filter(newdata_fit, name == "mean_life_expect"), aes(y = fit, x = x))+
   geom_point(data = filter(traits_df_long, name == "mean_life_expect"), aes(y = cv_effect, x = value))+
+  scale_x_continuous(breaks = c(3,6,9,12))+
   theme_classic()+
   theme(strip.background = element_blank(),
         strip.placement = "outside",
@@ -797,7 +798,7 @@ it_plot <- lh_plot <- ggplot()+
 
 lh_plot_brms <- oba_plot + ma99_plot + R0_plot + longev_plot + mle_plot + gt_plot + ss_plot + it_plot + 
   plot_layout(nrow = 2) + plot_annotation(tag_levels = "A") 
-ggsave(lh_plot_brms, filename = "lh_plot_brms.png", width = 10, height = 5)
+ggsave(lh_plot_brms, filename = "lh_plot_brms.png", width = 10.5, height = 5)
 
 
 
