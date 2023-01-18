@@ -400,7 +400,11 @@ traits_df$mean_effect <- lambda_mean_diff[1:7,1]
 traits_df_long <- traits_df %>% 
   pivot_longer(cols = c("observed_max_age", "max_age_97.5", "max_age_99", "gen_time", 
                         "longev", "mean_life_expect", "var_life_expect", 
-                        "R0", "repro_age", "seed_size", "imperfect_trans"))
+                        "R0", "repro_age", "seed_size", "imperfect_trans")) %>% 
+  mutate(name_label = case_when(name == "observed_max_age" ~ "Obs. Max Age", name == "max_age_99" ~ "99th Percentile Max Age", name == "R0" ~ "R0",
+                                name == "longev" ~ "Longevity", name == "mean_life_expect" ~ "Mean Life Expectancy",
+                                name == "gen_time" ~ "Generation Time", name == "seed_size" ~ "Seed Length (mm)", name == "imperfect_trans" ~ "Imperfect Transmission Rate")) 
+
 
 ggplot(data = traits_df_long)+
   geom_point(aes(y = sd_effect, x = value))+
@@ -425,33 +429,10 @@ ggplot(data = traits_df_long)+
 ggplot(data = traits_df)+
   geom_point(aes(x = mean_life_expect, y = var_life_expect))
 
-for_pca <- tibble(lambda_sd_diff[1:7,1], lambda_mean_diff[1:7,1],gen_time_summary[,3], longev_summary[,3], mean_life_expect_summary[,3], R0_summary[,3], relatedness , seed_size, subtribes)
-pc <- prcomp(for_pca[,1:8],
-             center = TRUE,
-             scale = FALSE)
-pc <- prcomp(for_pca[,1:2],
-               center = FALSE,
-               scale = FALSE)
-pc
-summary(pc)
-biplot(pc)
-
-plot( lambda_mean_diff[1:7,1], lambda_var_diff[1:7,1], col = as.factor(subtribes))
-
-pc <- prcomp(traits_df[,2:13])
-
-library(vegan)
-nmds <- envfit(pc,traits_df[,3:13])
-
-nmds <- envfit(pc,for_pca[,3:6], permu = 999)
-
-biplot(pc)
-plot(nmds)
 
 ############################################################################################
 #####  Fitting regressions of the traits on the mean and variance effects        ###########
 ############################################################################################
-
 
 # model selection
 lh_models <- list()
@@ -536,21 +517,288 @@ newdata_fit <- newdata %>%
   pivot_wider(id_cols = c(row_id,name), names_from = interval, values_from = value) %>% 
   mutate(significance = case_when(name == "observed_max_age" | name == "max_age_99" | name == "R0" ~ "<.05",
                                   name == "longev" | name == "mean_life_expect" ~ "<.1",
-                                  TRUE ~ ">.1"))
+                                  TRUE ~ ">.1")) %>% 
+  mutate(name_label = case_when(name == "observed_max_age" ~ "Obs. Max Age", name == "max_age_99" ~ "99th Percentile Max Age", name == "R0" ~ "R0",
+         name == "longev" ~ "Longevity", name == "mean_life_expect" ~ "Mean Life Expectancy",
+         name == "gen_time" ~ "Generation Time", name == "seed_size" ~ "Seed Length (mm)", name == "imperfect_trans" ~ "Imperfect Transmission Rate")) 
 
-lh_plot <- ggplot()+
+lh_facetplot <- ggplot()+
   geom_ribbon(data = newdata_fit, aes(ymin = lwr, ymax = upr, x = x, alpha = significance))+
-  geom_line(data = newdata_fit, aes(y = fit, x = x, linetype = significance))+
+  geom_line(data = newdata_fit, aes(y = fit, x = x, alpha = significance))+
   geom_point(data = filter(traits_df_long, name !="var_life_expect" & name != "repro_age" & name != "max_age_97.5"), aes(y = cv_effect, x = value))+
-  facet_wrap(~name,nrow = 2, scales = "free_x", strip.position = "bottom")+
-  scale_linetype_manual(values = c("solid", "dashed", "dotted"))+
-  scale_alpha_manual(values = c(.5,.3,.1))+
+  facet_wrap(~factor(name_label, levels = c("Obs. Max Age","99th Percentile Max Age","R0","Longevity", "Mean Life Expectancy","Generation Time","Seed Length (mm)","Imperfect Transmission Rate")),nrow = 2, scales = "free", strip.position = "bottom", labeller = labeller(name_label = label_wrap_gen(10)))+
+  scale_alpha_manual(values = c(.7,.3,.1))+
   theme_classic()+
   theme(strip.background = element_blank(),
         strip.placement = "outside")+
-  labs(x = "", y = expression(paste("Effect on CV", (lambda))))
+  labs(x = "", y = expression(paste("Effect on CV", (lambda))), alpha = "p-value")
+lh_facetplot
 
-lh_plot
+lh_legend <- cowplot::get_legend(lh_facetplot) 
+ggsave(lh_legend, filename = "lh_legend.png")
+#making the facets into separate plots to annotate
+
+oba_plot <- lh_plot <- ggplot()+
+  geom_ribbon(data = filter(newdata_fit, name == "observed_max_age"), aes(ymin = lwr, ymax = upr, x = x), alpha = .7)+
+  geom_line(data = filter(newdata_fit, name == "observed_max_age"), aes(y = fit, x = x))+
+  geom_point(data = filter(traits_df_long, name == "observed_max_age"), aes(y = cv_effect, x = value))+
+  geom_text(aes(x = Inf, y = Inf), label = "**",  hjust   = 2, vjust   = 1, size = 3)+
+  theme_classic()+
+  theme(strip.background = element_blank(),
+        strip.placement = "outside",
+        axis.title.x = element_text(size=10))+
+  labs(x = "Obs. Max Age", y = expression(paste("Effect on CV", (lambda))), alpha = "p-value")
+# oba_plot
+
+ma99_plot <- lh_plot <- ggplot()+
+  geom_ribbon(data = filter(newdata_fit, name == "max_age_99"), aes(ymin = lwr, ymax = upr, x = x), alpha = .7)+
+  geom_line(data = filter(newdata_fit, name == "max_age_99"), aes(y = fit, x = x))+
+  geom_point(data = filter(traits_df_long, name == "max_age_99"), aes(y = cv_effect, x = value))+
+  geom_text(aes(x = Inf, y = Inf), label = "**",  hjust   = 2, vjust   = 1, size = 3)+
+  theme_classic()+
+  theme(strip.background = element_blank(),
+        strip.placement = "outside",
+        axis.title.x = element_text(size=10))+
+  labs(x = "99th Percentile Max Age", y = "", alpha = "p-value")
+# ma99_plot
+
+R0_plot <- lh_plot <- ggplot()+
+  geom_ribbon(data = filter(newdata_fit, name == "R0"), aes(ymin = lwr, ymax = upr, x = x), alpha = .7)+
+  geom_line(data = filter(newdata_fit, name == "R0"), aes(y = fit, x = x))+
+  geom_point(data = filter(traits_df_long, name == "R0"), aes(y = cv_effect, x = value))+
+  geom_text(aes(x = Inf, y = Inf), label = "**",  hjust   = 2, vjust   = 1, size = 3)+
+  theme_classic()+
+  theme(strip.background = element_blank(),
+        strip.placement = "outside",
+        axis.title.x = element_text(size=10))+
+  labs(x = "R0", y = "", alpha = "p-value")
+# R0_plot
+
+longev_plot <- lh_plot <- ggplot()+
+  geom_ribbon(data = filter(newdata_fit, name == "longev"), aes(ymin = lwr, ymax = upr, x = x), alpha = .3)+
+  geom_line(data = filter(newdata_fit, name == "longev"), aes(y = fit, x = x), alpha = .4)+
+  geom_point(data = filter(traits_df_long, name == "longev"), aes(y = cv_effect, x = value))+
+  geom_text(aes(x = Inf, y = Inf), label = "*",  hjust   = 2, vjust   = 1, size = 3)+
+  theme_classic()+
+  theme(strip.background = element_blank(),
+        strip.placement = "outside",
+        axis.title.x = element_text(size=10))+
+  labs(x = "Longevity", y = "", alpha = "p-value")
+# longev_plot
+
+mle_plot <- lh_plot <- ggplot()+
+  geom_ribbon(data = filter(newdata_fit, name == "mean_life_expect"), aes(ymin = lwr, ymax = upr, x = x), alpha = .3)+
+  geom_line(data = filter(newdata_fit, name == "mean_life_expect"), aes(y = fit, x = x), alpha = .4)+
+  geom_point(data = filter(traits_df_long, name == "mean_life_expect"), aes(y = cv_effect, x = value))+
+  geom_text(aes(x = Inf, y = Inf), label = "*",  hjust   = 2, vjust   = 1, size = 3)+
+  theme_classic()+
+  theme(strip.background = element_blank(),
+        strip.placement = "outside",
+        axis.title.x = element_text(size=10))+
+  labs(x = "Mean Life Expectancy", y = expression(paste("Effect on CV", (lambda))), alpha = "p-value")
+# mle_plot
+
+gt_plot <- lh_plot <- ggplot()+
+  geom_ribbon(data = filter(newdata_fit, name == "gen_time"), aes(ymin = lwr, ymax = upr, x = x), alpha = .1)+
+  geom_line(data = filter(newdata_fit, name == "gen_time"), aes(y = fit, x = x), alpha = .2)+
+  geom_point(data = filter(traits_df_long, name == "gen_time"), aes(y = cv_effect, x = value))+
+  geom_text(aes(x = Inf, y = Inf), label = "",  hjust   = 2, vjust   = 1, size = 3)+
+  scale_alpha_manual(values = c(.1))+
+  theme_classic()+
+  theme(strip.background = element_blank(),
+        strip.placement = "outside",
+        axis.title.x = element_text(size=10))+
+  labs(x = "Generation Time", y = "", alpha = "p-value")
+# gt_plot
+
+ss_plot <- lh_plot <- ggplot()+
+  geom_ribbon(data = filter(newdata_fit, name == "seed_size"), aes(ymin = lwr, ymax = upr, x = x), alpha = .1)+
+  geom_line(data = filter(newdata_fit, name == "seed_size"), aes(y = fit, x = x),alpha =.2)+
+  geom_point(data = filter(traits_df_long, name == "seed_size"), aes(y = cv_effect, x = value))+
+  geom_text(aes(x = Inf, y = Inf), label = "",  hjust   = 2, vjust   = 1, size = 3)+
+  theme_classic()+
+  theme(strip.background = element_blank(),
+        strip.placement = "outside",
+        axis.title.x = element_text(size=10))+
+  labs(x = "Seed Length (mm)", y = "", alpha = "p-value")
+# ss_plot
+
+it_plot <- lh_plot <- ggplot()+
+  geom_ribbon(data = filter(newdata_fit, name == "imperfect_trans"), aes(ymin = lwr, ymax = upr, x = x), alpha = .1)+
+  geom_line(data = filter(newdata_fit, name == "imperfect_trans"), aes(y = fit, x = x), alpha = .2)+
+  geom_point(data = filter(traits_df_long, name == "imperfect_trans"), aes(y = cv_effect, x = value))+
+  geom_text(aes(x = Inf, y = Inf), label = "",  hjust   = 2, vjust   = 1, size = 3)+
+  theme_classic()+
+  theme(strip.background = element_blank(),
+        strip.placement = "outside",
+        axis.title.x = element_text(size=10))+
+  labs(x = "Imperfect Transmission Rate", y = "", alpha = "p-value")
+# it_plot
+
+lh_plot <- oba_plot + ma99_plot + R0_plot + longev_plot + mle_plot + gt_plot + ss_plot + it_plot + 
+  plot_layout(nrow = 2) + plot_annotation(tag_levels = "A") 
+ggsave(lh_plot, filename = "lh_plot.png", width = 10, height = 5)
+
+
+
+# brms version
+library(brms)
+lh_models <- list()
+lh_models[[1]] <- brm(cv_effect ~ observed_max_age, data = traits_df,
+                      family = "gaussian",
+                      prior = c(set_prior("normal(0,5)", class = "b")))
+lh_models[[2]] <- brm(cv_effect ~ max_age_99, data = traits_df,
+                      family = "gaussian",
+                      prior = c(set_prior("normal(0,5)", class = "b")))
+lh_models[[3]] <- brm(cv_effect ~ R0, data = traits_df,
+                      family = "gaussian",
+                      prior = c(set_prior("normal(0,5)", class = "b")))
+lh_models[[4]] <- brm(cv_effect ~ longev, data = traits_df,
+                      family = "gaussian",
+                      prior = c(set_prior("normal(0,5)", class = "b")))
+lh_models[[5]] <- brm(cv_effect ~ mean_life_expect, data = traits_df,
+                      family = "gaussian",
+                      prior = c(set_prior("normal(0,5)", class = "b")))
+lh_models[[6]] <- brm(cv_effect ~ gen_time, data = traits_df,
+                      family = "gaussian",
+                      prior = c(set_prior("normal(0,5)", class = "b")))
+lh_models[[7]] <- brm(cv_effect ~ seed_size, data = traits_df,
+                      family = "gaussian",
+                      prior = c(set_prior("normal(0,5)", class = "b")))
+lh_models[[8]] <- brm(cv_effect ~ imperfect_trans, data = traits_df,
+                      family = "gaussian",
+                      prior = c(set_prior("normal(0,5)", class = "b")))
+
+
+
+newdata_fit <- newdata %>%
+  rename_with(.fn = str_c, pattern = ".x")  %>% 
+  mutate(row_id = row_number()) %>% 
+  mutate(observed_max_age.fit = fitted(lh_models[[1]], newdata)[,1],
+         max_age_99.fit = fitted(lh_models[[2]], newdata = newdata)[,1],
+         R0.fit = fitted(lh_models[[3]], newdata = newdata)[,1],
+         longev.fit = fitted(lh_models[[4]], newdata = newdata)[,1],
+         mean_life_expect.fit = fitted(lh_models[[5]], newdata = newdata)[,1],
+         gen_time.fit =fitted(lh_models[[6]], newdata = newdata)[,1],
+         seed_size.fit =fitted(lh_models[[7]], newdata = newdata)[,1],
+         imperfect_trans.fit =fitted(lh_models[[8]], newdata = newdata)[,1]) %>% 
+  mutate(observed_max_age.lwr = fitted(lh_models[[1]], newdata = newdata, probs = c(0.05, 0.95))[,3],
+         max_age_99.lwr = fitted(lh_models[[2]], newdata = newdata, probs = c(0.05, 0.95))[,3],
+         R0.lwr = fitted(lh_models[[3]], newdata = newdata, probs = c(0.05, 0.95))[,3],
+         longev.lwr = fitted(lh_models[[4]], newdata = newdata, probs = c(0.05, 0.95))[,3],
+         mean_life_expect.lwr = fitted(lh_models[[5]], newdata = newdata, probs = c(0.05, 0.95))[,3],
+         gen_time.lwr =fitted(lh_models[[6]], newdata = newdata, probs = c(0.05, 0.95))[,3],
+         seed_size.lwr =fitted(lh_models[[7]], newdata = newdata, probs = c(0.05, 0.95))[,3],
+         imperfect_trans.lwr =fitted(lh_models[[8]], newdata = newdata, probs = c(0.05, 0.95))[,3]) %>%
+  mutate(observed_max_age.upr = fitted(lh_models[[1]], newdata = newdata, probs = c(0.05, 0.95))[,4],
+         max_age_99.upr = fitted(lh_models[[2]], newdata = newdata, probs = c(0.05, 0.95))[,4],
+         R0.upr = fitted(lh_models[[3]], newdata = newdata, probs = c(0.05, 0.95))[,4],
+         longev.upr = fitted(lh_models[[4]], newdata = newdata, probs = c(0.05, 0.95))[,4],
+         mean_life_expect.upr = fitted(lh_models[[5]], newdata = newdata, probs = c(0.05, 0.95))[,4],
+         gen_time.upr =fitted(lh_models[[6]], newdata = newdata, probs = c(0.05, 0.95))[,4],
+         seed_size.upr =fitted(lh_models[[7]], newdata = newdata, probs = c(0.05, 0.95))[,4],
+         imperfect_trans.upr =fitted(lh_models[[8]], newdata = newdata, probs = c(0.05, 0.95))[,4]) %>%
+  pivot_longer(cols = -row_id, names_to = c("name", "interval"), names_sep = "\\.") %>% 
+  pivot_wider(id_cols = c(row_id,name), names_from = interval, values_from = value) %>% 
+  mutate(name_label = case_when(name == "observed_max_age" ~ "Obs. Max Age", name == "max_age_99" ~ "99th Percentile Max Age", name == "R0" ~ "R0",
+                                name == "longev" ~ "Longevity", name == "mean_life_expect" ~ "Mean Life Expectancy",
+                                name == "gen_time" ~ "Generation Time", name == "seed_size" ~ "Seed Length (mm)", name == "imperfect_trans" ~ "Imperfect Transmission Rate")) 
+
+
+oba_plot <- lh_plot <- ggplot()+
+  geom_ribbon(data = filter(newdata_fit, name == "observed_max_age"), aes(ymin = lwr, ymax = upr, x = x), alpha = .4)+
+  geom_line(data = filter(newdata_fit, name == "observed_max_age"), aes(y = fit, x = x))+
+  geom_point(data = filter(traits_df_long, name == "observed_max_age"), aes(y = cv_effect, x = value))+
+  theme_classic()+
+  theme(strip.background = element_blank(),
+        strip.placement = "outside",
+        axis.title.x = element_text(size=10))+
+  labs(x = "Obs. Max Age", y = expression(paste("Effect on CV", (lambda))), alpha = "p-value")
+# oba_plot
+
+
+ma99_plot <- lh_plot <- ggplot()+
+  geom_ribbon(data = filter(newdata_fit, name == "max_age_99"), aes(ymin = lwr, ymax = upr, x = x), alpha = .4)+
+  geom_line(data = filter(newdata_fit, name == "max_age_99"), aes(y = fit, x = x))+
+  geom_point(data = filter(traits_df_long, name == "max_age_99"), aes(y = cv_effect, x = value))+
+  theme_classic()+
+  theme(strip.background = element_blank(),
+        strip.placement = "outside",
+        axis.title.x = element_text(size=10))+
+  labs(x = "99th Percentile Max Age", y = "", alpha = "p-value")
+# ma99_plot
+
+R0_plot <- lh_plot <- ggplot()+
+  geom_ribbon(data = filter(newdata_fit, name == "R0"), aes(ymin = lwr, ymax = upr, x = x), alpha = .4)+
+  geom_line(data = filter(newdata_fit, name == "R0"), aes(y = fit, x = x))+
+  geom_point(data = filter(traits_df_long, name == "R0"), aes(y = cv_effect, x = value))+
+  theme_classic()+
+  theme(strip.background = element_blank(),
+        strip.placement = "outside",
+        axis.title.x = element_text(size=10))+
+  labs(x = "R0", y = "", alpha = "p-value")
+# R0_plot
+
+longev_plot <- lh_plot <- ggplot()+
+  geom_ribbon(data = filter(newdata_fit, name == "longev"), aes(ymin = lwr, ymax = upr, x = x), alpha = .4)+
+  geom_line(data = filter(newdata_fit, name == "longev"), aes(y = fit, x = x))+
+  geom_point(data = filter(traits_df_long, name == "longev"), aes(y = cv_effect, x = value))+
+  theme_classic()+
+  theme(strip.background = element_blank(),
+        strip.placement = "outside",
+        axis.title.x = element_text(size=10))+
+  labs(x = "Longevity", y = "", alpha = "p-value")
+# longev_plot
+
+mle_plot <- lh_plot <- ggplot()+
+  geom_ribbon(data = filter(newdata_fit, name == "mean_life_expect"), aes(ymin = lwr, ymax = upr, x = x), alpha = .4)+
+  geom_line(data = filter(newdata_fit, name == "mean_life_expect"), aes(y = fit, x = x))+
+  geom_point(data = filter(traits_df_long, name == "mean_life_expect"), aes(y = cv_effect, x = value))+
+  theme_classic()+
+  theme(strip.background = element_blank(),
+        strip.placement = "outside",
+        axis.title.x = element_text(size=10))+
+  labs(x = "Mean Life Expectancy", y = expression(paste("Effect on CV", (lambda))), alpha = "p-value")
+# mle_plot
+
+gt_plot <- lh_plot <- ggplot()+
+  geom_ribbon(data = filter(newdata_fit, name == "gen_time"), aes(ymin = lwr, ymax = upr, x = x), alpha = .4)+
+  geom_line(data = filter(newdata_fit, name == "gen_time"), aes(y = fit, x = x))+
+  geom_point(data = filter(traits_df_long, name == "gen_time"), aes(y = cv_effect, x = value))+
+  scale_alpha_manual(values = c(.1))+
+  theme_classic()+
+  theme(strip.background = element_blank(),
+        strip.placement = "outside",
+        axis.title.x = element_text(size=10))+
+  labs(x = "Generation Time", y = "", alpha = "p-value")
+# gt_plot
+
+ss_plot <- lh_plot <- ggplot()+
+  geom_ribbon(data = filter(newdata_fit, name == "seed_size"), aes(ymin = lwr, ymax = upr, x = x), alpha = .4)+
+  geom_line(data = filter(newdata_fit, name == "seed_size"), aes(y = fit, x = x))+
+  geom_point(data = filter(traits_df_long, name == "seed_size"), aes(y = cv_effect, x = value))+
+  theme_classic()+
+  theme(strip.background = element_blank(),
+        strip.placement = "outside",
+        axis.title.x = element_text(size=10))+
+  labs(x = "Seed Length (mm)", y = "", alpha = "p-value")
+# ss_plot
+
+it_plot <- lh_plot <- ggplot()+
+  geom_ribbon(data = filter(newdata_fit, name == "imperfect_trans"), aes(ymin = lwr, ymax = upr, x = x), alpha = .4)+
+  geom_line(data = filter(newdata_fit, name == "imperfect_trans"), aes(y = fit, x = x))+
+  geom_point(data = filter(traits_df_long, name == "imperfect_trans"), aes(y = cv_effect, x = value))+
+  theme_classic()+
+  theme(strip.background = element_blank(),
+        strip.placement = "outside",
+        axis.title.x = element_text(size=10))+
+  labs(x = "Imperfect Transmission Rate", y = "", alpha = "p-value")
+# it_plot
+
+lh_plot_brms <- oba_plot + ma99_plot + R0_plot + longev_plot + mle_plot + gt_plot + ss_plot + it_plot + 
+  plot_layout(nrow = 2) + plot_annotation(tag_levels = "A") 
+ggsave(lh_plot_brms, filename = "lh_plot_brms.png", width = 10, height = 5)
+
 
 
 # reading in phylo tree of epichloe (Leuchtmann et al. 2014; https://doi.org/10.3852/13-251)
@@ -626,3 +874,26 @@ dist_G <- dist( relatedness, method = "euclidean", diag = TRUE)
 
 plot(dist_G, dist_e)
 
+
+for_pca <- tibble(lambda_sd_diff[1:7,1], lambda_mean_diff[1:7,1],gen_time_summary[,3], longev_summary[,3], mean_life_expect_summary[,3], R0_summary[,3], relatedness , seed_size, subtribes)
+pc <- prcomp(for_pca[,1:8],
+             center = TRUE,
+             scale = FALSE)
+pc <- prcomp(for_pca[,1:2],
+             center = FALSE,
+             scale = FALSE)
+pc
+summary(pc)
+biplot(pc)
+
+plot( lambda_mean_diff[1:7,1], lambda_var_diff[1:7,1], col = as.factor(subtribes))
+
+pc <- prcomp(traits_df[,2:13])
+
+library(vegan)
+nmds <- envfit(pc,traits_df[,3:13])
+
+nmds <- envfit(pc,for_pca[,3:6], permu = 999)
+
+biplot(pc)
+plot(nmds)
