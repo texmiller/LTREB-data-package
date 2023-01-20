@@ -1124,6 +1124,29 @@ ggsave(mean_contributions_obs_plot, filename = "mean_contributions_obs_plot.png"
 
 
 
+# some calculations for manuscript
+meanspecies_calcs <- lambdaS_obs_diff_df %>% 
+  filter(Scenario == "All Years" | Scenario == "2 Extr. Years") %>%
+  select(Species,Scenario,Contribution,Sampling,mean) %>% 
+  pivot_wider(names_from = Contribution, values_from = mean) %>% 
+  mutate(fullminusintx = `Full Effect` - `Interaction`,
+         percent_var_offullminusintx = (`Variance only`/fullminusintx)*100,
+         percent_mean_offullminusintx = (`Mean only`/fullminusintx)*100,
+         percent_var = (`Variance only`/`Full Effect`)*100,
+         percent_mean = (`Mean only`/`Full Effect`)*100,
+         percent_intx = (`Interaction`/`Full Effect`)*100,
+         percent_varofmean= (`Variance only`/`Mean only`)*100,
+         meandivbyvar = (`Mean only`/`Variance only`))
+
+meanspecies_change <- meanspecies_calcs %>% 
+  dplyr::select(Species,Scenario, `Full Effect`, `Mean only`, `Variance only`, Interaction) %>% 
+  group_by(Species) %>% 
+  summarize(perc_change_full = (max(`Full Effect`)- min(`Full Effect`))/min(`Full Effect`)*100,
+            perc_change_var = (max(`Variance only`)- min(`Variance only`))/min(`Variance only`)*100)
+
+
+
+
 ## one random draw
 par(mfrow=c(1,2))
 barplot(apply(lambdaS_mat,c(1,2),mean,na.rm=T),beside=T,main="normal")
@@ -1244,16 +1267,3 @@ plot(sample(x = dnorm(x = qnorm(p = .95, mean = 0, sd = 1):10, mean = 0, sd = 2)
 # Could do this in the vital rates, but maybe better to just increase the sd by 10 percent
 rfx_surv <- sample(qnorm(p=c(seq(.9,1,.001),seq(0,.1,.001)),mean = 0, sd=surv_par$sigma_year[draw,species,(endo_var+1)]),size = 1) # sample the tenth and ninetieth percentiles
 
-# some calculations for manuscript
-meanspecies_calcs <- lambdaS_obs_diff_df %>% 
-  filter(Scenario == "normal" | Scenario == "extreme2") %>%
-  select(Species,Scenario,Contribution,Sampling,mean) %>% 
-  pivot_wider(names_from = Contribution, values_from = mean) %>% 
-  mutate(fullminusintx = `Full Effect` - `Interaction`,
-         percent_var_offullminusintx = (`Variance only`/fullminusintx)*100,
-         percent_mean_offullminusintx = (`Mean only`/fullminusintx)*100,
-         percent_var = (`Variance only`/`Full Effect`)*100,
-         percent_mean = (`Mean only`/`Full Effect`)*100,
-         percent_intx = (`Interaction`/`Full Effect`)*100,
-         percent_varofmean= (`Variance only`/`Mean only`)*100,
-         meandivbyvar = (`Mean only`/`Variance only`))
