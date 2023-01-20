@@ -92,7 +92,7 @@ Please provide an abstract of no more than 250 words in a single paragraph. Abst
 \end{abstract}
 
 \dates{This manuscript was compiled on \today}
-\doi{\url{www.pnas.org/cgi/doi/10.1073/pnas.XXXXXXXXXX}}
+XXXXXXX}}
 \IfFileExists{upquote.sty}{\usepackage{upquote}}{}
 \begin{document}
 
@@ -100,24 +100,23 @@ Please provide an abstract of no more than 250 words in a single paragraph. Abst
 \thispagestyle{firststyle}
 \ifthenelse{\boolean{shortarticle}}{\ifthenelse{\boolean{singlecolumn}}{\abscontentformatted}{\abscontent}}{}
 
-% If your first paragraph (i.e. with the \dropcap) contains a list environment (quote, quotation, theorem, definition, enumerate, itemize...), the line after the list may have some extra indentation. If this is the case, add \parshape=0 to the end of the list environment.
 %Introduction
-\dropcap{A}long with increases in average temperatures, global climate change is driving increases in the variability of precipitation events, temperature extremes, and droughts \cite{IPCC2012managing, seneviratne2012changes, stocker2013technical}. 
-Discerning the effects of environmental variability on population dynamics and species interactions are therefore key objectives of global change ecology. 
+\dropcap{A}long with increases in average temperatures, global climate change is driving increases in the variability of precipitation events, temperature extremes, and droughts \cite{IPCC2012managing, seneviratne2012changes, stocker2013technical}.
+Discerning the effects of environmental variability on population dynamics is therefore a key objective of global change ecology. 
+Population responses to variability are likely shaped by the species' life history \cite{pfister1998patterns, morris2008longevity, saether2013life} with important consequences for conservation and management \cite{menges2000applications}, but the impact that biotic interactions have on these responses is unclear.
 
-\tom{}{It would be nice to start paragraph 2 here, but that probably leaves P1 too skimpy.}Classic theory predicts that long-term population growth rates (equivalently, population mean fitness) will decline under increased environmental variability due to negative effects of bad years that outweigh positive effects of good years (a consequence of nonlinear averaging) \cite{lewontin_population_1969,tuljapurkar_population_1982}. 
+Classic theory predicts that long-term population growth rates (equivalently, population mean fitness) will decline under increased environmental variability due to negative effects of bad years that outweigh positive effects of good years (a consequence of nonlinear averaging) \cite{lewontin_population_1969,tuljapurkar_population_1982}.
 For example, in unstructured populations, the long-term stochastic growth rate in fluctuating environments ($\lambda_s$) will always be less than the growth rate averaged across environments ($\overline{\lambda}$) by an amount proportional to the environmental variance ($\sigma^2$): $ log(\lambda_s)  \approx log(\overline{\lambda}) - \frac{\sigma^2}{2\overline{\lambda}^2}$.
 Populations structured by size or stage are expected to similarly experience negative effects of variability \cite{cohen1979comparative, tuljapurkar2013population}.
 Thus, there are two pathways to increase population viability in a stochastic environment $\lambda_s$: increasing the mean growth rate and/or dampening temporal fluctuation in growth rates, also called variance ``buffering''.
 
-Given the potential for negative fitness consequences of increasing environmental stochasticity under global change, there is growing interest in factors that can amplify or dampen demographic fluctuations. 
-%\tom{That both mean and variance are important in determining fitness underlies understanding of which aspects of a species' life history influence its success \cite{pfister1998patterns, morris2008longevity} and has important implications for population viability analysis \cite{menges1990population}.}{I don't know what this sentence is saying.} 
-Much attention has focused on the properties of species or their environment as modifiers of fluctuations in fitness, including variation in vital rates (survival, growth and reproduction)\cite{morris2008longevity}, correlations between vital rates \cite{compagnoni2016effect}, transient shifts in stage structure \cite{ellis2013role}, and the degree of environmental autocorrelation \cite{tuljapurkar1980population, fieberg2001stochastic}. 
+Given the potential for negative fitness consequences of increasing environmental stochasticity under global change, there is growing interest in the properties of species or their environment can amplify or dampen demographic fluctuations, including variation in vital rates (survival, growth and reproduction)\cite{morris2008longevity}, correlations between vital rates \cite{compagnoni2016effect}, transient shifts in stage structure \cite{ellis2013role}, and the degree of environmental autocorrelation \cite{tuljapurkar1980population, fieberg2001stochastic}. 
 In contrast, little is known about how biotic interactions influence patterns of demographic variability \cite{hilde_demographic_2020}, due in part to the paucity of long-term interaction data that are required to detect such effects.
-%This pg needs work - what is the point of it? Also need transition sentence to microbes
+Yet practically all species are host to symbiotic microorganisms that impact growth and performance \cite{rodriguez2009fungal, mcfall2013animals}.
+
 
 Our work focused on the potential for microbial symbionts to buffer host plants against negative effects of environmental variability.
-Microbial symbioses are ubiquitous across plant and animal host taxa and can be crucial determinants of host fitness \cite{rodriguez2009fungal, mcfall2013animals}.
+%Microbial symbioses are ubiquitous across plant and animal host taxa and can be crucial determinants of host fitness \cite{rodriguez2009fungal, mcfall2013animals}.
 Yet we know little about their potential influence on responses to climate change and environmental variation \cite{rudgers2020climate}. 
 \tom{Across a broad range of taxa, mutualistic host-associated microbes provide protection from environmental stresses including drought, extreme temperatures, and enemies \cite{russell2006costs, brownlie2009symbiont, kivlin2013fungal,corbin2017heritable, hoadley2019host}.}{This sentence seems to contradict the previous sentence.} 
 \tom{The role they play may be under-appreciated, and it can be difficult to quantify the net outcome of a given interaction because they are often viewed as being context-dependent where the magnitude of benefit depends on environmental conditions \cite{chamberlain2014context}. 
@@ -169,7 +168,7 @@ The \tom{standard deviation}{The figure in this draft shows CV. We should be con
 
 \begin{figure*}%[tbhp]
 \centering
-\includegraphics[width=.8\linewidth]{endo_lambdaeffects_plot}
+\includegraphics[width=.8\linewidth]{EndoLambdaEffectsPlot}
 \caption{needs to be updated pdf version, but putting this here for now. Effect of endophytes on mean and CV of population growth}
 \label{fig:lambda_figure}
 \end{figure*}
@@ -489,6 +488,6 @@ We performed model experiments to explore the effect of altered mean and varianc
 \showacknow{} % Display the acknowledgments section
 
 % Bibliography
-\bibliography{endo_stoch_demo.bib}
+\bibliography{endo_stoch_demo}
 
 \end{document}
