@@ -1,12 +1,12 @@
-\begin{thebibliography}{40}
+\begin{thebibliography}{42}
 \providecommand{\natexlab}[1]{#1}
 \providecommand{\url}[1]{\texttt{#1}}
 \expandafter\ifx\csname urlstyle\endcsname\relax
   \providecommand{\doi}[1]{doi: #1}\else
   \providecommand{\doi}{doi: \begingroup \urlstyle{rm}\Url}\fi
 
-\bibitem[on~Climate~Change)(2012)]{IPCC2012managing}
-IPCC (Intergovernmental~Panel on~Climate~Change).
+\bibitem[IPCC(2012)]{IPCC2012managing}
+IPCC.
 \newblock \emph{Managing the risks of extreme events and disasters to advance
   climate change adaptation: special report of the intergovernmental panel on
   climate change. Special Report.}
@@ -31,6 +31,37 @@ Thomas~F Stocker, Dahe Qin, G-K Plattner, Lisa~V Alexander, Simon~K Allen,
   Contribution of Working Group I to the Fifth Assessment Report of the
   Intergovernmental Panel on Climate Change}, pages 33--115. Cambridge
   University Press, 2013.
+
+\bibitem[Pfister(1998)]{pfister1998patterns}
+Catherine~A Pfister.
+\newblock Patterns of variance in stage-structured populations: evolutionary
+  predictions and ecological implications.
+\newblock \emph{Proceedings of the National Academy of Sciences}, 95\penalty0
+  (1):\penalty0 213--218, 1998.
+
+\bibitem[Morris et~al.(2008)Morris, Pfister, Tuljapurkar, Haridas, Boggs,
+  Boyce, Bruna, Church, Coulson, Doak, et~al.]{morris2008longevity}
+William~F Morris, Catherine~A Pfister, Shripad Tuljapurkar, Chirrakal~V
+  Haridas, Carol~L Boggs, Mark~S Boyce, Emilio~M Bruna, Don~R Church, Tim
+  Coulson, Daniel~F Doak, et~al.
+\newblock Longevity can buffer plant and animal populations against changing
+  climatic variability.
+\newblock \emph{Ecology}, 89\penalty0 (1):\penalty0 19--25, 2008.
+
+\bibitem[S{\ae}ther et~al.(2013)S{\ae}ther, Coulson, Gr{\o}tan, Engen, Altwegg,
+  Armitage, Barbraud, Becker, Blumstein, Dobson, et~al.]{saether2013life}
+Bernt-Erik S{\ae}ther, Tim Coulson, Vidar Gr{\o}tan, Steinar Engen, Res
+  Altwegg, Kenneth~B Armitage, Christophe Barbraud, Peter~H Becker, Daniel~T
+  Blumstein, F~Stephen Dobson, et~al.
+\newblock How life history influences population dynamics in fluctuating
+  environments.
+\newblock \emph{The American Naturalist}, 182\penalty0 (6):\penalty0 743--759,
+  2013.
+
+\bibitem[Menges(2000)]{menges2000applications}
+Eric~S Menges.
+\newblock Applications of population viability analyses in plant conservation.
+\newblock \emph{Ecological Bulletins}, pages 73--84, 2000.
 
 \bibitem[Lewontin and Cohen(1969)]{lewontin_population_1969}
 R.~C. Lewontin and D.~Cohen.
@@ -66,19 +97,10 @@ Shripad Tuljapurkar.
 \newblock \emph{Population dynamics in variable environments}, volume~85.
 \newblock Springer Science \& Business Media, 2013.
 
-\bibitem[Morris et~al.(2008)Morris, Pfister, Tuljapurkar, Haridas, Boggs,
-  Boyce, Bruna, Church, Coulson, Doak, et~al.]{morris2008longevity}
-William~F Morris, Catherine~A Pfister, Shripad Tuljapurkar, Chirrakal~V
-  Haridas, Carol~L Boggs, Mark~S Boyce, Emilio~M Bruna, Don~R Church, Tim
-  Coulson, Daniel~F Doak, et~al.
-\newblock Longevity can buffer plant and animal populations against changing
-  climatic variability.
-\newblock \emph{Ecology}, 89\penalty0 (1):\penalty0 19--25, 2008.
-
 \bibitem[Compagnoni et~al.(2016)Compagnoni, Bibian, Ochocki, Rogers, Schultz,
-  Sneck, Elderd, Iler, Inouye, Jacquemyn, et~al.]{compagnoni2016effect}
+  Sneck, Iler, Inouye, Jacquemyn, et~al.]{compagnoni2016effect}
 Aldo Compagnoni, Andrew~J Bibian, Brad~M Ochocki, Haldre~S Rogers, Emily~L
-  Schultz, Michelle~E Sneck, Bret~D Elderd, Amy~M Iler, David~W Inouye, Hans
+  Schultz, Bret~D Sneck, Michelle E~and, Amy~M Iler, David~W Inouye, Hans
   Jacquemyn, et~al.
 \newblock The effect of demographic correlations on the stochastic population
   dynamics of perennial plants.
@@ -217,13 +239,6 @@ Facundo~A Decunta, Luis~I P{\'e}rez, Dariusz~P Malinowski, Marco~A
 \newblock A systematic review on the effects of epichlo{\"e} fungal endophytes
   on drought tolerance in cool-season grasses.
 \newblock \emph{Frontiers in plant science}, 12:\penalty0 644731, 2021.
-
-\bibitem[Rudgers et~al.(2012)Rudgers, Miller, Ziegler, and
-  Craven]{rudgers2012there}
-Jennifer~A Rudgers, Tom~EX Miller, Shaun~M Ziegler, and Kelly~D Craven.
-\newblock There are many ways to be a mutualist: endophytic fungus reduces
-  plant survival but increases population growth.
-\newblock \emph{Ecology}, 93\penalty0 (3):\penalty0 565--574, 2012.
 
 \bibitem[Rees and Ellner(2009)]{rees2009integral}
 Mark Rees and Stephen~P Ellner.
