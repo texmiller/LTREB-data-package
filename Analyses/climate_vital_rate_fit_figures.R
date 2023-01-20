@@ -1106,8 +1106,16 @@ LTREB_climateforplot <- LTREB_full %>%
   summarize(spei3 = unique(spei3),
             spei12 = unique(spei12),
             annual_temp = unique(annual_temp),
-            annual_precip = unique(annual_precip)) %>%  # converting precip units to mm. from tenths of mm. 
+            annual_precip = unique(annual_precip)) %>%  
   pivot_longer(cols = c(spei3, spei12, annual_temp, annual_precip))
+LTREB_climate_summary <- LTREB_full %>% 
+  filter(species == "ELVI") %>% 
+  group_by(species) %>% 
+  summarize(meanof_annual_temp = mean(annual_temp),
+            meanof_annual_precip = mean(annual_precip),
+            sdof_annual_temp = sd(annual_temp),
+            sdof_annual_precip = sd(annual_precip)) 
+  
 
 # Making the plot with just climate data for Elymus census, which is tthe middle of the season, and has nearly the highest sd in spei3 (AGPE has higher, but is the most disimilar census timing)
 precip_plot <- ggplot(filter(LTREB_climateforplot, species == "ELVI" & name == "annual_precip"))+
