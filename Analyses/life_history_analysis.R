@@ -400,9 +400,9 @@ empirical_ages <- LTREB_full %>%
 
 traits_df <- empirical_ages
 traits_df$gen_time <- gen_time_summary[,1]
-traits_df$sd_gen_time <- gen_time_summary[,4]
+traits_df$gen_time_sd <- gen_time_summary[,4]
 traits_df$longev <- longev_summary[,1]
-traits_df$sd_longev <- longev_summary[,4]
+traits_df$longev_sd <- longev_summary[,4]
 
 traits_df$mean_life_expect <- mean_life_expect_summary[,1]
 traits_df$var_life_expect <- var_life_expect_summary[,1]
@@ -413,9 +413,9 @@ traits_df$imperfect_trans <- imperfect_trans
 
 traits_df$sd_effect <- lambda_sd_diff[1:7,1]
 traits_df$cv_effect <- lambda_cv_diff[1:7,1]
-traits_df$sdof_cv_effect <- lambda_cv_diff[1:7,8]
+traits_df$cv_effect_sd <- lambda_cv_diff[1:7,8]
 traits_df$mean_effect <- lambda_mean_diff[1:7,1]
-traits_df$sdof_mean_effect <- lambda_mean_diff[1:7,8]
+traits_df$mean_effect_sd <- lambda_mean_diff[1:7,8]
 
 traits_df_long <- traits_df %>% 
   pivot_longer(cols = c("observed_max_age", "max_age_97.5", "max_age_99", "gen_time", 
@@ -478,14 +478,14 @@ lh_models <- list()
 # lh_models[[19]] <- lm(mean_effect ~ seed_size, data = traits_df)
 # lh_models[[20]] <- lm(mean_effect ~ imperfect_trans, data = traits_df)
 
-summary(lh_models[[1]] <- lm(cv_effect ~ observed_max_age, data = traits_df))
-summary(lh_models[[2]] <- lm(cv_effect ~ max_age_99, data = traits_df))
-summary(lh_models[[3]] <- lm(cv_effect ~ gen_time, data = traits_df))
-summary(lh_models[[4]] <- lm(cv_effect ~ longev, data = traits_df))
-summary(lh_models[[5]] <- lm(cv_effect ~ mean_life_expect, data = traits_df))
-summary(lh_models[[6]] <- lm(cv_effect ~ R0, data = traits_df))
-summary(lh_models[[7]] <- lm(cv_effect ~ seed_size, data = traits_df))
-summary(lh_models[[8]] <- lm(cv_effect ~ imperfect_trans, data = traits_df))
+# summary(lh_models[[1]] <- lm(cv_effect ~ observed_max_age, data = traits_df))
+# summary(lh_models[[2]] <- lm(cv_effect ~ max_age_99, data = traits_df))
+# summary(lh_models[[3]] <- lm(cv_effect ~ gen_time, data = traits_df))
+# summary(lh_models[[4]] <- lm(cv_effect ~ longev, data = traits_df))
+# summary(lh_models[[5]] <- lm(cv_effect ~ mean_life_expect, data = traits_df))
+# summary(lh_models[[6]] <- lm(cv_effect ~ R0, data = traits_df))
+# summary(lh_models[[7]] <- lm(cv_effect ~ seed_size, data = traits_df))
+# summary(lh_models[[8]] <- lm(cv_effect ~ imperfect_trans, data = traits_df))
 # 
 # AICtab(lh_models)
 # summary(lh_models[[1]]) #*
@@ -1213,7 +1213,7 @@ A <- ape::vcv.phylo(pruned.plant.tree)
 ## MCMC settings
 mcmc_pars <- list(
   iter = 10000, 
-  warmup = 7500, 
+  warmup = 8000, 
   thin = 1, 
   chains = 3
 )
@@ -1222,14 +1222,15 @@ mcmc_pars <- list(
            
 meanof_cv <- mean(traits_df$cv_effect)
 sdof_cv <- sd(traits_df$cv_effect)
+
 plant_models <- list()
-plant_models[[1]] <- brm(cv_effect|mi(sdof_cv_effect) ~ observed_max_age + (1|gr(plant_label, cov = A)),
+plant_models[[1]] <- brm(cv_effect|mi(cv_effect_sd) ~ observed_max_age + (1|gr(plant_label, cov = A)),
                          data = traits_df,
                          family = gaussian(),
                          data2 = list(A = A),
                          prior = c(
                            prior(normal(0, .1), "b"),
-                           prior(normal(-0.0337147, .5), "Intercept"),
+                           prior(normal(0, .5), "Intercept"),
                            prior(normal(.0,.1), class = "sd", lb = 0),
                            prior(normal(.04417872,.01), class = "sigma", lb = 0)),
                          control = list(adapt_delta = 0.999,
@@ -1237,23 +1238,13 @@ plant_models[[1]] <- brm(cv_effect|mi(sdof_cv_effect) ~ observed_max_age + (1|gr
                          iter = mcmc_pars$iter,
                          warmup = mcmc_pars$warmup,
                          save_pars = save_pars(latent = TRUE))
-print(plant_models[[1]])
-plot(conditional_effects(plant_models[[1]], method = "fitted"))
-posterior_pm <- as.array(plant_models[[1]])
-posterior_df <- as_tibble(cubelyr::as.tbl_cube(posterior_pm))
-ggplot(data = filter(posterior_df, variable == "b_observed_max_age"))+
-  geom_histogram(aes(x = posterior_pm), bins = 100)+
-  facet_wrap(~variable, scales = "free_x")
-
-
-
-plant_models[[2]] <- brm(cv_effect|mi(sdof_cv_effect) ~ max_age_99 + (1|gr(plant_label, cov = A)),
+plant_models[[2]] <- brm(cv_effect|mi(cv_effect_sd) ~ max_age_99 + (1|gr(plant_label, cov = A)),
                          data = traits_df,
                          family = gaussian(),
                          data2 = list(A = A),
                          prior = c(
                            prior(normal(0, .1), "b"),
-                           prior(normal(-0.0337147, .5), "Intercept"),
+                           prior(normal(0, .5), "Intercept"),
                            prior(normal(0,.1), class = "sd", lb = 0),
                            prior(normal(.04417872,.01), class = "sigma", lb = 0)),
                          control = list(adapt_delta = 0.999,
@@ -1261,13 +1252,13 @@ plant_models[[2]] <- brm(cv_effect|mi(sdof_cv_effect) ~ max_age_99 + (1|gr(plant
                          iter = mcmc_pars$iter,
                          warmup = mcmc_pars$warmup,
                          save_pars = save_pars(latent = TRUE))
-plant_models[[3]] <- brm(cv_effect|mi(sdof_cv_effect) ~ R0 + (1|gr(plant_label, cov = A)),
+plant_models[[3]] <- brm(cv_effect|mi(cv_effect_sd) ~ R0 + (1|gr(plant_label, cov = A)),
                          data = traits_df,
                          family = gaussian(),
                          data2 = list(A = A),
                          prior = c(
                            prior(normal(0, .1), "b"),
-                           prior(normal(-0.0337147, .5), "Intercept"),
+                           prior(normal(0, .5), "Intercept"),
                            prior(normal(0,.1), class = "sd", lb = 0),
                            prior(normal(.04417872,.01), class = "sigma", lb = 0)),
                          control = list(adapt_delta = 0.999,
@@ -1275,13 +1266,13 @@ plant_models[[3]] <- brm(cv_effect|mi(sdof_cv_effect) ~ R0 + (1|gr(plant_label, 
                          iter = mcmc_pars$iter,
                          warmup = mcmc_pars$warmup,
                          save_pars = save_pars(latent = TRUE))
-plant_models[[4]] <- brm(cv_effect|mi(sdof_cv_effect) ~ longev + (1|gr(plant_label, cov = A)),
+plant_models[[4]] <- brm(cv_effect|mi(cv_effect_sd) ~ longev + (1|gr(plant_label, cov = A)),
                          data = traits_df,
                          family = gaussian(),
                          data2 = list(A = A),
                          prior = c(
-                           prior(normal(0, .1), "b"),
-                           prior(normal(-0.0337147, .5), "Intercept"),
+                           prior(normal(0, .1), "b"), 
+                           prior(normal(0, .5), "Intercept"),
                            prior(normal(0,.1), class = "sd", lb = 0),
                            prior(normal(.04417872,.01), class = "sigma", lb = 0)),
                          control = list(adapt_delta = 0.999,
@@ -1289,13 +1280,13 @@ plant_models[[4]] <- brm(cv_effect|mi(sdof_cv_effect) ~ longev + (1|gr(plant_lab
                          iter = mcmc_pars$iter,
                          warmup = mcmc_pars$warmup,
                          save_pars = save_pars(latent = TRUE))
-plant_models[[5]] <- brm(cv_effect|mi(sdof_cv_effect) ~ mean_life_expect + (1|gr(plant_label, cov = A)),
+plant_models[[5]] <- brm(cv_effect|mi(cv_effect_sd) ~ mean_life_expect + (1|gr(plant_label, cov = A)),
                          data = traits_df,
                          family = gaussian(),
                          data2 = list(A = A),
                          prior = c(
-                           prior(normal(0, .1), "b"),
-                           prior(normal(-0.0337147, .5), "Intercept"),
+                           prior(normal(0, .1), "b"), 
+                           prior(normal(0, .5), "Intercept"),
                            prior(normal(0,.1), class = "sd", lb = 0),
                            prior(normal(.04417872,.01), class = "sigma", lb = 0)),
                          control = list(adapt_delta = 0.999,
@@ -1303,13 +1294,13 @@ plant_models[[5]] <- brm(cv_effect|mi(sdof_cv_effect) ~ mean_life_expect + (1|gr
                          iter = mcmc_pars$iter,
                          warmup = mcmc_pars$warmup,
                          save_pars = save_pars(latent = TRUE))
-plant_models[[6]] <- brm(cv_effect|mi(sdof_cv_effect) ~ gen_time + (1|gr(plant_label, cov = A)),
+plant_models[[6]] <- brm(cv_effect|mi(cv_effect_sd) ~ gen_time + (1|gr(plant_label, cov = A)),
                        data = traits_df,
                        family = gaussian(),
                        data2 = list(A = A),
                        prior = c(
-                         prior(normal(0, .05), "b"),
-                         prior(normal(-0.0337147, .5), "Intercept"),
+                         prior(normal(0, .1), "b"),
+                         prior(normal(0, .5), "Intercept"),
                          prior(normal(0,.1), class = "sd", lb = 0),
                          prior(normal(.04417872,.01), class = "sigma", lb = 0)),
                        control = list(adapt_delta = 0.999,
@@ -1317,27 +1308,27 @@ plant_models[[6]] <- brm(cv_effect|mi(sdof_cv_effect) ~ gen_time + (1|gr(plant_l
                        iter = mcmc_pars$iter,
                        warmup = mcmc_pars$warmup,
                        save_pars = save_pars(latent = TRUE))
-plant_models[[7]] <- brm(cv_effect|mi(sdof_cv_effect) ~ seed_size + (1|gr(plant_label, cov = A)),
-                         data = traits_df,
-                         family = gaussian(),
-                         data2 = list(A = A),
-                         prior = c(
-                           prior(normal(0, .01), "b"),
-                           prior(normal(-0.0337147, .5), "Intercept"),
-                           prior(normal(0,.1), class = "sd", lb = 0),
-                           prior(normal(.04417872,.01), class = "sigma", lb = 0)),
-                         control = list(adapt_delta = 0.999,
-                                        max_treedepth = 20),
-                         iter = mcmc_pars$iter,
-                         warmup = mcmc_pars$warmup,
-                         save_pars = save_pars(latent = TRUE))
-plant_models[[8]] <- brm(cv_effect|mi(sdof_cv_effect) ~ imperfect_trans + (1|gr(plant_label, cov = A)),
+plant_models[[7]] <- brm(cv_effect|mi(cv_effect_sd) ~ seed_size + (1|gr(plant_label, cov = A)),
                          data = traits_df,
                          family = gaussian(),
                          data2 = list(A = A),
                          prior = c(
                            prior(normal(0, .1), "b"),
-                           prior(normal(-0.0337147, .5), "Intercept"),
+                           prior(normal(0, .5), "Intercept"),
+                           prior(normal(0,.1), class = "sd", lb = 0),
+                           prior(normal(.04417872,.01), class = "sigma", lb = 0)),
+                         control = list(adapt_delta = 0.999,
+                                        max_treedepth = 20),
+                         iter = mcmc_pars$iter,
+                         warmup = mcmc_pars$warmup,
+                         save_pars = save_pars(latent = TRUE))
+plant_models[[8]] <- brm(cv_effect|mi(cv_effect_sd) ~ imperfect_trans + (1|gr(plant_label, cov = A)),
+                         data = traits_df,
+                         family = gaussian(),
+                         data2 = list(A = A),
+                         prior = c(
+                           prior(normal(0, .1), "b"),
+                           prior(normal(0, .5), "Intercept"),
                            prior(normal(0,.1), class = "sd", lb = 0),
                            prior(normal(.04417872,.01), class = "sigma", lb = 0)),
                          control = list(adapt_delta = 0.999,
@@ -1346,15 +1337,221 @@ plant_models[[8]] <- brm(cv_effect|mi(sdof_cv_effect) ~ imperfect_trans + (1|gr(
                          warmup = mcmc_pars$warmup,
                          save_pars = save_pars(latent = TRUE))
 
-posterior_pm <- as.array(plant_models[[7]])
+
+
+saveRDS(plant_models, file = "~/Dropbox/EndodemogData/Model_Runs/MPM_output/plant_lh_models.rds")
+plant_models <- read_rds(file = "~/Dropbox/EndodemogData/Model_Runs/MPM_output/plant_lh_models.rds")
+
+print(plant_models[[4]])
+pp_check(plant_models[[1]], ndraws = 100)
+
+# making data for the prediction
+newdata <- data.frame(observed_max_age = seq(from = min(traits_df$observed_max_age), to = max(traits_df$observed_max_age), length.out = 10),
+                      max_age_99 = seq(from = min(traits_df$max_age_99), to = max(traits_df$max_age_99), length.out = 10),
+                      gen_time = seq(from = min(traits_df$gen_time), to = max(traits_df$gen_time), length.out = 10),
+                      longev = seq(from = min(traits_df$longev), to = max(traits_df$longev), length.out = 10),
+                      mean_life_expect = seq(from = min(traits_df$mean_life_expect), to = max(traits_df$mean_life_expect), length.out = 10),
+                      R0 = seq(from = min(traits_df$R0), to = max(traits_df$R0), length.out = 10),
+                      seed_size = seq(from = min(traits_df$seed_size), to = max(traits_df$seed_size), length.out = 10),
+                      imperfect_trans = seq(from = min(traits_df$imperfect_trans), to = max(traits_df$imperfect_trans), length.out = 10),
+                      cv_effect_sd = seq(from = min(traits_df$cv_effect_sd), to = max(traits_df$cv_effect_sd), length.out = 10),
+                      plant_label = rep("new", 10),
+                      epichloe_label = rep("new", 10))
+
+newdata_plant_fit <- newdata %>%
+  select(-epichloe_label) %>% 
+  rename_with(.fn = str_c, pattern = ".x")  %>% 
+  mutate(row_id = row_number()) %>% 
+mutate(observed_max_age.fit = fitted(plant_models[[1]], newdata, re_formula = NA, allow_new_levels = TRUE)[,1],
+       max_age_99.fit = fitted(plant_models[[2]], newdata = newdata, re_formula = NA,allow_new_levels = TRUE)[,1],
+       R0.fit = fitted(plant_models[[3]], newdata = newdata, re_formula = NA,allow_new_levels = TRUE)[,1],
+       longev.fit = fitted(plant_models[[4]], newdata = newdata, re_formula = NA,allow_new_levels = TRUE)[,1],
+       mean_life_expect.fit = fitted(plant_models[[5]], newdata = newdata, re_formula = NA,allow_new_levels = TRUE)[,1],
+       gen_time.fit =fitted(plant_models[[6]], newdata = newdata, re_formula = NA,allow_new_levels = TRUE)[,1],
+       seed_size.fit =fitted(plant_models[[7]], newdata = newdata, re_formula = NA,allow_new_levels = TRUE)[,1],
+       imperfect_trans.fit =fitted(plant_models[[8]], newdata = newdata, re_effects = NA,allow_new_levels = TRUE)[,1]) %>% 
+mutate(observed_max_age.lwr = fitted(plant_models[[1]], newdata = newdata, re_formula = NA, allow_new_levels = TRUE, probs = c(0.075, 0.975))[,3],
+         max_age_99.lwr = fitted(plant_models[[2]], newdata = newdata, re_formula = NA, allow_new_levels = TRUE, probs = c(0.075, 0.975))[,3],
+         R0.lwr = fitted(plant_models[[3]], newdata = newdata, re_formula = NA, allow_new_levels = TRUE, probs = c(0.075, 0.975))[,3],
+         longev.lwr = fitted(plant_models[[4]], newdata = newdata, re_formula = NA, allow_new_levels = TRUE, probs = c(0.075, 0.975))[,3],
+         mean_life_expect.lwr = fitted(plant_models[[5]], newdata = newdata, re_formula = NA, allow_new_levels = TRUE, probs = c(0.075, 0.975))[,3],
+         gen_time.lwr =fitted(plant_models[[6]], newdata = newdata, re_formula = NA, allow_new_levels = TRUE, probs = c(0.075, 0.975))[,3],
+         seed_size.lwr =fitted(plant_models[[7]], newdata = newdata, re_formula = NA, allow_new_levels = TRUE, probs = c(0.075, 0.975))[,3],
+         imperfect_trans.lwr =fitted(plant_models[[8]], newdata = newdata, re_formula = NA, allow_new_levels = TRUE, probs = c(0.075, 0.975))[,3]) %>%
+  mutate(observed_max_age.upr = fitted(plant_models[[1]], newdata = newdata, re_formula = NA, allow_new_levels = TRUE, probs = c(0.075, 0.975))[,4],
+         max_age_99.upr = fitted(plant_models[[2]], newdata = newdata, re_formula = NA, allow_new_levels = TRUE, probs = c(0.075, 0.975))[,4],
+         R0.upr = fitted(plant_models[[3]], newdata = newdata, re_formula = NA, allow_new_levels = TRUE, probs = c(0.075, 0.975))[,4],
+         longev.upr = fitted(plant_models[[4]], newdata = newdata, re_formula = NA, allow_new_levels = TRUE, probs = c(0.075, 0.975))[,4],
+         mean_life_expect.upr = fitted(plant_models[[5]], newdata = newdata, re_formula = NA, allow_new_levels = TRUE, probs = c(0.075, 0.975))[,4],
+         gen_time.upr =fitted(plant_models[[6]], newdata = newdata, re_formula = NA, allow_new_levels = TRUE, probs = c(0.075, 0.975))[,4],
+         seed_size.upr =fitted(plant_models[[7]], newdata = newdata, re_formula = NA, allow_new_levels = TRUE, probs = c(0.075, 0.975))[,4],
+         imperfect_trans.upr =fitted(plant_models[[8]], newdata = newdata,re_formula = NA, allow_new_levels = TRUE,  probs = c(0.075, 0.975))[,4]) %>% 
+  pivot_longer(cols = c(-row_id, -plant_label.x), names_to = c("name", "interval"), names_sep = "\\.") %>% 
+  pivot_wider(id_cols = c(row_id,plant_label.x, name), names_from = interval, values_from = value) %>% 
+  mutate(name_label = case_when(name == "observed_max_age" ~ "Obs. Max Age", name == "max_age_99" ~ "99th Percentile Max Age", name == "R0" ~ "R0",
+                                name == "longev" ~ "Longevity", name == "mean_life_expect" ~ "Mean Life Expectancy",
+                                name == "gen_time" ~ "Generation Time", name == "seed_size" ~ "Seed Length (mm)", name == "imperfect_trans" ~ "Imperfect Transmission Rate")) 
+
+species_colors <- c("#dbdb42", "#b8e3a0", "#7fcdbb", "#41b6c4", "#1d91c0", "#225ea8", "#0c2c84", "#A9A9A9")
+
+oma_plant_plot <- ggplot(data = filter(newdata_plant_fit, name == "observed_max_age"))+
+  geom_ribbon(aes(ymin = lwr, ymax = upr, x = x), alpha = .2)+
+  geom_line(aes(y = fit, x = x))+
+  geom_point(data = traits_df, aes(y = cv_effect, x = observed_max_age, color = species), lwd = 3)+
+  scale_color_manual(values = species_colors)+
+  theme_classic()+
+  theme(axis.title.x = element_text(size=10))+
+  labs(x = "Obs. Max Age", y = expression(paste("Effect on CV", (lambda))))
+# oma_plant_plot
+
+ma99_plant_plot <- ggplot(data = filter(newdata_fit, name == "max_age_99"))+
+  geom_ribbon(aes(ymin = lwr, ymax = upr, x = x), alpha = .2)+
+  geom_line(aes(y = fit, x = x))+
+  geom_point(data = traits_df, aes(y = cv_effect, x = max_age_99, color = species), lwd = 3)+
+  scale_color_manual(values = species_colors)+
+  theme_classic()+
+  theme(axis.title.x = element_text(size=10))+
+  labs(x = "99th Percentile Max Age", y = "")
+# ma99_plant_plot
+
+R0_plant_plot <- ggplot(data = filter(newdata_fit, name == "R0"))+
+  geom_ribbon(aes(ymin = lwr, ymax = upr, x = x), alpha = .2)+
+  geom_line(aes(y = fit, x = x))+
+  geom_point(data = traits_df, aes(y = cv_effect, x = R0, color = species), lwd = 3)+
+  scale_color_manual(values = species_colors)+
+  theme_classic()+
+  theme(axis.title.x = element_text(size=10))+
+  labs(x = "R0", y = "")
+# R0_plant_plot
+
+longev_plant_plot <- ggplot(data = filter(newdata_fit, name == "longev"))+
+  geom_ribbon(aes(ymin = lwr, ymax = upr, x = x), alpha = .2)+
+  geom_line(aes(y = fit, x = x))+
+  geom_point(data = traits_df, aes(y = cv_effect, x = longev, color = species), lwd = 3)+
+  scale_color_manual(values = species_colors)+
+  theme_classic()+
+  theme(axis.title.x = element_text(size=10))+
+  labs(x = "Longevity", y = "")
+# longev_plant_plot
+
+mle_plant_plot <- ggplot(data = filter(newdata_fit, name == "mean_life_expect"))+
+  geom_ribbon(aes(ymin = lwr, ymax = upr, x = x), alpha = .2)+
+  geom_line(aes(y = fit, x = x))+
+  geom_point(data = traits_df, aes(y = cv_effect, x = mean_life_expect, color = species), lwd = 3)+
+  scale_x_continuous(breaks = c(3,6,9,12))+
+  scale_color_manual(values = species_colors)+
+  theme_classic()+
+  theme(axis.title.x = element_text(size=10))+
+  labs(x = "Mean Life Expectancy", y = expression(paste("Effect on CV", (lambda))))
+# mle_plant_plot
+
+gt_plant_plot <- ggplot(data = filter(newdata_fit, name == "gen_time"))+
+  geom_ribbon(aes(ymin = lwr, ymax = upr, x = x), alpha = .2)+
+  geom_line(aes(y = fit, x = x))+
+  geom_point(data = traits_df, aes(y = cv_effect, x = gen_time, color = species), lwd = 3)+
+  scale_color_manual(values = species_colors)+
+  theme_classic()+
+  theme(axis.title.x = element_text(size=10))+
+  labs(x = "Generation Time", y = "")
+# gt_plant_plot
+
+ss_plant_plot <- ggplot(data = filter(newdata_fit, name == "seed_size"))+
+  geom_ribbon(aes(ymin = lwr, ymax = upr, x = x), alpha = .2)+
+  geom_line(aes(y = fit, x = x))+
+  geom_point(data = traits_df, aes(y = cv_effect, x = seed_size, color = species), lwd = 3)+
+  scale_color_manual(values = species_colors)+
+  theme_classic()+
+  theme(axis.title.x = element_text(size=10))+
+  labs(x = "Seed Length (mm)", y = "")
+
+# ss_plant_plot
+
+it_plant_plot <- ggplot(data = filter(newdata_fit, name == "imperfect_trans"))+
+  geom_ribbon(aes(ymin = lwr, ymax = upr, x = x), alpha = .2)+
+  geom_line(aes(y = fit, x = x))+
+  geom_point(data = traits_df, aes(y = cv_effect, x = imperfect_trans, color = species), lwd = 3)+
+  scale_color_manual(values = species_colors)+
+  theme_classic()+
+  theme(axis.title.x = element_text(size=10))+
+  labs(x = "Imperfect Transmission Rate", y = "")
+# it_plant_plant_plot
+
+lh_plant_plot <- oma_plant_plot + ma99_plant_plot + R0_plant_plot + longev_plant_plot + mle_plant_plot + gt_plant_plot + ss_plant_plot + it_plant_plot + 
+  plot_layout(nrow = 2, guides = "collect") + plot_annotation(tag_levels = "A") 
+ggsave(lh_plant_plot, filename = "lh_plant_plot.png", width = 10.5, height = 5)
+
+
+
+
+# Histograms of the slope estimates
+posterior1 <- as.array(plant_models[[1]])
+posterior2 <- as.array(plant_models[[2]])
+posterior3 <- as.array(plant_models[[3]])
+posterior4 <- as.array(plant_models[[4]])
+posterior5 <- as.array(plant_models[[5]])
+posterior6 <- as.array(plant_models[[6]])
+posterior7 <- as.array(plant_models[[7]])
+posterior8 <- as.array(plant_models[[8]])
+
+posterior1_df <- as_tibble(cubelyr::as.tbl_cube(posterior1)) %>% 
+  mutate(trait = "observed_max_age") %>% rename(posterior = posterior1) %>% 
+  filter(variable == "b_observed_max_age")
+posterior2_df <- as_tibble(cubelyr::as.tbl_cube(posterior2)) %>% 
+  mutate(trait = "max_age_99") %>% rename(posterior = posterior2) %>% 
+  filter(variable == "b_max_age_99")
+posterior3_df <- as_tibble(cubelyr::as.tbl_cube(posterior3)) %>% 
+  mutate(trait = "R0") %>% rename(posterior = posterior3) %>% 
+  filter(variable == "b_R0")
+posterior4_df <- as_tibble(cubelyr::as.tbl_cube(posterior4)) %>% 
+  mutate(trait = "longev") %>% rename(posterior = posterior4) %>% 
+  filter(variable == "b_longev")
+posterior5_df <- as_tibble(cubelyr::as.tbl_cube(posterior5)) %>% 
+  mutate(trait = "mean_life_expect") %>% rename(posterior = posterior5) %>% 
+  filter(variable == "b_mean_life_expect")
+posterior6_df <- as_tibble(cubelyr::as.tbl_cube(posterior6)) %>% 
+  mutate(trait = "gen_time") %>% rename(posterior = posterior6) %>% 
+  filter(variable == "b_gen_time")
+posterior7_df <- as_tibble(cubelyr::as.tbl_cube(posterior7)) %>% 
+  mutate(trait = "seed_size") %>% rename(posterior = posterior7) %>% 
+  filter(variable == "b_seed_size")
+posterior8_df <- as_tibble(cubelyr::as.tbl_cube(posterior8)) %>% 
+  mutate(trait = "imperfect_trans") %>% rename(posterior = posterior8) %>% 
+  filter(variable == "b_imperfect_trans")
+
+
+posterior_df <- rbind(posterior1_df, posterior2_df, posterior3_df, posterior4_df, posterior5_df, posterior6_df, posterior7_df, posterior8_df)
+
+ggplot(data = filter(posterior_df, variable == "b_mean_life_expect"))+
+  geom_histogram(aes(x = posterior_pm), bins = 100)+
+  facet_wrap(~variable, scales = "free_x")
+
+
+library(ggridges)
+ggplot(data = posterior_df)+
+  geom_vline(xintercept = 0, col = "black") + 
+  stat_density_ridges(aes(x = posterior,  y = trait), bins = 100, alpha = .6, draw_baseline = FALSE)+
+  # geom_histogram(aes(x = posterior, fill = trait, group = trait), position = , bins = 100, alpha = .6) +
+  theme_classic()
+  facet_wrap(~trait,ncol = 1) 
+
+posterior_pm <- as.array(posterior_pm)
+posterior_df <- as_tibble(cubelyr::as.tbl_cube(posterior_pm))
+posterior_pm <- as.array(plant_models[[5]])
+posterior_df <- as_tibble(cubelyr::as.tbl_cube(posterior_pm))
+ggplot(data = filter(posterior_df, variable == "b_mean_life_expect"))+
+  geom_histogram(aes(x = posterior_pm), bins = 100)+
+  facet_wrap(~variable, scales = "free_x")
+
+
+posterior_pm <- as.array(plant_models[[1]])
 # nuts_pm <- nuts_params(plant_models[[1]])
 # mcmc_trace(plant_model, pars = "gen_time")
 # mcmc_parcoord(posterior_pm, np = nuts_pm, pars = c("bsp_megen_timesd_gen_time", "b_Intercept", "sd_plant_label__Intercept", "sigma", "meanme_megen_time", "sdme_megen_time"))
 
-plot(conditional_effects(plant_models[[7]], method = "fitted"))
+plot(conditional_effects(plant_models[[1]], method = "fitted"))
 
 posterior_df <- as_tibble(cubelyr::as.tbl_cube(posterior_pm))
-ggplot(data = filter(posterior_df, variable == "b_seed_size"))+
+ggplot(data = filter(posterior_df, variable == "b_max_age_99"))+
   geom_histogram(aes(x = posterior_pm), bins = 100)+
   facet_wrap(~variable, scales = "free_x")
 
