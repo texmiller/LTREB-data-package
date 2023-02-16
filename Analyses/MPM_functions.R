@@ -6,7 +6,7 @@
 invlogit<-function(x){exp(x)/(1+exp(x))}
 
 # Parameter assembly function ---------------------------------------------
-make_params <- function(species,endo_mean,endo_var,original=0,draw,rfx=F,spei=F,year=NULL,max_size,samp=F,samp_extreme=0,
+make_params <- function(species,endo_mean,endo_var,original=0,draw,rfx=F,spei=F,year=NULL,repro_offset = 1, max_size,samp=F,samp_extreme=0,
                         surv_par,surv_sdlg_par,grow_par,grow_sdlg_par,flow_par,fert_par,spike_par,seed_par,recruit_par){
   
   if(rfx==F){rfx_surv <- rfx_surv_sdlg <- rfx_grow <- rfx_grow_sdlg <- rfx_flow <- rfx_fert <- rfx_spike <- rfx_rct <-  0}
@@ -17,9 +17,9 @@ make_params <- function(species,endo_mean,endo_var,original=0,draw,rfx=F,spei=F,
     rfx_surv_sdlg <-surv_sdlg_par$tau_year[draw,species,(endo_var+1),(year)];
     rfx_grow <- grow_par$tau_year[draw,species,(endo_var+1),(year)];
     rfx_grow_sdlg <- grow_sdlg_par$tau_year[draw,species,(endo_var+1),(year)];
-    rfx_flow <- flow_par$tau_year[draw,species,(endo_var+1),(year-1)]; # fitting 
-    rfx_fert <- fert_par$tau_year[draw,species,(endo_var+1),(year-1)]; 
-    rfx_spike <- spike_par$tau_year[draw,species,(endo_var+1),(year-1)];
+    rfx_flow <- flow_par$tau_year[draw,species,(endo_var+1),(year-repro_offset)]; # fitting 
+    rfx_fert <- fert_par$tau_year[draw,species,(endo_var+1),(year-repro_offset)]; 
+    rfx_spike <- spike_par$tau_year[draw,species,(endo_var+1),(year-repro_offset)];
     rfx_rct <- recruit_par$tau_year[draw,species,(endo_var+1),year];
   }
   

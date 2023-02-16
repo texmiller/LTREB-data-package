@@ -192,7 +192,7 @@ lambda_var <- array(dim = c(8,2,n_draws))
 for(i in 1:length(post_draws)){
   for(e in 1:2){
     for(s in 1:7){
-      for(y in 1:10){ ## why is y looped over only 10 years?
+      for(y in 1:13){
         
         lambda_hold[y,s,e,i] <- lambda(bigmatrix(make_params(species=s,
                                                              endo_mean=(e-1),
@@ -348,12 +348,13 @@ meanlambda_plot <- ggplot(data = lambda_mean_df) +
   geom_point(data = lambda_mean_diff_df, aes(y = mean, x = species, color = species), lwd = 2) +
   scale_color_manual(values = c("#dbdb42", "#b8e3a0", "#7fcdbb", "#41b6c4", "#1d91c0", "#225ea8", "#0c2c84", "#A9A9A9")) +
   coord_flip(ylim = c(-.5,.5)) +
-  labs(y = expression(paste("Effect on ", bar(lambda))),
+  labs(y = expression(paste("Symbiosis Effect on ", bar(lambda))),
        x = "",
        color = "Species")+
   theme(panel.background = element_rect(fill = "white"),
         panel.grid = element_line(color = NA),
         axis.line = element_line(color = "grey"),
+        axis.text.y = element_text(face = "italic"),
         legend.position = "none")
 meanlambda_plot
 ggsave(meanlambda_plot, filename = "meanlambda_plot.png", width = 4, height = 5)
@@ -408,12 +409,13 @@ lambdavar_plot <- ggplot(data = lambda_cv_df) +
   geom_point(data = lambda_cv_diff_df, aes(y = mean, x = species, color = species), lwd = 2) +
   scale_color_manual(values = c("#dbdb42", "#b8e3a0", "#7fcdbb", "#41b6c4", "#1d91c0", "#225ea8", "#0c2c84", "#A9A9A9")) +
   coord_flip(ylim = c(-.75,.25)) +  #There's a few iterations out at -1.5
-  labs(y = expression(paste("Effect on ", "CV(",lambda,")")),
+  labs(y = expression(paste("Symbiosis Effect on ", "CV(",lambda,")")),
        x = "",
        color = "Species")+
   theme(panel.background = element_rect(fill = "white"),
         panel.grid = element_line(color = NA),
         axis.line = element_line(color = "grey"),
+        axis.text.y = element_text(face = "italic"),
         legend.position = "none")
 lambdavar_plot
 ggsave(lambdavar_plot, filename = "lambdavar_plot_coefficientofvariation.png", width = 4, height = 5)
@@ -538,7 +540,7 @@ meanvar_biplot <- ggplot(data = lambda_join_df) +
   geom_hline(yintercept = 0) + geom_vline(xintercept = 0)+
   # geom_point(aes(x = meanlambda_diff, y = varlambda_diff, color = species), alpha = .5) +
   geom_point(data = summarylambda_join_df, aes(x = avg_meandiff, y = avg_vardiff, color = species), lwd  = 3) +
-  geom_label_repel(data = summarylambda_join_df, aes(x = avg_meandiff, y = (avg_vardiff), label = species), lwd  = 3) +
+  geom_label_repel(data = summarylambda_join_df, aes(x = avg_meandiff, y = (avg_vardiff), label = species), fontface = "italic", lwd  = 3) +
   xlim(-.05,.17) + ylim(-.26,.05)+
   # xlim(-.05,.2) + ylim(-.08,.05)+
   scale_color_manual(values = c("#dbdb42", "#b8e3a0", "#7fcdbb", "#41b6c4", "#1d91c0", "#225ea8", "#0c2c84", "#A9A9A9")) +
@@ -546,7 +548,7 @@ meanvar_biplot <- ggplot(data = lambda_join_df) +
   ylab(expression(paste("Effect on ", "CV(",lambda,")"))) +
   theme(panel.background = element_blank(), 
         axis.line = element_blank(),
-        legend.position = "none")
+        legend.position = "none",)
 meanvar_biplot
 ggsave(meanvar_biplot, filename = "meanvar_biplot.png", width = 5, height = 5)
 

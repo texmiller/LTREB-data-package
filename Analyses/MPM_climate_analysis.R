@@ -220,8 +220,8 @@ lambda_spei12_df <- as_tibble(lambda_spei12_cube) %>%
                              species == "s6" ~ "Poa alsodes",
                              species == "s7" ~ "Poa sylvestris",
                              species == "s8" ~ "Species Mean"),
-         Endo = case_when(Endo == "e1" ~ "E-",
-                          Endo == "e2" ~ "E+")) 
+         Endo = case_when(Endo == "e1" ~ "S-",
+                          Endo == "e2" ~ "S+")) 
 lambda_spei3_df <- as_tibble(lambda_spei3_cube) %>% 
   mutate(Species = case_when(species == "s1" ~ "Agrostis perennans",
                              species == "s2" ~ "Elymus villosus",
@@ -231,8 +231,8 @@ lambda_spei3_df <- as_tibble(lambda_spei3_cube) %>%
                              species == "s6" ~ "Poa alsodes",
                              species == "s7" ~ "Poa sylvestris",
                              species == "s8" ~ "Species Mean"),
-         Endo = case_when(Endo == "e1" ~ "E-",
-                          Endo == "e2" ~ "E+")) 
+         Endo = case_when(Endo == "e1" ~ "S-",
+                          Endo == "e2" ~ "S+")) 
 
 dimnames(spei12_range) <- dimnames(spei3_range) <- list(species = paste0("s",1:(n_spp)), spei = paste0("spei",1:spei_steps))
 spei12_range_cube <- cubelyr::as.tbl_cube(spei12_range)
@@ -320,7 +320,8 @@ color_scheme_set(endophyte_color_scheme)
 # yearcount = length(unique(LTREB_full$year_t))
 # yearcolors<- colorRampPalette(brewer.pal(8,"Dark2"))(yearcount)
 # scales::show_col(yearcolors)
-species_list <- c("AGPE", "ELRI", "ELVI", "FESU", "LOAR", "POAL", "POSY")
+species_list <- c("A. perennans", "E. villosus", "E. virginicus", "F. subverticillata", "L. arundinaceae", "P. alsodes", "P. sylvestris")
+species_code_list <- c("AGPE", "ELRI", "ELVI", "FESU", "LOAR", "POAL", "POSY")
 
 
 spei12_lambda_plot <- ggplot(data = lambda_spei12_df)+
@@ -328,7 +329,8 @@ spei12_lambda_plot <- ggplot(data = lambda_spei12_df)+
   geom_line(data = lambda_spei12_mean, aes(x = spei_value, y = lambda_spei_mean, group = Endo, color = Endo),lwd = 1)+
   facet_wrap(~Species, scales = "free", nrow = 2)+
   scale_color_manual(values = endophyte_color_scheme[c(2,6)])+
-  theme_classic()+ theme(strip.background = element_blank()) + 
+  theme_classic()+ theme(strip.background = element_blank(),
+                         strip.text = element_text(face = "italic")) + 
   labs(x = "12-month SPEI", y = expression("Pop. Growth Rate " (lambda)))
 # spei12_lambda_plot
 ggsave(spei12_lambda_plot, filename = "spei12_lamda_plot.png", width = 6, height = 6 )
@@ -338,9 +340,10 @@ spei3_lambda_plot <- ggplot(data = lambda_spei3_df)+
   geom_line(data = lambda_spei3_mean, aes(x = spei_value, y = lambda_spei_mean, group = Endo, color = Endo),lwd = 1)+
   facet_wrap(~Species, scales = "free", nrow = 2)+
   scale_color_manual(values = endophyte_color_scheme[c(2,6)])+
-  theme_classic()+ theme(strip.background = element_blank()) + 
+  theme_classic()+ theme(strip.background = element_blank(),
+                         strip.text = element_text(face = "italic")) + 
   labs(x = "3-month SPEI", y = expression("Pop. Growth Rate " (lambda)))
-# spei3_lambda_plot
+spei3_lambda_plot
 ggsave(spei3_lambda_plot, filename = "spei3_lamda_plot.png", width = 6, height = 6 )
 
 spei_combo_lambda_plot <- spei3_lambda_plot + spei12_lambda_plot +

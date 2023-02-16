@@ -341,7 +341,8 @@ simulation_color_scheme <- c( "#163381", "#4986c7", "#bdc9e1", "#f1eef6")
 yearcount = length(unique(LTREB_full$year_t))
 yearcolors<- colorRampPalette(brewer.pal(8,"Dark2"))(yearcount)
 # scales::show_col(yearcolors)
-species_list <- c("AGPE", "ELRI", "ELVI", "FESU", "LOAR", "POAL", "POSY")
+species_list <- c("A. perennans", "E. villosus", "E. virginicus", "F. subverticillata", "L. arundinaceae", "P. alsodes", "P. sylvestris")
+species_code_list <- c("AGPE", "ELRI", "ELVI", "FESU", "LOAR", "POAL", "POSY")
 
 meanlambda_plot <- ggplot(data = filter(lambda_mean_df, sampling == "obs")) +
   geom_hline(yintercept = 0, col = "black") + 
@@ -830,7 +831,7 @@ mean_lambdaT_combo <- as_tibble(mean_lambdaT_combo) %>%
   mutate(Species = case_when(Spp == "A" ~ "AGPE",Spp == "B" ~ "ELRI",Spp == "C" ~ "ELVI",Spp == "D" ~ "FESU",Spp == "E" ~ "LOAR",Spp == "F" ~ "POAL",Spp == "G" ~ "POSY"),
          Endo = case_when(Endo == "A" ~ "E-", Endo == "B" ~ "E+"))
 
-ggplot(mean_lambdaT_combo)+
+ggplot(data = filter(mean_lambdaT_combo, Trt != "4 Extr. Years"))+
   geom_boxplot(aes(y=lambda,x = factor(Trt, levels = trt_order),fill = Trt))+
   facet_wrap(~Species, scales = "free_y") +
   scale_fill_manual(values = simulation_color_scheme)+
@@ -855,7 +856,7 @@ sd_lambdaT_combo <- as_tibble(sd_lambdaT_combo) %>%
   mutate(Species = case_when(Spp == "A" ~ "AGPE",Spp == "B" ~ "ELRI",Spp == "C" ~ "ELVI",Spp == "D" ~ "FESU",Spp == "E" ~ "LOAR",Spp == "F" ~ "POAL",Spp == "G" ~ "POSY"),
          Endo = case_when(Endo == "A" ~ "E-", Endo == "B" ~ "E+"))
 
-ggplot(sd_lambdaT_combo)+
+ggplot(data = filter(sd_lambdaT_combo, Trt != "4 Extr. Years"))+
   geom_boxplot(aes(y=sd_lambda,x = factor(Trt, levels = trt_order),fill = Trt))+
   facet_wrap(~Species, scales = "free_y") +
   scale_fill_manual(values = simulation_color_scheme)+
@@ -880,7 +881,7 @@ mean_lambdaT_combo_em <- as_tibble(mean_lambdaT_combo_em) %>%
   mutate(Species = case_when(Spp == "A" ~ "AGPE",Spp == "B" ~ "ELRI",Spp == "C" ~ "ELVI",Spp == "D" ~ "FESU",Spp == "E" ~ "LOAR",Spp == "F" ~ "POAL",Spp == "G" ~ "POSY"),
          Endo = case_when(Endo == "A" ~ "E-", Endo == "B" ~ "E+"))
 
-sim_mean_boxplot <- ggplot(mean_lambdaT_combo_em)+
+sim_mean_boxplot <- ggplot(data = filter(mean_lambdaT_combo_em, Trt != "4 Extr. Years"))+
   geom_boxplot(aes(y=lambda,x = factor(Trt, levels = trt_order),fill = Trt))+
   facet_wrap(~Species, nrow = 1, scales = "free_y") +
   scale_fill_manual(values = simulation_color_scheme)+
@@ -905,7 +906,7 @@ sd_lambdaT_combo_em <- as_tibble(sd_lambdaT_combo_em) %>%
   mutate(Species = case_when(Spp == "A" ~ "AGPE",Spp == "B" ~ "ELRI",Spp == "C" ~ "ELVI",Spp == "D" ~ "FESU",Spp == "E" ~ "LOAR",Spp == "F" ~ "POAL",Spp == "G" ~ "POSY"),
          Endo = case_when(Endo == "A" ~ "E-", Endo == "B" ~ "E+"))
 
-sim_sd_boxplot <- ggplot(sd_lambdaT_combo_em)+
+sim_sd_boxplot <- ggplot(data = filter(sd_lambdaT_combo_em, Trt != "4 Extr. Years"))+
   geom_boxplot(aes(y=sd_lambda,x = factor(Trt, levels = trt_order),fill = Trt))+
   facet_wrap(~Species, nrow = 1, scales = "free_y") +
   scale_fill_manual(values = simulation_color_scheme)+
@@ -933,58 +934,58 @@ lambdaS_obs_diff <- lambdaS_samp_diff <- array(NA,dim=c(4,4,8,7))
 for(s in 1:8){
   # eplus-eminus
   lambdaS_obs_diff[1,1,s,1] = mean(lambdaS_obs[4,s,]-lambdaS_obs[1,s,], na.rm = T) # eplus-eminus
-  lambdaS_obs_diff[1,1,s,2:7] = quantile(lambdaS_obs[4,s,]-lambdaS_obs[1,s,], probs = c(0.05, 0.125,0.25,0.75,0.875,0.95), na.rm = T)
+  lambdaS_obs_diff[1,1,s,2:7] = quantile(lambdaS_obs[4,s,]-lambdaS_obs[1,s,], probs = c(0.025, 0.125,0.25,0.75,0.875,0.975), na.rm = T)
   lambdaS_obs_diff[2,1,s,1] = mean(lambdaS_obs_extreme2_em[4,s,]-lambdaS_obs_extreme2_em[1,s,], na.rm = T) # eplus-eminus for extreme2_em
-  lambdaS_obs_diff[2,1,s,2:7] = quantile(lambdaS_obs_extreme2_em[4,s,]-lambdaS_obs_extreme2_em[1,s,], probs = c(0.05, 0.125,0.25,0.75,0.875,0.95), na.rm = T)
+  lambdaS_obs_diff[2,1,s,2:7] = quantile(lambdaS_obs_extreme2_em[4,s,]-lambdaS_obs_extreme2_em[1,s,], probs = c(0.025, 0.125,0.25,0.75,0.875,0.975), na.rm = T)
   lambdaS_obs_diff[3,1,s,1] = mean(lambdaS_obs_extreme4_em[4,s,]-lambdaS_obs_extreme4_em[1,s,], na.rm = T) # eplus-eminus for extreme4_em
-  lambdaS_obs_diff[3,1,s,2:7] = quantile(lambdaS_obs_extreme4_em[4,s,]-lambdaS_obs_extreme4_em[1,s,], probs = c(0.05, 0.125,0.25,0.75,0.875,0.95), na.rm = T)
+  lambdaS_obs_diff[3,1,s,2:7] = quantile(lambdaS_obs_extreme4_em[4,s,]-lambdaS_obs_extreme4_em[1,s,], probs = c(0.025, 0.125,0.25,0.75,0.875,0.975), na.rm = T)
   lambdaS_obs_diff[4,1,s,1] = mean(lambdaS_obs_extreme6_em[4,s,]-lambdaS_obs_extreme6_em[1,s,], na.rm = T) # eplus-eminus for extreme6_em
-  lambdaS_obs_diff[4,1,s,2:7] = quantile(lambdaS_obs_extreme6_em[4,s,]-lambdaS_obs_extreme6_em[1,s,], probs = c(0.05, 0.125,0.25,0.75,0.875,0.95), na.rm = T)
+  lambdaS_obs_diff[4,1,s,2:7] = quantile(lambdaS_obs_extreme6_em[4,s,]-lambdaS_obs_extreme6_em[1,s,], probs = c(0.025, 0.125,0.25,0.75,0.875,0.975), na.rm = T)
   
   lambdaS_samp_diff[1,1,s,1] = mean(lambdaS_samp[4,s,]-lambdaS_samp[1,s,], na.rm = T) # eplus-eminus
-  lambdaS_samp_diff[1,1,s,2:7] = quantile(lambdaS_samp[4,s,]-lambdaS_samp[1,s,], probs = c(0.05, 0.125,0.25,0.75,0.875,0.95), na.rm = T)
+  lambdaS_samp_diff[1,1,s,2:7] = quantile(lambdaS_samp[4,s,]-lambdaS_samp[1,s,], probs = c(0.025, 0.125,0.25,0.75,0.875,0.975), na.rm = T)
   lambdaS_samp_diff[2,1,s,1] = mean(lambdaS_samp_extreme10_em[4,s,]-lambdaS_samp_extreme10_em[1,s,], na.rm = T) # eplus-eminus for extreme2_em
-  lambdaS_samp_diff[2,1,s,2:7] = quantile(lambdaS_samp_extreme10_em[4,s,]-lambdaS_samp_extreme10_em[1,s,], probs = c(0.05, 0.125,0.25,0.75,0.875,0.95), na.rm = T)
+  lambdaS_samp_diff[2,1,s,2:7] = quantile(lambdaS_samp_extreme10_em[4,s,]-lambdaS_samp_extreme10_em[1,s,], probs = c(0.025, 0.125,0.25,0.75,0.875,0.975), na.rm = T)
   lambdaS_samp_diff[3,1,s,1] = mean(lambdaS_samp_extreme20_em[4,s,]-lambdaS_samp_extreme20_em[1,s,], na.rm = T) # eplus-eminus for extreme4_em
-  lambdaS_samp_diff[3,1,s,2:7] = quantile(lambdaS_samp_extreme20_em[4,s,]-lambdaS_samp_extreme20_em[1,s,], probs = c(0.05, 0.125,0.25,0.75,0.875,0.95), na.rm = T)
+  lambdaS_samp_diff[3,1,s,2:7] = quantile(lambdaS_samp_extreme20_em[4,s,]-lambdaS_samp_extreme20_em[1,s,], probs = c(0.025, 0.125,0.25,0.75,0.875,0.975), na.rm = T)
   lambdaS_samp_diff[4,1,s,1] = mean(lambdaS_samp_extreme30_em[4,s,]-lambdaS_samp_extreme30_em[1,s,], na.rm = T) # eplus-eminus for extreme6_em
-  lambdaS_samp_diff[4,1,s,2:7] = quantile(lambdaS_samp_extreme30_em[4,s,]-lambdaS_samp_extreme30_em[1,s,], probs = c(0.05, 0.125,0.25,0.75,0.875,0.95), na.rm = T)
+  lambdaS_samp_diff[4,1,s,2:7] = quantile(lambdaS_samp_extreme30_em[4,s,]-lambdaS_samp_extreme30_em[1,s,], probs = c(0.025, 0.125,0.25,0.75,0.875,0.975), na.rm = T)
   # eplus mean only - eminus
   lambdaS_obs_diff[1,2,s,1] = mean(lambdaS_obs[2,s,]-lambdaS_obs[1,s,], na.rm = T) # eplus mean only - eminus
-  lambdaS_obs_diff[1,2,s,2:7] = quantile(lambdaS_obs[2,s,]-lambdaS_obs[1,s,], probs = c(0.05, 0.125,0.25,0.75,0.875,0.95), na.rm = T)
+  lambdaS_obs_diff[1,2,s,2:7] = quantile(lambdaS_obs[2,s,]-lambdaS_obs[1,s,], probs = c(0.025, 0.125,0.25,0.75,0.875,0.975), na.rm = T)
   lambdaS_obs_diff[2,2,s,1] = mean(lambdaS_obs_extreme2_em[2,s,]-lambdaS_obs_extreme2_em[1,s,], na.rm = T) # eplus mean only - eminus for extreme2_em
-  lambdaS_obs_diff[2,2,s,2:7] = quantile(lambdaS_obs_extreme2_em[2,s,]-lambdaS_obs_extreme2_em[1,s,], probs = c(0.05, 0.125,0.25,0.75,0.875,0.95), na.rm = T)
+  lambdaS_obs_diff[2,2,s,2:7] = quantile(lambdaS_obs_extreme2_em[2,s,]-lambdaS_obs_extreme2_em[1,s,], probs = c(0.025, 0.125,0.25,0.75,0.875,0.975), na.rm = T)
   lambdaS_obs_diff[3,2,s,1] = mean(lambdaS_obs_extreme4_em[2,s,]-lambdaS_obs_extreme4_em[1,s,], na.rm = T) # eplus mean only - eminus for extreme4_em
-  lambdaS_obs_diff[3,2,s,2:7] = quantile(lambdaS_obs_extreme4_em[2,s,]-lambdaS_obs_extreme4_em[1,s,], probs = c(0.05, 0.125,0.25,0.75,0.875,0.95), na.rm = T)
+  lambdaS_obs_diff[3,2,s,2:7] = quantile(lambdaS_obs_extreme4_em[2,s,]-lambdaS_obs_extreme4_em[1,s,], probs = c(0.025, 0.125,0.25,0.75,0.875,0.975), na.rm = T)
   lambdaS_obs_diff[4,2,s,1] = mean(lambdaS_obs_extreme6_em[2,s,]-lambdaS_obs_extreme6_em[1,s,], na.rm = T)# eplus mean only - eminus for extreme6_em
-  lambdaS_obs_diff[4,2,s,2:7] = quantile(lambdaS_obs_extreme6_em[2,s,]-lambdaS_obs_extreme6_em[1,s,], probs = c(0.05, 0.125,0.25,0.75,0.875,0.95), na.rm = T)
+  lambdaS_obs_diff[4,2,s,2:7] = quantile(lambdaS_obs_extreme6_em[2,s,]-lambdaS_obs_extreme6_em[1,s,], probs = c(0.025, 0.125,0.25,0.75,0.875,0.975), na.rm = T)
   
   lambdaS_samp_diff[1,2,s,1] = mean(lambdaS_samp[2,s,]-lambdaS_samp[1,s,], na.rm = T) # eplus mean only - eminus
-  lambdaS_samp_diff[1,2,s,2:7] = quantile(lambdaS_samp[2,s,]-lambdaS_samp[1,s,], probs = c(0.05, 0.125,0.25,0.75,0.875,0.95), na.rm = T)
+  lambdaS_samp_diff[1,2,s,2:7] = quantile(lambdaS_samp[2,s,]-lambdaS_samp[1,s,], probs = c(0.025, 0.125,0.25,0.75,0.875,0.975), na.rm = T)
   lambdaS_samp_diff[2,2,s,1] = mean(lambdaS_samp_extreme10_em[2,s,]-lambdaS_samp_extreme10_em[1,s,], na.rm = T) # eplus mean only - eminus for extreme2_em
-  lambdaS_samp_diff[2,2,s,2:7] = quantile(lambdaS_samp_extreme10_em[2,s,]-lambdaS_samp_extreme10_em[1,s,], probs = c(0.05, 0.125,0.25,0.75,0.875,0.95), na.rm = T)
+  lambdaS_samp_diff[2,2,s,2:7] = quantile(lambdaS_samp_extreme10_em[2,s,]-lambdaS_samp_extreme10_em[1,s,], probs = c(0.025, 0.125,0.25,0.75,0.875,0.975), na.rm = T)
   lambdaS_samp_diff[3,2,s,1] = mean(lambdaS_samp_extreme20_em[2,s,]-lambdaS_samp_extreme20_em[1,s,], na.rm = T) # eplus mean only - eminus for extreme4_em
-  lambdaS_samp_diff[3,2,s,2:7] = quantile(lambdaS_samp_extreme20_em[2,s,]-lambdaS_samp_extreme20_em[1,s,], probs = c(0.05, 0.125,0.25,0.75,0.875,0.95), na.rm = T)
+  lambdaS_samp_diff[3,2,s,2:7] = quantile(lambdaS_samp_extreme20_em[2,s,]-lambdaS_samp_extreme20_em[1,s,], probs = c(0.025, 0.125,0.25,0.75,0.875,0.975), na.rm = T)
   lambdaS_samp_diff[4,2,s,1] = mean(lambdaS_samp_extreme30_em[2,s,]-lambdaS_samp_extreme30_em[1,s,], na.rm = T)# eplus mean only - eminus for extreme6_em
-  lambdaS_samp_diff[4,2,s,2:7] = quantile(lambdaS_samp_extreme30_em[2,s,]-lambdaS_samp_extreme30_em[1,s,], probs = c(0.05, 0.125,0.25,0.75,0.875,0.95), na.rm = T)
+  lambdaS_samp_diff[4,2,s,2:7] = quantile(lambdaS_samp_extreme30_em[2,s,]-lambdaS_samp_extreme30_em[1,s,], probs = c(0.025, 0.125,0.25,0.75,0.875,0.975), na.rm = T)
   # eplus var only - eminus
   lambdaS_obs_diff[1,3,s,1] = mean(lambdaS_obs[3,s,]-lambdaS_obs[1,s,], na.rm = T) #  eplus var only - eminus
-  lambdaS_obs_diff[1,3,s,2:7] = quantile(lambdaS_obs[3,s,]-lambdaS_obs[1,s,], probs = c(0.05, 0.125,0.25,0.75,0.875,0.95), na.rm = T)
+  lambdaS_obs_diff[1,3,s,2:7] = quantile(lambdaS_obs[3,s,]-lambdaS_obs[1,s,], probs = c(0.025, 0.125,0.25,0.75,0.875,0.975), na.rm = T)
   lambdaS_obs_diff[2,3,s,1] = mean(lambdaS_obs_extreme2_em[3,s,]-lambdaS_obs_extreme2_em[1,s,], na.rm = T) #  eplus var only - eminusfor extreme2_em
-  lambdaS_obs_diff[2,3,s,2:7] = quantile(lambdaS_obs_extreme2_em[3,s,]-lambdaS_obs_extreme2_em[1,s,], probs = c(0.05, 0.125,0.25,0.75,0.875,0.95), na.rm = T)
+  lambdaS_obs_diff[2,3,s,2:7] = quantile(lambdaS_obs_extreme2_em[3,s,]-lambdaS_obs_extreme2_em[1,s,], probs = c(0.025, 0.125,0.25,0.75,0.875,0.975), na.rm = T)
   lambdaS_obs_diff[3,3,s,1] = mean(lambdaS_obs_extreme4_em[3,s,]-lambdaS_obs_extreme4_em[1,s,], na.rm = T) #  eplus var only - eminus for extreme4_em
-  lambdaS_obs_diff[3,3,s,2:7] = quantile(lambdaS_obs_extreme4_em[3,s,]-lambdaS_obs_extreme4_em[1,s,], probs = c(0.05, 0.125,0.25,0.75,0.875,0.95), na.rm = T)
+  lambdaS_obs_diff[3,3,s,2:7] = quantile(lambdaS_obs_extreme4_em[3,s,]-lambdaS_obs_extreme4_em[1,s,], probs = c(0.025, 0.125,0.25,0.75,0.875,0.975), na.rm = T)
   lambdaS_obs_diff[4,3,s,1] = mean(lambdaS_obs_extreme6_em[3,s,]-lambdaS_obs_extreme6_em[1,s,], na.rm = T)#  eplus var only - eminus for extreme6_em
-  lambdaS_obs_diff[4,3,s,2:7] = quantile(lambdaS_obs_extreme6_em[3,s,]-lambdaS_obs_extreme6_em[1,s,], probs = c(0.05, 0.125,0.25,0.75,0.875,0.95), na.rm = T)
+  lambdaS_obs_diff[4,3,s,2:7] = quantile(lambdaS_obs_extreme6_em[3,s,]-lambdaS_obs_extreme6_em[1,s,], probs = c(0.025, 0.125,0.25,0.75,0.875,0.975), na.rm = T)
   
   lambdaS_samp_diff[1,3,s,1] = mean(lambdaS_samp[3,s,]-lambdaS_samp[1,s,], na.rm = T) #  eplus var only - eminus
-  lambdaS_samp_diff[1,3,s,2:7] = quantile(lambdaS_samp[3,s,]-lambdaS_samp[1,s,], probs = c(0.05, 0.125,0.25,0.75,0.875,0.95), na.rm = T)
+  lambdaS_samp_diff[1,3,s,2:7] = quantile(lambdaS_samp[3,s,]-lambdaS_samp[1,s,], probs = c(0.025, 0.125,0.25,0.75,0.875,0.975), na.rm = T)
   lambdaS_samp_diff[2,3,s,1] = mean(lambdaS_samp_extreme10_em[3,s,]-lambdaS_samp_extreme10_em[1,s,], na.rm = T) #  eplus var only - eminusfor extreme2_em
-  lambdaS_samp_diff[2,3,s,2:7] = quantile(lambdaS_samp_extreme10_em[3,s,]-lambdaS_samp_extreme10_em[1,s,], probs = c(0.05, 0.125,0.25,0.75,0.875,0.95), na.rm = T)
+  lambdaS_samp_diff[2,3,s,2:7] = quantile(lambdaS_samp_extreme10_em[3,s,]-lambdaS_samp_extreme10_em[1,s,], probs = c(0.025, 0.125,0.25,0.75,0.875,0.975), na.rm = T)
   lambdaS_samp_diff[3,3,s,1] = mean(lambdaS_samp_extreme20_em[3,s,]-lambdaS_samp_extreme20_em[1,s,], na.rm = T) #  eplus var only - eminus for extreme4_em
-  lambdaS_samp_diff[3,3,s,2:7] = quantile(lambdaS_samp_extreme20_em[3,s,]-lambdaS_samp_extreme20_em[1,s,], probs = c(0.05, 0.125,0.25,0.75,0.875,0.95), na.rm = T)
+  lambdaS_samp_diff[3,3,s,2:7] = quantile(lambdaS_samp_extreme20_em[3,s,]-lambdaS_samp_extreme20_em[1,s,], probs = c(0.025, 0.125,0.25,0.75,0.875,0.975), na.rm = T)
   lambdaS_samp_diff[4,3,s,1] = mean(lambdaS_samp_extreme30_em[3,s,]-lambdaS_samp_extreme30_em[1,s,], na.rm = T)#  eplus var only - eminus for extreme6_em
-  lambdaS_samp_diff[4,3,s,2:7] = quantile(lambdaS_samp_extreme30_em[3,s,]-lambdaS_samp_extreme30_em[1,s,], probs = c(0.05, 0.125,0.25,0.75,0.875,0.95), na.rm = T)
+  lambdaS_samp_diff[4,3,s,2:7] = quantile(lambdaS_samp_extreme30_em[3,s,]-lambdaS_samp_extreme30_em[1,s,], probs = c(0.025, 0.125,0.25,0.75,0.875,0.975), na.rm = T)
   # mean var interaction
   lambdaS_obs_diff[1,4,s,] = lambdaS_obs_diff[1,1,s,]-lambdaS_obs_diff[1,2,s,]-lambdaS_obs_diff[1,3,s,]# mean variance interaction
   lambdaS_obs_diff[2,4,s,] = lambdaS_obs_diff[2,1,s,]-lambdaS_obs_diff[2,2,s,]-lambdaS_obs_diff[2,3,s,]# mean variance interaction for extreme2_em
@@ -1003,13 +1004,13 @@ sum(lambdaS_obs[1,8,]>0)/500*100
 ################################################################
 ##### Plot of stochastic lambda contributions
 ################################################################
-dimnames(lambdaS_obs_diff) <- list(Scenario = c("All Years","2 Extr. Years","4 Extr. Years","6 Extr. Years"), Contribution = c("Full Effect","Mean only","Variance only","Interaction"), Species = c(species_list, "Species Mean"), Quantile = c("mean","fifth","twelvepointfive","twentyfifth","seventyfifth","eightysevenpointfive","ninetyfifth"))
+dimnames(lambdaS_obs_diff) <- list(Scenario = c("All Years","2 Most Extreme Years","4 Most Extreme Years","6 Most Extreme Years"), Contribution = c("Full Effect","Mean only","Variance only","Interaction"), Species = c(species_list, "Species Mean"), Quantile = c("mean","fifth","twelvepointfive","twentyfifth","seventyfifth","eightysevenpointfive","ninetyfifth"))
 lambdaS_obs_diff_cube <- cubelyr::as.tbl_cube(lambdaS_obs_diff)
 lambdaS_obs_diff_df <- as_tibble(lambdaS_obs_diff_cube) %>% 
   pivot_wider(names_from = "Quantile", values_from = lambdaS_obs_diff) %>% 
   mutate(Sampling = "observed")
 
-dimnames(lambdaS_samp_diff) <- list(Scenario = c("All Years","2 Extr. Years","4 Extr. Years","6 Extr. Years"), Contribution = c("Full Effect","Mean only","Variance only","Interaction"), Species = c(species_list, "Species Mean"), Quantile = c("mean","fifth","twelvepointfive","twentyfifth","seventyfifth","eightysevenpointfive","ninetyfifth"))
+dimnames(lambdaS_samp_diff) <- list(Scenario = c("All Years","2 Most Extreme Years","4 Most Extreme Years","6 Most Extreme Years"), Contribution = c("Full Effect","Mean only","Variance only","Interaction"), Species = c(species_list, "Species Mean"), Quantile = c("mean","fifth","twelvepointfive","twentyfifth","seventyfifth","eightysevenpointfive","ninetyfifth"))
 lambdaS_samp_diff_cube <- cubelyr::as.tbl_cube(lambdaS_samp_diff)
 lambdaS_samp_diff_df <- as_tibble(lambdaS_samp_diff_cube) %>% 
   pivot_wider(names_from = "Quantile", values_from = lambdaS_samp_diff) %>% 
@@ -1019,7 +1020,7 @@ lambdaS_diff_df <- lambdaS_obs_diff_df %>%
   rbind(lambdaS_samp_diff_df)
 
 x_levels <- c( "Interaction", "Variance only", "Mean only", "Full Effect")
-contributions_obs_plot <- ggplot(data = lambdaS_obs_diff_df) +
+contributions_obs_plot <- ggplot(data = filter(lambdaS_obs_diff_df, Scenario != "4 Most Extreme Years")) +
   geom_hline(yintercept = 0, col = "black") +
   geom_linerange(aes(x = Contribution, ymin = fifth, ymax = ninetyfifth, group = Scenario), color = "grey38",position = position_dodge(width = .7), lwd = .8) +
   geom_linerange(aes(x = Contribution, ymin = twelvepointfive, ymax = eightysevenpointfive, group = Scenario),color = "grey38", position = position_dodge(width = .7), lwd = 1.5) +
@@ -1037,22 +1038,22 @@ contributions_obs_plot <- ggplot(data = lambdaS_obs_diff_df) +
   scale_color_manual(values = c(simulation_color_scheme))+
   scale_y_continuous(breaks = scales::pretty_breaks(n = 4))+
   scale_x_discrete(limits = x_levels)+
-  labs( x = "", y = expression(paste("Endophyte effect on", " ", lambda["s"])))+
+  labs( x = "", y = expression(paste("Symbiosis effect on", " ", lambda["s"])))+
   theme(panel.background = element_blank(),
         plot.background = element_rect(color = "white"),
         panel.grid.major.y = element_blank(),
         panel.grid.major.x = element_blank(),
         panel.grid.minor.x = element_blank(),
-        axis.line.x = element_line(size = .5, colour = "black"),
+        axis.line.x = element_line(linewidth = .5, colour = "black"),
         axis.ticks.y = element_blank(),
         axis.text.y = element_text(size = rel(1.2), face = "bold"),
         axis.text.x = element_text(size = rel(1), face = "bold"),
         axis.title = element_text(size = rel(1.5)),
         strip.background = element_blank(),
-        strip.text = element_text(size = rel(1.3)),
+        strip.text = element_text(size = rel(1.3), face = "italic"),
         legend.key = element_rect(fill = NA))
 # contributions_obs_plot
-ggsave(contributions_obs_plot, filename = "contributions_obs_plot.png", width = 11, height = 9)
+ggsave(contributions_obs_plot, filename = "contributions_obs_plot.png", width = 12, height = 8)
 
 
 contributions_samp_plot <- ggplot(data = lambdaS_samp_diff_df) +
@@ -1087,7 +1088,7 @@ ggsave(contributions_plot, filename = "contributions_plot.tiff", width = 15, hei
 
 # just the species mean obs contribution plot
 
-mean_contributions_obs_plot <- ggplot(data = filter(lambdaS_obs_diff_df, Species == "Species Mean")) +
+mean_contributions_obs_plot <- ggplot(data = filter(lambdaS_obs_diff_df, Species == "Species Mean" & Scenario != "4 Most Extreme Years")) +
   geom_hline(yintercept = 0, col = "black") +
   geom_linerange(aes(x = Contribution, ymin = fifth, ymax = ninetyfifth, group = Scenario), color = "grey38",position = position_dodge(width = .7), lwd = .8) +
   geom_linerange(aes(x = Contribution, ymin = twelvepointfive, ymax = eightysevenpointfive, group = Scenario),color = "grey38", position = position_dodge(width = .7), lwd = 1.5) +
@@ -1105,7 +1106,7 @@ mean_contributions_obs_plot <- ggplot(data = filter(lambdaS_obs_diff_df, Species
   scale_color_manual(values = c(simulation_color_scheme))+
   scale_y_continuous(breaks = scales::pretty_breaks(n = 4))+
   scale_x_discrete(limits = x_levels)+
-  labs( x = "", y = expression(paste("Endophyte effect on", " ", lambda["s"])))+
+  labs( x = "", y = expression(paste("Symbiosis effect on", " ", lambda["s"])))+
   theme(panel.background = element_blank(),
         plot.background = element_rect(color = "white"),
         panel.grid.major.y = element_blank(),
