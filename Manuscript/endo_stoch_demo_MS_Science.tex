@@ -432,14 +432,14 @@ Thus the model for the variance buffering effect $B$ was given by:
 		\alpha \sim Normal(0,.5)\\
 		\beta \sim Normal(0,.1)\\
 		\sigma \sim Half-Normal(.04417872,.01)\\
-		\pi \sim Normal(0,\sigma_{pi}*\mathbf{A})\\
-		\sigma_{pi} \sim Half-Normal(0,.1)
+		\pi \sim Normal(0,\sigma_{\pi}*\mathbf{A})\\
+		\sigma_{\pi} \sim Half-Normal(0,.1)
 	\end{align}
 \end{subequations}
 
 Here, the model includes an intercept parameter ($\alpha$), and a slope parameter ($\beta$) defining the relationship between the variance buffering effect and the life history trait. 
 The overall standard deviation is given by ($\sigma$). 
-The phylogenetic random effect ($\pi$) has a standard deviation ($\sigma_{pi}$) which is structured by the covariance matrix \textbf{A}.
+The phylogenetic random effect ($\pi$) has a standard deviation ($\sigma_{\pi}$) which is structured by the covariance matrix \textbf{A}.
 We ran each MCMC sampling chain for 8000 warmup iterations and 2000 sampling iterations. 
 We assessed model convergence as described for the vital rate models.
  

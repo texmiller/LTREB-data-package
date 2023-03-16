@@ -310,3 +310,54 @@ kurt_stos_spei3_plot <- ppc_stat(s_to_s_spei3_data_list$tot_recruit_t1, y_recrui
 stos_spei3_moments <- mean_stos_spei3_plot+sd_stos_spei3_plot+skew_stos_spei3_plot+kurt_stos_spei3_plot
 # stos_spei3_moments
 ggsave(stos_spei3_moments, filename = "climate_stos_spei3_moments.png", width = 4, height = 4)
+
+
+# making a plot for total estimate seed production in each plot
+s_to_s_data_df <- as_tibble(s_to_s_data_list) %>% 
+  mutate(spp  = case_when(spp == 1 ~ "AGPE",
+                          spp == 2 ~ "ELRI",
+                          spp == 3 ~ "ELVI",
+                          spp == 4 ~ "FESU",
+                          spp == 5 ~ "LOAR",
+                          spp == 6 ~ "POAL",
+                          spp == 7 ~ "POSY",)) %>% 
+  filter(tot_seed_t>0)
+
+s_to_s_summary <- s_to_s_data_df %>% 
+  group_by(spp, endo_01) %>% 
+  summarize(mean_seed = mean(tot_seed_t),
+            sd_seed = sd(tot_seed_t),
+            mean_recruit = mean(tot_recruit_t1),
+            sd_recruit = sd(tot_recruit_t1))
+
+seed_hist <- ggplot(s_to_s_data_df)+
+  geom_histogram(aes(x = tot_seed_t, fill = as.factor(endo_01)), alpha = .6)+
+  geom_vline(data = s_to_s_summary, aes(xintercept = mean_seed, color = as.factor(endo_01)))+
+  facet_wrap(~spp, scales = "free")+
+  theme_classic()
+ggsave(seed_hist, filename = "seed_hist.png")
+
+seed_series <- ggplot(s_to_s_data_df)+
+  geom_point(aes(x = year_t, y = tot_seed_t, color = as.factor(endo_01)), alpha = .6)+
+  geom_hline(data = s_to_s_summary, aes(yintercept = mean_seed, color = as.factor(endo_01)))+
+  facet_wrap(~spp, scales = "free")+
+  theme_classic()
+ggsave(seed_series, filename = "seed_series.png")
+
+
+recruit_hist <- ggplot(s_to_s_data_df)+
+  geom_histogram(aes(x = tot_recruit_t1, fill = as.factor(endo_01)), alpha = .6)+
+  geom_vline(data = s_to_s_summary, aes(xintercept = mean_recruit, color = as.factor(endo_01)))+
+  facet_wrap(~spp, scales = "free")+
+  theme_classic()
+ggsave(recruit_hist, filename = "recruit_hist.png")
+
+
+recruit_series <- ggplot(s_to_s_data_df)+
+  geom_point(aes(x = year_t, y = tot_recruit_t1, color = as.factor(endo_01)), alpha = .6)+
+  geom_hline(data = s_to_s_summary, aes(yintercept = mean_recruit, color = as.factor(endo_01)))+
+  facet_wrap(~spp, scales = "free")+
+  theme_classic()
+ggsave(recruit_series, filename = "recruit_series.png")
+
+  
