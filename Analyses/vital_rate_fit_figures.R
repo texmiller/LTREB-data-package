@@ -1260,7 +1260,7 @@ surv_yearplot <- ggplot()+
         strip.text = element_text(face = "italic")) + 
   guides(fill = "none", col = "none",lwd = guide_legend(order = 1))+
   labs(title = "Adult Survival", y = "Survival Probability", x = "log(size_t)", lwd = "Sample Size")
-# surv_yearplot
+surv_yearplot
 ggsave(surv_yearplot, filename = "surv_yearplot.png", width = 11, height = 5)
 
 grow_meanplot <- ggplot()+
@@ -1305,7 +1305,7 @@ flw_meanplot <- ggplot()+
         strip.text = element_text(face = "italic"))+ 
   guides(fill = "none", col = "none")+
   labs(title = "Flowering", y = "Flowering Probability", x = "log(size_t1)", lwd = "Sample Size")
-# flw_meanplot
+flw_meanplot
 ggsave(flw_meanplot, filename = "flw_meanplot.png", width = 9, height = 4)
 
 
@@ -1336,7 +1336,7 @@ fert_meanplot <- ggplot()+
         strip.text = element_text(face = "italic"))+ 
   guides(fill = "none", col = "none")+
   labs(title = "Fertility", y = "# of Repro. Tillers", x = "log(size_t1)", lwd = "Sample Size")
-# fert_meanplot
+fert_meanplot
 ggsave(fert_meanplot, filename = "fert_meanplot.png", width = 9, height = 4)
 
 fert_yearplot <- ggplot()+
@@ -1351,7 +1351,7 @@ fert_yearplot <- ggplot()+
         strip.text = element_text(face = "italic")) +
   guides(fill = "none", col = "none")+
   labs(title = "Fertility",  y = "# of Repro. Tillers", x = "log(size_t1)", lwd = "Sample Size")
-# fert_yearplot
+fert_yearplot
 ggsave(fert_yearplot, filename = "fert_yearplot.png",width = 11, height = 5)
 
 
@@ -1422,14 +1422,14 @@ AGPEgrow_meanplot
 ggsave(AGPEgrow_meanplot, filename = "AGPEgrow_meanplot.png", width = 4, height = 4)
   
 AGPEgrow_yearplot <- ggplot()+
-  geom_point(data = filter(grow_yearsizebin, Species == "AGPE"), aes(x = mean_size, y = mean_vr, size = samplesize, col = as.factor(Year), shape = Endo), alpha = .5) +
-  geom_line(data = filter(growyear_mean_df, Species == "AGPE"), aes(x = log_x_seq, y = mean, linetype = Endo, col = Year)) +
+  geom_point(data = filter(grow_yearsizebin, Species == "A. perennans"), aes(x = mean_size, y = mean_vr, size = samplesize, col = as.factor(Year), shape = Endo), alpha = .5) +
+  geom_line(data = filter(growyear_mean_df, Species == "A. perennans"), aes(x = log_x_seq, y = mean, linetype = Endo, col = Year)) +
   scale_shape_manual(values = c(1,19))+ 
   scale_color_manual(values = yearcolors)+ # this is using the set of colors above, but you could also supply hex codes
   scale_linetype_manual(values = c(2,1))+
   facet_wrap(~Species + Endo, scales = "free", ncol = 2) + 
   theme_classic() + theme(strip.background = element_blank(), strip.text.x = element_blank()) + labs(title = "Adult Growth", y = "# of tillers in year t+1", x = "log(# of tillers in year t)")
-# AGPEgrow_yearplot
+AGPEgrow_yearplot
 
 FESUsurv_meanplot <- ggplot()+
   geom_point(data = filter(surv_sizebin, Species == "F. subverticillata"), aes(x = mean_size, y = mean_vr, size = samplesize, shape = Endo, col = Species), alpha = .9) +
@@ -1450,54 +1450,55 @@ FESUsurv_meanplot
 ggsave(FESUsurv_meanplot, filename = "FESUsurv_meanplot.png", width = 4, height = 4)
 
 FESUsurv_yearplot <- ggplot()+
-  geom_point(data = filter(surv_yearsizebin, Species == "F. subverticillata"), aes(x = mean_size, y = mean_vr, size = samplesize, shape = Endo, col = Species), alpha = .9) +
-  geom_line(data = filter(survyear_mean_df, Species == "F. subverticillata"), aes(x = log_x_seq, y = mean, linetype = Endo, col = Species, group = Year)) +
+  geom_point(data = filter(surv_yearsizebin, Species == "F. subverticillata"), aes(x = mean_size, y = mean_vr, size = samplesize, shape = Endo, col = as.numeric(Year)), alpha = .9) +
+  geom_line(data = filter(survyear_mean_df, Species == "F. subverticillata"), aes(x = log_x_seq, y = mean, linetype = Endo, col = as.numeric(Year), group = Year)) +
   scale_shape_manual(values = c(1,19))+ 
-  scale_color_manual(values = species_colors[4])+
+  scale_color_gradient2(low = "grey10", mid = "grey90", high = species_colors[4], n.breaks = 14, midpoint =2015,  guide = "legend")+
   scale_linetype_manual(values = c(2,1))+
   facet_wrap(~Species + Endo, scales = "free", ncol = 2) + 
   theme_classic() + 
   theme(axis.title = element_text(size = 16),
         axis.text = element_text(size = 12),
-        legend.title = element_text(size = 12),
-        legend.text = element_text(size = 9),
+        legend.title = element_text(size = 14),
+        legend.text = element_text(size = 12),
         strip.background = element_blank(), 
         strip.text.x = element_blank()) + 
-  guides(fill = "none", col = "none",lwd = guide_legend(order = 1))+
-  labs( y = "Survival Probability", x = "log(# of tillers in year t)", col = "Year", fill = "Year", lwd = "Sample Size")
+  guides(fill = "none",lwd = guide_legend(order = 1))+
+  labs( y = "Survival Probability", x = "log(# of tillers in year t)", col = "Year", fill = "Year", size = "Sample Size")
 FESUsurv_yearplot
-ggsave(FESUsurv_yearplot, filename = "FESUsurv_yearplot.png", width = 8, height = 4)
+ggsave(FESUsurv_yearplot, filename = "FESUsurv_yearplot.png", width = 8, height = 7)
 
 POALfert_meanplot <- ggplot()+
-  geom_point(data = filter(fert_sizebin, Species == "POAL"), aes(x = mean_size, y = mean_vr, size = samplesize, shape = Endo), alpha = .5) +
-  geom_ribbon(data = filter(fert_mean_df, Species == "POAL"), aes(x = log_x_seq, ymin = twenty, ymax = eighty, fill = Endo), alpha = .3)+
-  geom_line(data = filter(fert_mean_df, Species == "POAL"), aes(x = log_x_seq, y = mean, linetype = Endo)) +
+  geom_point(data = filter(fert_sizebin, Species == "P. alsodes"), aes(x = mean_size, y = mean_vr, size = samplesize, shape = Endo), alpha = .5) +
+  geom_ribbon(data = filter(fert_mean_df, Species == "P. alsodes"), aes(x = log_x_seq, ymin = twenty, ymax = eighty, fill = Endo), alpha = .3)+
+  geom_line(data = filter(fert_mean_df, Species == "P. alsodes"), aes(x = log_x_seq, y = mean, linetype = Endo)) +
   scale_shape_manual(values = c(1,19))+   scale_linetype_manual(values = c(2,1))+ scale_fill_manual(values = c( endophyte_color_scheme[3], endophyte_color_scheme[5]))+ 
   facet_wrap(~Species, scales = "free", ncol = 1) + 
   theme_classic() + theme(strip.background = element_blank())+ labs(title = "Adult Fertility", y = "# of repro. tillers", x = "log(# of tillers in year t+1)", col = "Year", fill = "Year", lwd = "Sample Size")
-# POALfert_meanplot
+POALfert_meanplot
 ggsave(POALfert_meanplot, filename = "POALfert_meanplot.png", width = 3.5, height = 4)
 
 
 POALfert_yearplot <- ggplot()+
-  geom_point(data = filter(fert_yearsizebin, Species == "P. alsodes"), aes(x = mean_size, y = mean_vr, size = samplesize, shape = Endo, col = Species), alpha = .6) +
+  geom_point(data = filter(fert_yearsizebin, Species == "P. alsodes"), aes(x = mean_size, y = mean_vr, size = samplesize, shape = Endo, col = as.numeric(Year)), alpha = .6) +
   # geom_ribbon(data = fertyear_mean_df, aes(x = log_x_seq, ymin = twenty, ymax = eighty, fill = Endo), alpha = .3)+
-  geom_line(data = filter(fertyear_mean_df, Species == "P. alsodes"), aes(x = log_x_seq, y = mean, linetype = Endo, col = Species, group = Year), alpha = .8) +
+  geom_line(data = filter(fertyear_mean_df, Species == "P. alsodes"), aes(x = log_x_seq, y = mean, linetype = Endo, col = as.numeric(Year), group = Year), alpha = .8) +
   scale_shape_manual(values = c(1,19))+ 
-  scale_color_manual(values = species_colors[6])+
+  scale_color_gradient2(low = "grey10", mid = "grey90", high = species_colors[6], n.breaks = 14, midpoint = 2009, guide = "legend")+
   scale_linetype_manual(values = c(2,1))+
   facet_wrap(~Species + Endo, ncol = 2) + 
   theme_classic() + 
   theme(axis.title = element_text(size = 16),
         axis.text = element_text(size = 12),
-        legend.title = element_text(size = 12),
-        legend.text = element_text(size = 9),
+        legend.title = element_text(size = 14),
+        legend.text = element_text(size = 12),
         strip.background = element_blank(), 
         strip.text.x = element_blank()) + 
-  guides(fill = "none", col = "none",lwd = guide_legend(order = 1))+
-  labs( y = "# of repro. tillers", x = "log(# of tillers in year t+1)", col = "Year", fill = "Year", lwd = "Sample Size")
+  guides(fill = "none", lwd = guide_legend(order = 1))+
+  # lims(y = c(0,50))+
+  labs( y = "# of repro. tillers", x = "log(# of tillers in year t+1)", col = "Year", fill = "Year", size = "Sample Size")
 POALfert_yearplot
-ggsave(POALfert_yearplot, filename = "POALfert_yearplot.png",  width = 8, height = 4)
+ggsave(POALfert_yearplot, filename = "POALfert_yearplot.png",  width = 8, height = 7)
 
 
 
