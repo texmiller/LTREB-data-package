@@ -1181,6 +1181,7 @@ bin_by_size_t1 <- function(df_raw, vr, nbins){
   return(size_bin_df)
 }
 
+
 bin_by_year_size_t <- function(df_raw, vr, nbins){
   require(tidyverse)
   df_raw <- ungroup(df_raw)
@@ -1214,176 +1215,266 @@ bin_by_year_size_t1 <- function(df_raw, vr, nbins){
   return(size_bin_df)
 }
 
+neat_names <- function(df_raw, vr){
+  require(tidyverse)
+  df_raw <- ungroup(df_raw)
+  renamed_df <- df_raw %>% 
+    rename(Endo = endo_01, Year = year_t1, Species = species) %>%
+    mutate(Species = recode(Species, AGPE = species_list[1], ELRI = species_list[2], ELVI = species_list[3], FESU = species_list[4], LOAR = species_list[5], POAL = species_list[6], POSY = species_list[7])) %>% 
+    mutate(Endo = case_when(Endo == 0 ~ "S-", 
+                            Endo == 1 ~ "S+"))
+}
 
-surv_sizebin <- bin_by_size_t(LTREB_data_forsurv,vr = surv_t1, nbins = 20)
-seedsurv_sizebin <- bin_by_size_t(LTREB_surv_seedling,vr = surv_t1, nbins = 20)
-grow_sizebin <- bin_by_size_t(LTREB_data_forgrow,vr = size_t1, nbins = 20)
-seedgrow_sizebin <- bin_by_size_t(LTREB_grow_seedling, vr = size_t1, nbins = 20)
-flw_sizebin <- bin_by_size_t1(LTREB_data_forflw, vr = FLW_STAT_T1,nbins = 20)
-fert_sizebin <- bin_by_size_t1(LTREB_data_forfert,vr = FLW_COUNT_T1, nbins = 20)
-spike_sizebin <- bin_by_size_t1(LTREB_data_forspike, vr = spike_count_t1, nbins = 20)
 
-surv_yearsizebin <- bin_by_year_size_t(LTREB_data_forsurv,vr = surv_t1, nbins = 20)
-seedsurv_yearsizebin <- bin_by_year_size_t(LTREB_surv_seedling,vr = surv_t1, nbins = 20)
-grow_yearsizebin <- bin_by_year_size_t(LTREB_data_forgrow,vr = size_t1, nbins = 20)
-seedgrow_yearsizebin <- bin_by_year_size_t(LTREB_grow_seedling, vr = size_t1, nbins = 20)
-flw_yearsizebin <- bin_by_year_size_t1(LTREB_data_forflw, vr = FLW_STAT_T1,nbins = 20)
-fert_yearsizebin <- bin_by_year_size_t1(LTREB_data_forfert,vr = FLW_COUNT_T1, nbins = 20)
-spike_yearsizebin <- bin_by_year_size_t1(LTREB_data_forspike, vr = spike_count_t1, nbins = 20)
+surv_sizebin <- bin_by_size_t(LTREB_data_forsurv,vr = surv_t1, nbins = 40)
+seedsurv_sizebin <- bin_by_size_t(LTREB_surv_seedling,vr = surv_t1, nbins = 40)
+grow_sizebin <- bin_by_size_t(LTREB_data_forgrow,vr = size_t1, nbins = 40)
+seedgrow_sizebin <- bin_by_size_t(LTREB_grow_seedling, vr = size_t1, nbins = 40)
+flw_sizebin <- bin_by_size_t1(LTREB_data_forflw, vr = FLW_STAT_T1,nbins = 40)
+fert_sizebin <- bin_by_size_t1(LTREB_data_forfert,vr = FLW_COUNT_T1, nbins = 40)
+spike_sizebin <- bin_by_size_t1(LTREB_data_forspike, vr = spike_count_t1, nbins = 40)
+
+surv_yearsizebin <- bin_by_year_size_t(LTREB_data_forsurv,vr = surv_t1, nbins = 40)
+seedsurv_yearsizebin <- bin_by_year_size_t(LTREB_surv_seedling,vr = surv_t1, nbins = 40)
+grow_yearsizebin <- bin_by_year_size_t(LTREB_data_forgrow,vr = size_t1, nbins = 40)
+seedgrow_yearsizebin <- bin_by_year_size_t(LTREB_grow_seedling, vr = size_t1, nbins = 40)
+flw_yearsizebin <- bin_by_year_size_t1(LTREB_data_forflw, vr = FLW_STAT_T1,nbins = 40)
+fert_yearsizebin <- bin_by_year_size_t1(LTREB_data_forfert,vr = FLW_COUNT_T1, nbins = 40)
+spike_yearsizebin <- bin_by_year_size_t1(LTREB_data_forspike, vr = spike_count_t1, nbins = 40)
+
+
+surv_neatdata <- neat_names(LTREB_data_forsurv)
+seedsurv_neatdata <- neat_names(LTREB_surv_seedling)
+grow_neatdata <- neat_names(LTREB_data_forgrow)
+seedgrow_neatdata <- neat_names(LTREB_grow_seedling)
+flw_neatdata <- neat_names(LTREB_data_forflw)
+fert_neatdata <- neat_names(LTREB_data_forfert)
+spike_neatdata <- neat_names(LTREB_data_forspike)
 
 
 #The plots
 surv_meanplot <- ggplot()+
-  geom_point(data = surv_sizebin, aes(x = mean_size, y = mean_vr, size = samplesize, shape = Endo, col = Species), alpha = .8) +
+  geom_point(data = surv_sizebin, aes(x = mean_size, y = mean_vr, size = samplesize, shape = Endo, col = Species), alpha = .7) +
   geom_ribbon(data = surv_mean_df, aes(x = log_x_seq, ymin = twenty, ymax = eighty, alpha = Endo, fill = Species))+
   geom_line(data = surv_mean_df, aes(x = log_x_seq, y = mean, linetype = Endo, col = Species)) +
   scale_color_manual(values = species_colors)+  scale_fill_manual(values = species_colors)+
-  scale_shape_manual(values = c(1,19)) + scale_linetype_manual(values = c(2,1)) + scale_alpha_manual(values = c(.2,.4))+
-  facet_wrap(~Species, scales = "free", ncol = 4) + 
+  scale_shape_manual( values = c(1,19)) + scale_linetype_manual(values = c(2,1)) + scale_alpha_manual( values = c(.1,.3))+
+  facet_wrap(~Species, scales = "free", ncol = 2) + 
   theme_classic() + 
   theme(strip.background = element_blank(),
-        strip.text = element_text(face = "italic")) + 
-  guides(fill = "none", col = "none", lwd = guide_legend(order = 1))+
-  labs(title = "Adult Survival", y = "Survival Probability", x = "log(size_t)", lwd = "Sample Size")
-surv_meanplot
-ggsave(surv_meanplot, filename = "surv_meanplot.png", width = 9, height = 4)
+        strip.text = element_text(face = "italic", size = rel(1.5)),
+        legend.position = "right",
+        legend.justification = "center",
+        legend.margin = margin(10,0,10,0),
+        legend.text = element_text(size = rel(1)),
+        legend.title = element_text(size = rel(.8)),
+        axis.text = element_text(size = rel(1)),
+        title = element_text(size = rel(2))) + 
+  guides(fill = "none", col = "none", alpha = guide_legend(order = 1), linetype = guide_legend(order = 1), shape = guide_legend(order = 1), size = guide_legend(order = 2))+
+  labs(title = "Adult Survival", y = "Survival Probability", x = expression("log(# of tillers)"[" year t"]), size = "Sample Size")
+# surv_meanplot
+ggsave(surv_meanplot, filename = "surv_meanplot.png", width = 8, height = 12)
 
 surv_yearplot <- ggplot()+
-  geom_point(data = surv_yearsizebin, aes(x = mean_size, y = mean_vr, size = samplesize, col = Species, shape = Endo), alpha = .4) +
+  geom_point(data = surv_yearsizebin, aes(x = mean_size, y = mean_vr, size = samplesize, col = as.factor(Year), shape = Endo), alpha = .4) +
   # geom_ribbon(data = survyear_mean_df, aes(x = log_x_seq, ymin = twenty, ymax = eighty, fill = Endo), alpha = .3)+
-  geom_line(data = survyear_mean_df, aes(x = log_x_seq, y = mean, linetype = Endo, col = Species, group = Year), alpha = .8) +
-  scale_shape_manual(values = c(1,19)) + scale_linetype_manual(values = c(2,1)) +
-  scale_color_manual(values = species_colors)+
-  facet_wrap(~Species + Endo, scales = "free", ncol = 8) + 
+  geom_line(data = survyear_mean_df, aes(x = log_x_seq, y = mean, linetype = Endo, col = as.factor(Year), group = Year), alpha = .8) +
+  scale_shape_manual( values = c(1,19)) + scale_linetype_manual(values = c(2,1)) +
+  scale_color_manual( values = yearcolors)+
+  facet_wrap(~Species + Endo, scales = "free",ncol = 4) + 
   theme_classic() + 
   theme(strip.background = element_blank(),
-        strip.text = element_text(face = "italic")) + 
-  guides(fill = "none", col = "none",lwd = guide_legend(order = 1))+
-  labs(title = "Adult Survival", y = "Survival Probability", x = "log(size_t)", lwd = "Sample Size")
-surv_yearplot
-ggsave(surv_yearplot, filename = "surv_yearplot.png", width = 11, height = 5)
+        strip.text = element_text(face = "italic", size = rel(1.5)),
+        legend.position = "right",
+        legend.justification = "center",
+        legend.margin = margin(10,0,10,0),
+        legend.text = element_text(size = rel(1.2)),
+        axis.text = element_text(size = rel(1)),
+        title = element_text(size = rel(2))) + 
+  guides(fill = "none",shape = guide_legend(order = 2, ncol = 1),linetype = guide_legend(order = 2, ncol = 1), color = guide_legend(order = 1, ncol = 2), size = guide_legend(order = 3))+
+  labs(title = "Adult Survival", y = "Survival Probability", x = expression("log(# of tillers)"[" year t"]), size = "Sample Size", col = "Year")
+# surv_yearplot
+ggsave(surv_yearplot, filename = "surv_yearplot.png", width = 16, height = 17)
 
 grow_meanplot <- ggplot()+
-  geom_point(data = grow_sizebin, aes(x = mean_size, y = mean_vr, size = samplesize, shape = Endo, col = Species), alpha = .8) +
+  # geom_point(data = grow_neatdata, aes(x = logsize_t, y = size_t1, shape = Endo, col = Species), alpha = .1) +
+  geom_point(data = grow_sizebin, aes(x = mean_size, y = mean_vr, size = samplesize, shape = Endo, col = Species), alpha = .7) +
   geom_ribbon(data = grow_mean_df, aes(x = log_x_seq, ymin = twenty, ymax = eighty, alpha = Endo, fill = Species))+
   geom_line(data = grow_mean_df, aes(x = log_x_seq, y = mean, linetype = Endo, col = Species)) +
   scale_color_manual(values = species_colors)+  scale_fill_manual(values = species_colors)+
-  scale_shape_manual(values = c(1,19)) + scale_linetype_manual(values = c(2,1)) + scale_alpha_manual(values = c(.2,.4))+
-  facet_wrap(~Species, scales = "free", ncol = 4) +
+  scale_shape_manual(values = c(1,19)) + scale_linetype_manual(values = c(2,1)) + scale_alpha_manual(values = c(.1,.3))+
+  facet_wrap(~Species, scales = "free", ncol = 2) +
   theme_classic() + 
   theme(strip.background = element_blank(),
-        strip.text = element_text(face = "italic")) + 
-  guides(fill = "none", col = "none")+
-  labs(title = "Adult Growth", y = "# of Tillers", x = "log(size_t)", lwd = "Sample Size")
+        strip.text = element_text(face = "italic", size = rel(1.5)),
+        legend.position = "right",
+        legend.justification = "center",
+        legend.margin = margin(10,0,10,0),
+        legend.text = element_text(size = rel(1)),
+        legend.title = element_text(size = rel(.8)),
+        axis.text = element_text(size = rel(1)),
+        title = element_text(size = rel(2))) + 
+  guides(fill = "none", col = "none", alpha = guide_legend(order = 1), linetype = guide_legend(order = 1), shape = guide_legend(order = 1), size = guide_legend(order = 2))+
+  labs(title = "Adult Growth", y = "# of Tillers", x = expression("log(# of tillers)"[" year t"]), size = "Sample Size")
 # grow_meanplot
-ggsave(grow_meanplot, filename = "grow_meanplot.png", width = 9, height = 4)
+ggsave(grow_meanplot, filename = "grow_meanplot.png", width = 8, height = 12)
 
 grow_yearplot <- ggplot()+
-  geom_point(data = grow_yearsizebin, aes(x = mean_size, y = mean_vr, size = samplesize, col = Species, shape = Endo), alpha = .4) +
+  # geom_point(data = grow_neatdata, aes(x = logsize_t, y = size_t1, col = as.factor(Year), shape = Endo), alpha = .4) +
+  geom_point(data = grow_yearsizebin, aes(x = mean_size, y = mean_vr, size = samplesize, col = as.factor(Year), shape = Endo), alpha = .4) +
   # geom_ribbon(data = growyear_mean_df, aes(x = log_x_seq, ymin = twenty, ymax = eighty, fill = Endo), alpha = .3)+
-  geom_line(data = growyear_mean_df, aes(x = log_x_seq, y = mean, linetype = Endo, col = Species,group = Year), alpha = .8) +
-  scale_shape_manual(values = c(1,19)) + scale_linetype_manual(values = c(2,1)) + 
-  scale_color_manual(values = species_colors)+
-  facet_wrap(~Species + Endo, scales = "free", ncol = 8) + 
+  geom_line(data = growyear_mean_df, aes(x = log_x_seq, y = mean, linetype = Endo, col = as.factor(Year),group = Year), alpha = .8) +
+  scale_shape_manual( values = c(1,19)) + scale_linetype_manual(values = c(2,1)) +
+  scale_color_manual( values = yearcolors)+
+  facet_wrap(~Species + Endo, scales = "free", ncol = 4) + 
   theme_classic() + 
   theme(strip.background = element_blank(),
-        strip.text = element_text(face = "italic")) + 
-  guides(fill = "none", col = "none", lwd = guide_legend(order = 1))+
-  labs(title = "Adult Growth",  y = "# of Tillers", x = "log(size_t)", lwd = "Sample Size")
+        strip.text = element_text(face = "italic", size = rel(1.5)),
+        legend.position = "right",
+        legend.justification = "center",
+        legend.margin = margin(10,0,10,0),
+        legend.text = element_text(size = rel(1.2)),
+        axis.text = element_text(size = rel(1)),
+        title = element_text(size = rel(2))) + 
+  guides(fill = "none",shape = guide_legend(order = 2, ncol = 1),linetype = guide_legend(order = 2, ncol = 1), color = guide_legend(order = 1, ncol = 2), size = guide_legend(order = 3))+
+  labs(title = "Adult Growth",  y = "# of Tillers", x = expression("log(# of tillers)"[" year t"]), col = "Year",size = "Sample Size")
 # grow_yearplot
-ggsave(grow_yearplot, filename = "grow_yearplot.png", width = 11, height = 5)
+ggsave(grow_yearplot, filename = "grow_yearplot.png", width = 16, height = 17)
 
 flw_meanplot <- ggplot()+
-  geom_point(data = flw_sizebin, aes(x = mean_size, y = mean_vr, size = samplesize, shape = Endo, col = Species), alpha = .8) +
+  geom_point(data = flw_sizebin, aes(x = mean_size, y = mean_vr, size = samplesize, shape = Endo, col = Species), alpha = .7) +
   geom_ribbon(data = flw_mean_df, aes(x = log_x_seq, ymin = twenty, ymax = eighty, alpha = Endo, fill = Species))+
   geom_line(data = flw_mean_df, aes(x = log_x_seq, y = mean, linetype = Endo, col = Species)) +
   scale_color_manual(values = species_colors)+  scale_fill_manual(values = species_colors)+
-  scale_shape_manual(values = c(1,19)) + scale_linetype_manual(values = c(2,1)) + scale_alpha_manual(values = c(.2,.4))+  
-  facet_wrap(~Species, scales = "free", ncol = 4) + 
+  scale_shape_manual(values = c(1,19)) + scale_linetype_manual(values = c(2,1)) + scale_alpha_manual(values = c(.1,.3))+  
+  facet_wrap(~Species, scales = "free", ncol = 2) + 
   theme_classic() + 
   theme(strip.background = element_blank(),
-        strip.text = element_text(face = "italic"))+ 
-  guides(fill = "none", col = "none")+
-  labs(title = "Flowering", y = "Flowering Probability", x = "log(size_t1)", lwd = "Sample Size")
-flw_meanplot
-ggsave(flw_meanplot, filename = "flw_meanplot.png", width = 9, height = 4)
+        strip.text = element_text(face = "italic", size = rel(1.5)),
+        legend.position = "right",
+        legend.justification = "center",
+        legend.margin = margin(10,0,10,0),
+        legend.text = element_text(size = rel(1)),
+        legend.title = element_text(size = rel(.8)),
+        axis.text = element_text(size = rel(1)),
+        title = element_text(size = rel(2))) + 
+  guides(fill = "none", col = "none", alpha = guide_legend(order = 1), linetype = guide_legend(order = 1), shape = guide_legend(order = 1), size = guide_legend(order = 2))+
+  labs(title = "Flowering", y = "Flowering Probability", x = expression("log(# of tillers)"[" year t+1"]), size = "Sample Size")
+# flw_meanplot
+ggsave(flw_meanplot, filename = "flw_meanplot.png", width = 8, height = 12)
 
 
 flw_yearplot <- ggplot()+
-  geom_point(data = flw_yearsizebin, aes(x = mean_size, y = mean_vr, size = samplesize, col = Species, shape = Endo), alpha = .4) +
+  geom_point(data = flw_yearsizebin, aes(x = mean_size, y = mean_vr, size = samplesize, col = as.factor(Year), shape = Endo), alpha = .4) +
   # geom_ribbon(data = flwyear_mean_df, aes(x = log_x_seq, ymin = twenty, ymax = eighty, fill = Endo), alpha = .3)+
-  geom_line(data = flwyear_mean_df, aes(x = log_x_seq, y = mean, linetype = Endo, col = Species, group = Year)) +
-  scale_shape_manual(values = c(1,19)) + scale_linetype_manual(values = c(2,1)) + 
-  scale_color_manual(values = species_colors)+
-  facet_wrap(~Species + Endo, scales = "free", ncol = 8) + 
+  geom_line(data = flwyear_mean_df, aes(x = log_x_seq, y = mean, linetype = Endo, col= as.factor(Year), group = Year)) +
+  scale_shape_manual( values = c(1,19)) + scale_linetype_manual(values = c(2,1)) +
+  scale_color_manual( values = yearcolors)+
+  facet_wrap(~Species + Endo, scales = "free", ncol = 4) + 
   theme_classic() + 
   theme(strip.background = element_blank(),
-        strip.text = element_text(face = "italic")) + 
-  guides(fill = "none", col = "none")+
-  labs(title = "Flowering", y = "Flowering Probability", x = "log(size_t1)", lwd = "Sample Size")
+        strip.text = element_text(face = "italic", size = rel(1.5)),
+        legend.position = "right",
+        legend.justification = "center",
+        legend.margin = margin(10,0,10,0),
+        legend.text = element_text(size = rel(1.2)),
+        axis.text = element_text(size = rel(1)),
+        title = element_text(size = rel(2))) + 
+  guides(fill = "none",shape = guide_legend(order = 2, ncol = 1),linetype = guide_legend(order = 2, ncol = 1), color = guide_legend(order = 1, ncol = 2), size = guide_legend(order = 3))+
+  labs(title = "Flowering", y = "Flowering Probability", x = expression("log(# of tillers)"[" year t+1"]), col = "Year", size = "Sample Size")
 # flw_yearplot
-ggsave(flw_yearplot, filename = "flw_yearplot.png", width = 11, height = 5)
+ggsave(flw_yearplot, filename = "flw_yearplot.png", width = 16, height = 17)
 
 fert_meanplot <- ggplot()+
-  geom_point(data = fert_sizebin, aes(x = mean_size, y = mean_vr, size = samplesize, shape = Endo, col = Species), alpha = .8) +
+  geom_point(data = fert_sizebin, aes(x = mean_size, y = mean_vr, size = samplesize, shape = Endo, col = Species), alpha = .7) +
   geom_ribbon(data = fert_mean_df, aes(x = log_x_seq, ymin = twenty, ymax = eighty, alpha = Endo, fill = Species))+
   geom_line(data = fert_mean_df, aes(x = log_x_seq, y = mean, linetype = Endo, color = Species)) +
   scale_color_manual(values = species_colors)+  scale_fill_manual(values = species_colors)+
-  scale_shape_manual(values = c(1,19)) + scale_linetype_manual(values = c(2,1)) + scale_alpha_manual(values = c(.2,.4))+  
-  facet_wrap(~Species, scales = "free", ncol = 4) +
+  scale_shape_manual(values = c(1,19)) + scale_linetype_manual(values = c(2,1)) + scale_alpha_manual(values = c(.1,.3))+  
+  facet_wrap(~Species, scales = "free", ncol = 2) +
   theme_classic() + 
   theme(strip.background = element_blank(),
-        strip.text = element_text(face = "italic"))+ 
-  guides(fill = "none", col = "none")+
-  labs(title = "Fertility", y = "# of Repro. Tillers", x = "log(size_t1)", lwd = "Sample Size")
-fert_meanplot
-ggsave(fert_meanplot, filename = "fert_meanplot.png", width = 9, height = 4)
+        strip.text = element_text(face = "italic", size = rel(1.5)),
+        legend.position = "right",
+        legend.justification = "center",
+        legend.margin = margin(10,0,10,0),
+        legend.text = element_text(size = rel(1)),
+        legend.title = element_text(size = rel(.8)),
+        axis.text = element_text(size = rel(1)),
+        title = element_text(size = rel(2))) + 
+  guides(fill = "none", col = "none", alpha = guide_legend(order = 1), linetype = guide_legend(order = 1), shape = guide_legend(order = 1), size = guide_legend(order = 2))+
+  labs(title = "Fertility", y = "# of Repro. Tillers", x = expression("log(# of tillers)"[" year t+1"]), size = "Sample Size")
+# fert_meanplot
+ggsave(fert_meanplot, filename = "fert_meanplot.png", width = 8, height = 12)
 
 fert_yearplot <- ggplot()+
-  geom_point(data = fert_yearsizebin, aes(x = mean_size, y = mean_vr, size = samplesize, col = Species, shape = Endo), alpha = .4) +
+  geom_point(data = fert_yearsizebin, aes(x = mean_size, y = mean_vr, size = samplesize, col = as.factor(Year), shape = Endo), alpha = .4) +
   # geom_ribbon(data = fertyear_mean_df, aes(x = log_x_seq, ymin = twenty, ymax = eighty, fill = Endo), alpha = .3)+
-  geom_line(data = fertyear_mean_df, aes(x = log_x_seq, y = mean, linetype = Endo, col = Species, group = Year)) +
+  geom_line(data = fertyear_mean_df, aes(x = log_x_seq, y = mean, linetype = Endo, col = as.factor(Year), group = Year)) +
   scale_shape_manual(values = c(1,19)) + scale_linetype_manual(values = c(2,1)) + 
-  scale_color_manual(values = species_colors)+
-  facet_wrap(~Species + Endo, scales = "free", ncol = 8) + 
+  scale_color_manual(values = yearcolors)+
+  facet_wrap(~Species + Endo, scales = "free", ncol = 4) + 
   theme_classic() + 
   theme(strip.background = element_blank(),
-        strip.text = element_text(face = "italic")) +
-  guides(fill = "none", col = "none")+
-  labs(title = "Fertility",  y = "# of Repro. Tillers", x = "log(size_t1)", lwd = "Sample Size")
-fert_yearplot
-ggsave(fert_yearplot, filename = "fert_yearplot.png",width = 11, height = 5)
+        strip.text = element_text(face = "italic", size = rel(1.5)),
+        legend.position = "right",
+        legend.justification = "center",
+        legend.margin = margin(10,0,10,0),
+        legend.text = element_text(size = rel(1)),
+        legend.title = element_text(size = rel(.8)),
+        axis.text = element_text(size = rel(1)),
+        title = element_text(size = rel(2))) + 
+  guides(fill = "none",shape = guide_legend(order = 2, ncol = 1),linetype = guide_legend(order = 2, ncol = 1), color = guide_legend(order = 1, ncol = 2), size = guide_legend(order = 3))+
+  labs(title = "Fertility",  y = "# of Repro. Tillers", x = expression("log(# of tillers)"[" year t+1"]), col = "Year", size = "Sample Size")
+# fert_yearplot
+ggsave(fert_yearplot, filename = "fert_yearplot.png",width = 16, height = 17)
 
 
 spike_meanplot <- ggplot()+
-  geom_point(data = spike_sizebin, aes(x = mean_size, y = mean_vr, size = samplesize, shape = Endo, col = Species), alpha = .8) +
+  # geom_point(data = spike_neatdata, aes(x = logsize_t, y = spike_count_t1, shape = Endo, col = Species), alpha = .4) +
+  geom_point(data = spike_sizebin, aes(x = mean_size, y = mean_vr, size = samplesize, shape = Endo, col = Species), alpha = .7) +
   geom_ribbon(data = spike_mean_df, aes(x = log_x_seq, ymin = twenty, ymax = eighty, alpha = Endo, fill = Species))+
   geom_line(data = spike_mean_df, aes(x = log_x_seq, y = mean, linetype = Endo, color = Species)) +
   scale_color_manual(values = species_colors)+  scale_fill_manual(values = species_colors)+
-  scale_shape_manual(values = c(1,19)) + scale_linetype_manual(values = c(2,1)) + scale_alpha_manual(values = c(.2,.4))+  
-  facet_wrap(~Species, scales = "free", ncol = 4) +
+  scale_shape_manual(values = c(1,19)) + scale_linetype_manual(values = c(2,1)) + scale_alpha_manual(values = c(.1,.3))+  
+  facet_wrap(~Species, scales = "free", ncol = 2) +
   theme_classic() + 
   theme(strip.background = element_blank(),
-        strip.text = element_text(face = "italic"))+ 
-  guides(fill = "none", col = "none",lwd = guide_legend(order = 1))+
-  labs(title = "Spikes/Infl.", y = "Spikelet/Infl.", x = "log(size_t1)", lwd = "Sample Size")
+        strip.text = element_text(face = "italic", size = rel(1.5)),
+        legend.position = "right",
+        legend.justification = "center",
+        legend.margin = margin(10,0,10,0),
+        legend.text = element_text(size = rel(1)),
+        legend.title = element_text(size = rel(.8)),
+        axis.text = element_text(size = rel(1)),
+        title = element_text(size = rel(2))) + 
+  guides(fill = "none", col = "none", alpha = guide_legend(order = 1), linetype = guide_legend(order = 1), shape = guide_legend(order = 1), size = guide_legend(order = 2))+
+  labs(title = "Spikes/Infl.", y = "Spikelet/Infl.", x = expression("log(# of tillers)"[" year t+1"]), size = "Sample Size")
 # spike_meanplot
-ggsave(spike_meanplot, filename = "spike_meanplot.png", width = 9, height = 4)
+ggsave(spike_meanplot, filename = "spike_meanplot.png", width = 8, height = 12)
 
 spike_yearplot <- ggplot()+
-  geom_point(data = spike_yearsizebin, aes(x = mean_size, y = mean_vr, size = samplesize, col = Species, shape = Endo), alpha = .4) +
+  # geom_point(data = spike_neatdata, aes(x = logsize_t, y = spike_count_t1, col = as.factor(Year), shape = Endo), alpha = .4) +
+  geom_point(data = spike_yearsizebin, aes(x = mean_size, y = mean_vr, size = samplesize, col = as.factor(Year), shape = Endo), alpha = .4) +
   # geom_ribbon(data = spikeyear_mean_df, aes(x = log_x_seq, ymin = twenty, ymax = eighty, fill = Endo), alpha = .3)+
-  geom_line(data = spikeyear_mean_df, aes(x = log_x_seq, y = mean, linetype = Endo, col = Species, group = Year)) +
+  geom_line(data = spikeyear_mean_df, aes(x = log_x_seq, y = mean, linetype = Endo, col = as.factor(Year), group = Year)) +
   scale_shape_manual(values = c(1,19)) + scale_linetype_manual(values = c(2,1)) + 
-  scale_color_manual(values = species_colors)+
-  facet_wrap(~Species + Endo, scales = "free", ncol = 8) + 
+  scale_color_manual(values = yearcolors)+
+  facet_wrap(~Species + Endo, scales = "free", ncol = 4) + 
   theme_classic() + 
   theme(strip.background = element_blank(),
-        strip.text = element_text(face = "italic")) + 
-  guides(fill = "none", col = "none",lwd = guide_legend(order = 1))+
-  labs(title = "Spikes/Infl.", y = "Spikelet/Infl.", x = "log(size_t1)", lwd = "Sample Size")
+        strip.text = element_text(face = "italic", size = rel(1.5)),
+        legend.position = "right",
+        legend.justification = "center",
+        legend.margin = margin(10,0,10,0),
+        legend.text = element_text(size = rel(1)),
+        legend.title = element_text(size = rel(.8)),
+        axis.text = element_text(size = rel(1)),
+        title = element_text(size = rel(2))) + 
+  guides(fill = "none",shape = guide_legend(order = 2, ncol = 1),linetype = guide_legend(order = 2, ncol = 1), color = guide_legend(order = 1, ncol = 2), size = guide_legend(order = 3))+
+  labs(title = "Spikes/Infl.", y = "Spikelet/Infl.", x = expression("log(# of tillers)"[" year t+1"]), col = "Year", size = "Sample Size")
 # spike_yearplot
-ggsave(spike_yearplot, filename = "spike_yearplot.png",width = 11, height = 5)
+ggsave(spike_yearplot, filename = "spike_yearplot.png",width = 16, height = 17)
 
 
 meaneffect_fitplot <- surv_meanplot+grow_meanplot+flw_meanplot+fert_meanplot+spike_meanplot + 
@@ -1653,6 +1744,7 @@ meanvar_effect_heatmap
 #Version filling by the standardized effect size
 stand_effect_heatmap <- ggplot()+
   geom_tile(data = endo_vr_effects_standardized, aes(x = Species, y = factor(vital_rate, levels=vr_order), fill = stand_effect), color = "lightgrey")+
+  geom_text(data = endo_vr_effects_standardized, aes(x = Species, y = factor(vital_rate, levels = vr_order), label = round(stand_effect, digits = 2)), size = 3)+
   scale_fill_gradient2(low = "#ef8a62", high = "#67a9cf")+
   scale_y_discrete(labels = function(x) str_wrap(x, width = 10))+
   facet_wrap(~effect)+
@@ -1665,7 +1757,7 @@ stand_effect_heatmap <- ggplot()+
   guides(fill = "none")
 stand_effect_heatmap
 
-ggsave(stand_effect_heatmap, file = "stand_effect_heatmap.png", width = 7.5, height = 5)
+ggsave(stand_effect_heatmap, file = "stand_effect_heatmap_text.png", width = 7.5, height = 5)
 
 
 par(mfrow=c(4,1),mar=c(2,4,0,0))
