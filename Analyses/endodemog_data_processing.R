@@ -2052,21 +2052,22 @@ climate <-
   ) %>% 
   left_join(station_data) # merging the station name, the distance to Lilly-Dickey Woods, and the lat long for each weather station
 
+
+ppt_r2 <- cor(climate$prcp, climate$prcp, use = "complete.obs")^2
 #Some graphs to look at how the different station's values compare 
 # climate_2 <- climate %>%
 #   dplyr::select(id, date, prcp, tobs) %>%
-#   distinct()  %>% 
+#   distinct()  %>%
 #   pivot_wider(names_from = id, values_from = c(prcp, tobs)) %>% 
-#   # filter(!is.na(prcp_USC00126056)) %>% 
-#   mutate(year = year(date)) %>% 
-#   group_by(year) %>% 
-#   summarize(annual_ppt_nashville = sum(prcp_USC00126056, na.rm = TRUE),
-#             annual_ppt_bloomington = sum(prcp_USC00120784, na.rm = TRUE),
-#             annual_temp_nashville = mean(tobs_USC00126056, na.rm = TRUE),
-#             annual_temp_bloomington = mean(tobs_USC00120784, na.rm = TRUE))
-# ppt_r2 <- cor(climate_2$annual_ppt_nashville, climate_2$annual_ppt_bloomington, use = "complete.obs")^2
-# temp_r2 <- cor(climate_2$annual_temp_nashville, climate_2$annual_temp_bloomington, use = "complete.obs")^2
-# climate_summary <- lm(climate_2$annual_ppt_nashville ~ 0+climate_2$annual_ppt_bloomington)
+#   rename(ppt_nashville = prcp_USC00126056,ppt_bloomington = prcp_USC00120784,
+#          temp_nashville = tobs_USC00126056,temp_bloomington = tobs_USC00120784) %>% 
+#   mutate(year = year(date)) %>%
+#   filter(year>=2007)
+#   
+# ppt_r2 <- cor(climate_2$ppt_nashville, climate_2$ppt_bloomington, use = "complete.obs")^2
+# temp_r2 <- cor(climate_2$temp_nashville, climate_2$temp_bloomington, use = "complete.obs")^2
+# 
+# climate_summary <- lm(climate_2$ppt_nashville ~ 1+climate_2$ppt_bloomington)
 # summary(climate_summary)
 # # 
 # # 
@@ -2192,4 +2193,14 @@ LTREB_full <- LTREB_full_climate %>%
 # 
 # LTREB_findtypo <- LTREB_full %>% 
 #   filter(species == "ELRI", plot_fixed == 109)
+
+# LTREB_plot_density <- LTREB_full %>% 
+#   group_by(species, year_t, plot_fixed) %>% 
+#   summarize(plants = n(),
+#             density = plants/2.517) %>%  # 2.517 is the average distance between measured posts 
+#   group_by() %>% 
+#   summarize(avg_density = mean(density))
+
+  
+
 

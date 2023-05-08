@@ -349,14 +349,14 @@ spei2_grow_sdlg_par <- rstan::extract(spei2_grow_fit_seedling, pars = quote_bare
 #flowering
 spei_flow_par <- rstan::extract(spei_flw_fit, pars = quote_bare(beta0,betasize,betaendo,betaorigin,
                                                       betaspei_endo,
-                                                      tau_year, tau_plot, sigma_year))
+                                                      tau_year, tau_plot, sigma_year, sigma0, sigmaendo))
 spei2_flow_par <- rstan::extract(spei2_flw_fit, pars = quote_bare(beta0,betasize,betaendo,betaorigin,
                                                            betaspei_endo,  betaspei_nl_endo,
                                                            tau_year, tau_plot, sigma_year))
 # number of flower tillers
 spei_fert_par <- rstan::extract(spei_fert_fit, pars = quote_bare(beta0,betasize,betaendo,betaorigin,
                                                                 betaspei_endo,
-                                                                tau_year, tau_plot, sigma_year))
+                                                                tau_year, tau_plot, sigma_year, sigma0, sigmaendo))
 spei2_fert_par <- rstan::extract(spei2_fert_fit, pars = quote_bare(beta0,betasize,betaendo,betaorigin,
                                                                   betaspei_endo,  betaspei_nl_endo,
                                                                   tau_year, tau_plot, sigma_year))

@@ -1004,7 +1004,7 @@ sum(lambdaS_obs[1,8,]>0)/500*100
 ################################################################
 ##### Plot of stochastic lambda contributions
 ################################################################
-dimnames(lambdaS_obs_diff) <- list(Scenario = c("All Years","2 Most Extreme Years","4 Most Extreme Years","6 Most Extreme Years"), Contribution = c("Full Effect","Mean only","Variance only","Interaction"), Species = c(species_list, "Species Mean"), Quantile = c("mean","fifth","twelvepointfive","twentyfifth","seventyfifth","eightysevenpointfive","ninetyfifth"))
+dimnames(lambdaS_obs_diff) <- list(Scenario = c("Ambient variability","Most variability (2 best and worst years)","4 Most Extreme Years","More variability (6 best and worst years)"), Contribution = c("Full Effect","Mean only","Variance only","Interaction"), Species = c(species_list, "Species Mean"), Quantile = c("mean","fifth","twelvepointfive","twentyfifth","seventyfifth","eightysevenpointfive","ninetyfifth"))
 lambdaS_obs_diff_cube <- cubelyr::as.tbl_cube(lambdaS_obs_diff)
 lambdaS_obs_diff_df <- as_tibble(lambdaS_obs_diff_cube) %>% 
   pivot_wider(names_from = "Quantile", values_from = lambdaS_obs_diff) %>% 
@@ -1030,15 +1030,16 @@ contributions_obs_plot <- ggplot(data = filter(lambdaS_obs_diff_df, Scenario != 
   geom_linerange(aes(x = Contribution, ymin = twelvepointfive, ymax = eightysevenpointfive, color = Scenario),position = position_dodge(width = .7), lwd = 1) +
   geom_linerange(aes(x = Contribution, ymin = twentyfifth, ymax = seventyfifth, color = Scenario),position = position_dodge(width = .7), lwd = 2) +
   
-  geom_point(aes(y = mean, x = Contribution, group = Scenario, pch = Contribution), color = "grey38", position = position_dodge(width = .7), lwd = 3.9) +
-  geom_point(aes(y = mean, x = Contribution, color = Scenario, pch = Contribution), position = position_dodge(width = .7), lwd = 3.5) +
+  geom_point(aes(y = mean, x = Contribution, group = Scenario, pch = Contribution), color = "grey38", position = position_dodge(width = .7), size = 3.9) +
+  geom_point(aes(y = mean, x = Contribution, color = Scenario, pch = Contribution), position = position_dodge(width = .7), size = 3.5) +
   facet_wrap(~Species, nrow = 2, scales = "free") + coord_flip() +
   scale_shape_manual(values = c(16,18,15,17))+
-  scale_fill_manual(values = c(simulation_color_scheme))+
-  scale_color_manual(values = c(simulation_color_scheme))+
+  scale_fill_manual(values = c(simulation_color_scheme), labels = ~ stringr::str_wrap(.x, width = 25))+
+  scale_color_manual(values = c(simulation_color_scheme), labels = ~ stringr::str_wrap(.x, width = 25))+
   scale_y_continuous(breaks = scales::pretty_breaks(n = 4))+
   scale_x_discrete(limits = x_levels)+
   labs( x = "", y = expression(paste("Symbiosis effect on", " ", lambda["s"])))+
+  guides(pch = "none")+
   theme(panel.background = element_blank(),
         plot.background = element_rect(color = "white"),
         panel.grid.major.y = element_blank(),
@@ -1051,9 +1052,12 @@ contributions_obs_plot <- ggplot(data = filter(lambdaS_obs_diff_df, Scenario != 
         axis.title = element_text(size = rel(1.5)),
         strip.background = element_blank(),
         strip.text = element_text(size = rel(1.3), face = "italic"),
-        legend.key = element_rect(fill = NA))
-# contributions_obs_plot
-ggsave(contributions_obs_plot, filename = "contributions_obs_plot.png", width = 12, height = 8)
+        legend.key = element_rect(fill = NA),
+        legend.title=element_text(size=rel(1.2)), 
+        legend.text=element_text(size=rel(1)),
+        legend.key.size = unit(1.1,"cm"))
+contributions_obs_plot
+ggsave(contributions_obs_plot, filename = "contributions_obs_plot.png", width = 13, height = 8)
 
 
 contributions_samp_plot <- ggplot(data = lambdaS_samp_diff_df) +
@@ -1098,15 +1102,16 @@ mean_contributions_obs_plot <- ggplot(data = filter(lambdaS_obs_diff_df, Species
   geom_linerange(aes(x = Contribution, ymin = twelvepointfive, ymax = eightysevenpointfive, color = Scenario),position = position_dodge(width = .7), lwd = 1) +
   geom_linerange(aes(x = Contribution, ymin = twentyfifth, ymax = seventyfifth, color = Scenario),position = position_dodge(width = .7), lwd = 2) +
   
-  geom_point(aes(y = mean, x = Contribution, group = Scenario, pch = Contribution), color = "grey38", position = position_dodge(width = .7), lwd = 3.9) +
-  geom_point(aes(y = mean, x = Contribution, color = Scenario, pch = Contribution), position = position_dodge(width = .7), lwd = 3.5) +
+  geom_point(aes(y = mean, x = Contribution, group = Scenario, pch = Contribution), color = "grey38", position = position_dodge(width = .7), size = 3.9) +
+  geom_point(aes(y = mean, x = Contribution, color = Scenario, pch = Contribution), position = position_dodge(width = .7), size = 3.5) +
   facet_wrap(~Species, nrow = 2, scales = "free") + coord_flip() +
   scale_shape_manual(values = c(16,18,15,17))+
-  scale_fill_manual(values = c(simulation_color_scheme))+
-  scale_color_manual(values = c(simulation_color_scheme))+
+  scale_fill_manual(values = c(simulation_color_scheme), labels = ~ stringr::str_wrap(.x, width = 25))+
+  scale_color_manual(values = c(simulation_color_scheme), labels = ~ stringr::str_wrap(.x, width = 25))+
   scale_y_continuous(breaks = scales::pretty_breaks(n = 4))+
   scale_x_discrete(limits = x_levels)+
   labs( x = "", y = expression(paste("Symbiosis effect on", " ", lambda["s"])))+
+  guides(pch = "none")+
   theme(panel.background = element_blank(),
         plot.background = element_rect(color = "white"),
         panel.grid.major.y = element_blank(),
@@ -1119,7 +1124,10 @@ mean_contributions_obs_plot <- ggplot(data = filter(lambdaS_obs_diff_df, Species
         axis.title = element_text(size = rel(1.5)),
         strip.background = element_blank(),
         strip.text = element_blank(),
-        legend.key = element_rect(fill = NA))
+        legend.key = element_rect(fill = NA),
+        legend.title=element_text(size=rel(.7)),
+        legend.text=element_text(size=rel(.6)),
+        legend.key.size = unit(.7,"cm"))
 mean_contributions_obs_plot
 ggsave(mean_contributions_obs_plot, filename = "mean_contributions_obs_plot.png", width = 5, height =4)
 

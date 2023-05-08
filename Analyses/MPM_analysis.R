@@ -112,7 +112,6 @@ n_draws <- 500 # the means are the same whether we do 500 or 1000 draws
 post_draws <- sample.int(7500,size=n_draws) # The models except for seedling growth have 7500 iterations. That one has more (15000 iterations) to help it converge.
 
 lambda_mean <- array(dim = c(8,2,n_draws))
-gen_time <- array(dim = c(7,2,n_draws))
 for(i in 1:length(post_draws)){
   for(e in 1:2){
     for(s in 1:7){
@@ -133,24 +132,6 @@ for(i in 1:length(post_draws)){
                                                          seed_par=seed_par,
                                                          recruit_par=recruit_par), 
                                              extension = 100)$MPMmat) # the extension parameter is used to fit the growth kernel to sizes larger than max size without losing probability density
-      gen_time[s,e,i] <- generation.time(bigmatrix(make_params(species=s,
-                                                         endo_mean=(e-1),
-                                                         endo_var=(e-1),
-                                                         original = 0, # should be =1 to represent recruit
-                                                         draw=post_draws[i],
-                                                         max_size=max_size,
-                                                         rfx=F,
-                                                         surv_par=surv_par,
-                                                         surv_sdlg_par = surv_sdlg_par,
-                                                         grow_par=grow_par,
-                                                         grow_sdlg_par = grow_sdlg_par,
-                                                         flow_par=flow_par,
-                                                         fert_par=fert_par,
-                                                         spike_par=spike_par,
-                                                         seed_par=seed_par,
-                                                         recruit_par=recruit_par), 
-                                             extension = 100)$MPMmat)
-    }
     lambda_mean[8,e,i] <- mean(lambda_mean[1:7,e,i])
   }
 }
@@ -158,16 +139,7 @@ for(i in 1:length(post_draws)){
 saveRDS(lambda_mean, file = "~/Dropbox/EndodemogData/Model_Runs/MPM_output/lambda_mean.rds")
 lambda_mean <- read_rds(file = "~/Dropbox/EndodemogData/Model_Runs/MPM_output/lambda_mean.rds")
 
-#saving the generation time calculation and calculating mean for each species
-saveRDS(gen_time, file = "~/Dropbox/EndodemogData/Model_Runs/MPM_output/gen_time.rds")
-gen_time <- read_rds(file = "~/Dropbox/EndodemogData/Model_Runs/MPM_output/gen_time.rds")
 
-gen_time_summary <- matrix(NA,7,3)
-for(s in 1:7){
-  gen_time_summary[s,1] <- mean(gen_time[s,1,])
-  gen_time_summary[s,2] <- mean(gen_time[s,2,])
-  gen_time_summary[s,3] <- mean(gen_time[s,,])
-}
 
 # Mean endophyte difference and quantiles
 lambda_means <- matrix(NA,8,2)
@@ -182,7 +154,7 @@ for(s in 1:8){
 # look at the lambda values for a general gut check
 lambda_means
 
-#calculating the percent difference for each species
+#calculating the percent increase for each species
 lambda_means_percentdiff <- 100-(lambda_means[,1]/lambda_means[,2]*100)
 
 ## now do variance in lambda 

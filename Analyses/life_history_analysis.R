@@ -1409,7 +1409,7 @@ endophyte_color_scheme <- c("#fdedd3","#f3c8a8", "#5a727b", "#4986c7", "#181914"
 oma_plant_plot <- ggplot(data = filter(newdata_plant_fit, name == "observed_max_age"))+
   geom_ribbon(aes(ymin = lwr, ymax = upr, x = x), alpha = .2)+
   geom_line(aes(y = fit, x = x))+
-  geom_point(data = traits_df, aes(y = cv_effect, x = observed_max_age, color = species), lwd = 3)+
+  geom_point(data = traits_df, aes(y = cv_effect, x = observed_max_age, color = species), size = 3)+
   scale_color_manual(values = species_colors)+
   theme_classic()+
   theme(axis.title.x = element_text(size=10),
@@ -1420,18 +1420,18 @@ oma_plant_plot <- ggplot(data = filter(newdata_plant_fit, name == "observed_max_
 ma99_plant_plot <- ggplot(data = filter(newdata_plant_fit, name == "max_age_99"))+
   geom_ribbon(aes(ymin = lwr, ymax = upr, x = x), alpha = .2)+
   geom_line(aes(y = fit, x = x))+
-  geom_point(data = traits_df, aes(y = cv_effect, x = max_age_99, color = species), lwd = 3)+
+  geom_point(data = traits_df, aes(y = cv_effect, x = max_age_99, color = species), size = 3)+
   scale_color_manual(values = species_colors)+
   theme_classic()+
   theme(axis.title.x = element_text(size=10),
         legend.text = element_text(face = "italic"))+
-  labs(x = "99th Percentile Max Age", y = "", color = "Host Species")
+  labs(x = "99th Percentile Max Age", y = expression(paste("Effect on CV", (lambda))), color = "Host Species")
 # ma99_plant_plot
 
 R0_plant_plot <- ggplot(data = filter(newdata_plant_fit, name == "R0"))+
   geom_ribbon(aes(ymin = lwr, ymax = upr, x = x), alpha = .2)+
   geom_line(aes(y = fit, x = x))+
-  geom_point(data = traits_df, aes(y = cv_effect, x = R0, color = species), lwd = 3)+
+  geom_point(data = traits_df, aes(y = cv_effect, x = R0, color = species), size = 3)+
   scale_color_manual(values = species_colors)+
   theme_classic()+
   theme(axis.title.x = element_text(size=10),
@@ -1442,7 +1442,7 @@ R0_plant_plot <- ggplot(data = filter(newdata_plant_fit, name == "R0"))+
 longev_plant_plot <- ggplot(data = filter(newdata_plant_fit, name == "longev"))+
   geom_ribbon(aes(ymin = lwr, ymax = upr, x = x), alpha = .2)+
   geom_line(aes(y = fit, x = x))+
-  geom_point(data = traits_df, aes(y = cv_effect, x = longev, color = species), lwd = 3)+
+  geom_point(data = traits_df, aes(y = cv_effect, x = longev, color = species), size = 3)+
   scale_color_manual(values = species_colors)+
   theme_classic()+
   theme(axis.title.x = element_text(size=10),
@@ -1453,7 +1453,7 @@ longev_plant_plot <- ggplot(data = filter(newdata_plant_fit, name == "longev"))+
 mle_plant_plot <- ggplot(data = filter(newdata_plant_fit, name == "mean_life_expect"))+
   geom_ribbon(aes(ymin = lwr, ymax = upr, x = x), alpha = .2)+
   geom_line(aes(y = fit, x = x))+
-  geom_point(data = traits_df, aes(y = cv_effect, x = mean_life_expect, color = species), lwd = 3)+
+  geom_point(data = traits_df, aes(y = cv_effect, x = mean_life_expect, color = species), size = 3)+
   scale_x_continuous(breaks = c(3,6,9,12))+
   scale_color_manual(values = species_colors)+
   theme_classic()+
@@ -1465,18 +1465,18 @@ mle_plant_plot <- ggplot(data = filter(newdata_plant_fit, name == "mean_life_exp
 gt_plant_plot <- ggplot(data = filter(newdata_plant_fit, name == "gen_time"))+
   geom_ribbon(aes(ymin = lwr, ymax = upr, x = x), alpha = .2)+
   geom_line(aes(y = fit, x = x))+
-  geom_point(data = traits_df, aes(y = cv_effect, x = gen_time, color = species), lwd = 3)+
+  geom_point(data = traits_df, aes(y = cv_effect, x = gen_time, color = species), size = 3)+
   scale_color_manual(values = species_colors)+
   theme_classic()+
   theme(axis.title.x = element_text(size=10),
         legend.text = element_text(face = "italic"))+
-  labs(x = "Generation Time", y = "", color = "Host Species")
+  labs(x = "Generation Time", y = expression(paste("Effect on CV", (lambda))), color = "Host Species")
 # gt_plant_plot
 
 ss_plant_plot <- ggplot(data = filter(newdata_plant_fit, name == "seed_size"))+
   geom_ribbon(aes(ymin = lwr, ymax = upr, x = x), alpha = .2)+
   geom_line(aes(y = fit, x = x))+
-  geom_point(data = traits_df, aes(y = cv_effect, x = seed_size, color = species), lwd = 3)+
+  geom_point(data = traits_df, aes(y = cv_effect, x = seed_size, color = species), size = 3)+
   scale_color_manual(values = species_colors)+
   theme_classic()+
   theme(axis.title.x = element_text(size=10),
@@ -1488,7 +1488,7 @@ ss_plant_plot <- ggplot(data = filter(newdata_plant_fit, name == "seed_size"))+
 it_plant_plot <- ggplot(data = filter(newdata_plant_fit, name == "imperfect_trans"))+
   geom_ribbon(aes(ymin = lwr, ymax = upr, x = x), alpha = .2)+
   geom_line(aes(y = fit, x = x))+
-  geom_point(data = traits_df, aes(y = cv_effect, x = imperfect_trans, color = species), lwd = 3)+
+  geom_point(data = traits_df, aes(y = cv_effect, x = imperfect_trans, color = species), size = 3)+
   scale_color_manual(values = species_colors)+
   theme_classic()+
   theme(axis.title.x = element_text(size=10),
@@ -1498,7 +1498,7 @@ it_plant_plot <- ggplot(data = filter(newdata_plant_fit, name == "imperfect_tran
 
 lh_plant_plot <- ma99_plant_plot + R0_plant_plot + longev_plant_plot + gt_plant_plot + ss_plant_plot +
   plot_layout(nrow = 2, guides = "collect") + plot_annotation(tag_levels = "A") 
-ggsave(lh_plant_plot, filename = "lh_plant_plot.png", width = 7.5, height = 4)
+ggsave(lh_plant_plot, filename = "lh_plant_plot.png", width = 8.5, height = 4)
 
 
 # Histograms of the slope estimates
@@ -1740,7 +1740,7 @@ newdata_epichloe_fit <- newdata %>%
 oma_epichloe_plot <- ggplot(data = filter(newdata_epichloe_fit, name == "observed_max_age"))+
   geom_ribbon(aes(ymin = lwr, ymax = upr, x = x), alpha = .2)+
   geom_line(aes(y = fit, x = x))+
-  geom_point(data = traits_df, aes(y = cv_effect, x = observed_max_age, color = species), lwd = 3)+
+  geom_point(data = traits_df, aes(y = cv_effect, x = observed_max_age, color = species), size = 3)+
   scale_color_manual(values = species_colors)+
   theme_classic()+
   theme(axis.title.x = element_text(size=10),
@@ -1751,18 +1751,18 @@ oma_epichloe_plot <- ggplot(data = filter(newdata_epichloe_fit, name == "observe
 ma99_epichloe_plot <- ggplot(data = filter(newdata_epichloe_fit, name == "max_age_99"))+
   geom_ribbon(aes(ymin = lwr, ymax = upr, x = x), alpha = .2)+
   geom_line(aes(y = fit, x = x))+
-  geom_point(data = traits_df, aes(y = cv_effect, x = max_age_99, color = species), lwd = 3)+
+  geom_point(data = traits_df, aes(y = cv_effect, x = max_age_99, color = species), size = 3)+
   scale_color_manual(values = species_colors)+
   theme_classic()+
   theme(axis.title.x = element_text(size=10),
         legend.text = element_text(face = "italic"))+
-  labs(x = "99th Percentile Max Age", y = "", color = "Host Species")
+  labs(x = "99th Percentile Max Age", y = expression(paste("Effect on CV", (lambda))), color = "Host Species")
 # ma99_epichloe_plot
 
 R0_epichloe_plot <- ggplot(data = filter(newdata_epichloe_fit, name == "R0"))+
   geom_ribbon(aes(ymin = lwr, ymax = upr, x = x), alpha = .2)+
   geom_line(aes(y = fit, x = x))+
-  geom_point(data = traits_df, aes(y = cv_effect, x = R0, color = species), lwd = 3)+
+  geom_point(data = traits_df, aes(y = cv_effect, x = R0, color = species), size = 3)+
   scale_color_manual(values = species_colors)+
   theme_classic()+
   theme(axis.title.x = element_text(size=10),
@@ -1773,7 +1773,7 @@ R0_epichloe_plot <- ggplot(data = filter(newdata_epichloe_fit, name == "R0"))+
 longev_epichloe_plot <- ggplot(data = filter(newdata_epichloe_fit, name == "longev"))+
   geom_ribbon(aes(ymin = lwr, ymax = upr, x = x), alpha = .2)+
   geom_line(aes(y = fit, x = x))+
-  geom_point(data = traits_df, aes(y = cv_effect, x = longev, color = species), lwd = 3)+
+  geom_point(data = traits_df, aes(y = cv_effect, x = longev, color = species), size = 3)+
   scale_color_manual(values = species_colors)+
   theme_classic()+
   theme(axis.title.x = element_text(size=10),
@@ -1784,7 +1784,7 @@ longev_epichloe_plot <- ggplot(data = filter(newdata_epichloe_fit, name == "long
 mle_epichloe_plot <- ggplot(data = filter(newdata_epichloe_fit, name == "mean_life_expect"))+
   geom_ribbon(aes(ymin = lwr, ymax = upr, x = x), alpha = .2)+
   geom_line(aes(y = fit, x = x))+
-  geom_point(data = traits_df, aes(y = cv_effect, x = mean_life_expect, color = species), lwd = 3)+
+  geom_point(data = traits_df, aes(y = cv_effect, x = mean_life_expect, color = species), size = 3)+
   scale_x_continuous(breaks = c(3,6,9,12))+
   scale_color_manual(values = species_colors)+
   theme_classic()+
@@ -1796,18 +1796,18 @@ mle_epichloe_plot <- ggplot(data = filter(newdata_epichloe_fit, name == "mean_li
 gt_epichloe_plot <- ggplot(data = filter(newdata_epichloe_fit, name == "gen_time"))+
   geom_ribbon(aes(ymin = lwr, ymax = upr, x = x), alpha = .2)+
   geom_line(aes(y = fit, x = x))+
-  geom_point(data = traits_df, aes(y = cv_effect, x = gen_time, color = species), lwd = 3)+
+  geom_point(data = traits_df, aes(y = cv_effect, x = gen_time, color = species), size = 3)+
   scale_color_manual(values = species_colors)+
   theme_classic()+
   theme(axis.title.x = element_text(size=10),
         legend.text = element_text(face = "italic"))+
-  labs(x = "Generation Time", y = "", color = "Host Species")
+  labs(x = "Generation Time", y = expression(paste("Effect on CV", (lambda))), color = "Host Species")
 # gt_epichloe_plot
 
 ss_epichloe_plot <- ggplot(data = filter(newdata_epichloe_fit, name == "seed_size"))+
   geom_ribbon(aes(ymin = lwr, ymax = upr, x = x), alpha = .2)+
   geom_line(aes(y = fit, x = x))+
-  geom_point(data = traits_df, aes(y = cv_effect, x = seed_size, color = species), lwd = 3)+
+  geom_point(data = traits_df, aes(y = cv_effect, x = seed_size, color = species), size = 3)+
   scale_color_manual(values = species_colors)+
   theme_classic()+
   theme(axis.title.x = element_text(size=10),
@@ -1819,7 +1819,7 @@ ss_epichloe_plot <- ggplot(data = filter(newdata_epichloe_fit, name == "seed_siz
 it_epichloe_plot <- ggplot(data = filter(newdata_epichloe_fit, name == "imperfect_trans"))+
   geom_ribbon(aes(ymin = lwr, ymax = upr, x = x), alpha = .2)+
   geom_line(aes(y = fit, x = x))+
-  geom_point(data = traits_df, aes(y = cv_effect, x = imperfect_trans, color = species), lwd = 3)+
+  geom_point(data = traits_df, aes(y = cv_effect, x = imperfect_trans, color = species), size = 3)+
   scale_color_manual(values = species_colors)+
   theme_classic()+
   theme(axis.title.x = element_text(size=10),
