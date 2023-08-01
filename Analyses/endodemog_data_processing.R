@@ -1779,6 +1779,11 @@ LTREB_update_data <- LTREB_update_data %>%
 
 # 2022 census data
 AGPE_2022_data <- read_xlsx("Dropbox/EndodemogData/Field Data/2022/LTREB_data_2022.xlsx", sheet = "AGPE")
+## I do not trust the AGPE 2022 data (Karl and Zarek) -- weird sizes and spikelet counts
+## set all AGPE 2022 size and reproduction data to NA
+AGPE_2022_data[,c("size_tillers","flowering_tillers","spikelets_A","spikelets_B","spikelets_C")]<-NA
+## I am also unsure if we can trust that 2022 new plants have a 2022 birth year, so setting this to NA too
+AGPE_2022_data[which(AGPE_2022_data$birth_year==2022),"birth_year"]<-NA
 ELRI_2022_data <- read_xlsx("Dropbox/EndodemogData/Field Data/2022/LTREB_data_2022.xlsx", sheet = "ELRI")
 ELVI_2022_data <- read_xlsx("Dropbox/EndodemogData/Field Data/2022/LTREB_data_2022.xlsx", sheet = "ELVI")
 FESU_2022_data <- read_xlsx("Dropbox/EndodemogData/Field Data/2022/LTREB_data_2022.xlsx", sheet = "FESU")
@@ -2011,8 +2016,6 @@ LTREB_full <- LTREB_full_3 %>%
                             TRUE ~ dist_b.y)) %>% 
   dplyr::select(-duplicate, -origin_from_check, -origin_from_distance, -date_status, -date_dist, -contains(".x"), -contains(".y")) # I'm removing some of the extraneous variable. We also have distance data in the new field data that needs to be merged in.
 
-## Tom is loading this in, bypassing above code
-
 # LTREB_findtypo <- LTREB_full %>% 
 #   filter(species == "ELRI", plot_fixed == 109)
 
@@ -2028,7 +2031,27 @@ str(LTREB_full)
 LTREB_full %>% 
   select(species,plot_fixed,endo_01,pos,id,origin_01,dist_a,dist_b,birth,endo_status_from_check,
          year_t,size_t,FLW_COUNT_T,SPIKE_A_T,SPIKE_B_T,SPIKE_C_T,SPIKE_D_T,
-         year_t1,size_t1,FLW_COUNT_T1,SPIKE_A_T1,SPIKE_B_T1,SPIKE_C_T1,SPIKE_D_T1)->LTREB_pack
+         year_t1,surv_t1,size_t1,FLW_COUNT_T1,SPIKE_A_T1,SPIKE_B_T1,SPIKE_C_T1,SPIKE_D_T1)->LTREB_LDW
+
+## read in Poa autumnalis data from Texas
+## these data have been QA/QC'd and tidied elsewhere 
+## (see POAU_data_QAQC.R in lab drive)
+POAU<-read_csv("G:/Shared drives/Miller Lab/LTREB/POAU/poau_cleaned.csv")
+## line up variables and variable names with LDW data
+names(POAU)
+
+POAU %>% 
+  mutate(species=="POAU") %>% 
+  rename(plot_fixed=Plot,
+         endo_01=Endo,
+         pos=Pos,
+         )
+
+
+POAU
+
+
+
 
 write_csv(LTREB_pack,file = "C:/Users/tm9/Dropbox/github/LTREB-data-package/LWD_LTREB_20072022.csv")
 
