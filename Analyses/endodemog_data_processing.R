@@ -2029,29 +2029,33 @@ LTREB_full <- LTREB_full_3 %>%
 str(LTREB_full)
 ## for data package, reorder some variables
 LTREB_full %>% 
-  select(species,plot_fixed,endo_01,pos,id,origin_01,dist_a,dist_b,birth,endo_status_from_check,
+  select(species,plot_fixed,endo_01,id,origin_01,dist_a,dist_b,birth,endo_status_from_check,
          year_t,size_t,FLW_COUNT_T,SPIKE_A_T,SPIKE_B_T,SPIKE_C_T,SPIKE_D_T,
-         year_t1,surv_t1,size_t1,FLW_COUNT_T1,SPIKE_A_T1,SPIKE_B_T1,SPIKE_C_T1,SPIKE_D_T1)->LTREB_LDW
+         year_t1,surv_t1,size_t1,FLW_COUNT_T1,SPIKE_A_T1,SPIKE_B_T1,SPIKE_C_T1,SPIKE_D_T1) %>% 
+  rename(plot=plot_fixed,
+         flw_count_t=FLW_COUNT_T,
+         spike_a_t=SPIKE_A_T,
+         spike_b_t=SPIKE_B_T,
+         spike_c_t=SPIKE_C_T,
+         spike_d_t=SPIKE_D_T,
+         flw_count_t1=FLW_COUNT_T1,
+         spike_a_t1=SPIKE_A_T1,
+         spike_b_t1=SPIKE_B_T1,
+         spike_c_t1=SPIKE_C_T1,
+         spike_d_t1=SPIKE_D_T1)->LTREB_LDW
+
+write_csv(LTREB_LDW,file = "C:/Users/tm9/Dropbox/github/LTREB-data-package/LDW_LTREB_20072022.csv")
+
 
 ## read in Poa autumnalis data from Texas
 ## these data have been QA/QC'd and tidied elsewhere 
 ## (see POAU_data_QAQC.R in lab drive)
 POAU<-read_csv("G:/Shared drives/Miller Lab/LTREB/POAU/poau_cleaned.csv")
 ## line up variables and variable names with LDW data
-names(POAU)
-
 POAU %>% 
   mutate(species=="POAU") %>% 
   rename(plot_fixed=Plot,
          endo_01=Endo,
-         pos=Pos,
-         )
-
-
-POAU
-
-
-
-
-write_csv(LTREB_pack,file = "C:/Users/tm9/Dropbox/github/LTREB-data-package/LWD_LTREB_20072022.csv")
-
+         pos=Pos)
+## Actually there are some issues with the position numbers that I need to
+## sort out before I can merge this in. To be continued...
