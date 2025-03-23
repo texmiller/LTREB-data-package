@@ -1784,8 +1784,11 @@ AGPE_2022_data <- read_xlsx("Dropbox/EndodemogData/Field Data/2022/LTREB_data_20
 AGPE_2022_data[,c("size_tillers","flowering_tillers","spikelets_A","spikelets_B","spikelets_C")]<-NA
 ## I am also unsure if we can trust that 2022 new plants have a 2022 birth year, so setting this to NA too
 AGPE_2022_data[which(AGPE_2022_data$birth_year==2022),"birth_year"]<-NA
+##some missing id's in the raw data, will populate here -- I tried updating the raw data but it is still not being read properly
 ELRI_2022_data <- read_xlsx("Dropbox/EndodemogData/Field Data/2022/LTREB_data_2022.xlsx", sheet = "ELRI")
+ELRI_2022_data$id[is.na(ELRI_2022_data$id)]<-paste(ELRI_2022_data$plot[is.na(ELRI_2022_data$id)],ELRI_2022_data$pos[is.na(ELRI_2022_data$id)],sep="_")
 ELVI_2022_data <- read_xlsx("Dropbox/EndodemogData/Field Data/2022/LTREB_data_2022.xlsx", sheet = "ELVI")
+ELVI_2022_data$id[is.na(ELVI_2022_data$id)]<-paste(ELVI_2022_data$plot[is.na(ELVI_2022_data$id)],ELVI_2022_data$pos[is.na(ELVI_2022_data$id)],sep="_")
 FESU_2022_data <- read_xlsx("Dropbox/EndodemogData/Field Data/2022/LTREB_data_2022.xlsx", sheet = "FESU")
 POAL_2022_data <- read_xlsx("Dropbox/EndodemogData/Field Data/2022/LTREB_data_2022.xlsx", sheet = "POAL")
 POSY_2022_data <- read_xlsx("Dropbox/EndodemogData/Field Data/2022/LTREB_data_2022.xlsx", sheet = "POSY")
